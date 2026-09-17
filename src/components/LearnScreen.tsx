@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   ArrowRight, Lock, CheckCircle2, Info, Star, CircleDot,
-  Combine, Hash, Sigma, Lightbulb, type LucideIcon,
+  Combine, Hash, Sigma, Lightbulb, Eye, Hand, RotateCcw,
+  type LucideIcon,
 } from 'lucide-react';
 import { LEARN_MODULES } from '@/data';
 import { Soroban } from './Soroban';
@@ -18,14 +19,137 @@ interface LearnScreenProps {
   onXP: (amount: number) => void;
 }
 
+type LessonMode = 'watch' | 'try';
+
+/** عمود سوروبان تفاعلي واحد لوضع "جرّب" */
+function TryColumn({
+  target,
+  playSound,
+  onSolved,
+}: {
+  target: number;
+  playSound: (type: 'click' | 'success' | 'bead' | 'whoosh') => void;
+  onSolved: () => void;
+}) {
+  const [upper, setUpper] = useState(false);
+  const [lower, setLower] = useState(0);
+  const [solved, setSolved] = useState(false);
+
+  const currentValue = (upper ? 5 : 0) + lower;
+
+  useEffect(() => {
+    setUpper(false);
+    setLower(0);
+    setSolved(false);
+  }, [target]);
+
+  useEffect(() => {
+    if (currentValue === target && !solved) {
+      setSolved(true);
+      playSound('success');
+      onSolved();
+    }
+  }, [currentValue, target, solved, playSound, onSolved]);
+
+  const toggleUpper = () => {
+    if (solved) return;
+    setUpper((u) => !u);
+    playSound('bead');
+  };
+
+  const incrementLower = () => {
+    if (solved) return;
+    setLower((l) => (l >= 4 ? 0 : l + 1));
+    playSound('bead');
+  };
+
+  const reset = () => {
+    setUpper(false);
+    setLower(0);
+    setSolved(false);
+    playSound('whoosh');
+  };
+
+  return (
+    <div className="inline-flex flex-col items-center gap-3 p-5 glass rounded-3xl">
+      <div className="flex flex-col items-center gap-1">
+        {/* Upper deck */}
+        <div className="relative flex flex-col items-center w-9 sm:w-12 h-16 sm:h-20 justify-start">
+          <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-purple-400/40 via-electric-400/60 to-purple-400/40" />
+          <div className="absolute top-1 bottom-0 w-[3px] bg-gradient-to-b from-white/10 to-white/5 rounded-full" style={{ left: '50%', transform: 'translateX(-50%)' }} />
+          <motion.button
+            onClick={toggleUpper}
+            whileTap={{ scale: 0.85 }}
+            className="relative z-10 w-7 h-7 sm:w-9 sm:h-9 rounded-full bg-gradient-to-br from-gold-300 to-gold-500 border-[3px] border-white/60 shadow-xl cursor-pointer touch-manipulation"
+            style={{ boxShadow: upper ? '0 4px 14px rgba(251,191,36,0.55)' : '0 2px 6px rgba(251,191,36,0.25)' }}
+            animate={{ y: upper ? 16 : 0 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+            aria-label="خرزة علوية"
+          >
+            <div className="absolute inset-1 rounded-full bg-gradient-to-tr from-white/40 to-transparent" />
+          </motion.button>
+        </div>
+
+        <div className="w-8 sm:w-11 h-[3px] rounded-full bg-gradient-to-r from-purple-500 via-electric-500 to-purple-500 shadow-md shadow-purple-500/50" />
+
+        {/* Lower deck */}
+        <div className="relative flex flex-col-reverse items-center w-9 sm:w-12 h-32 sm:h-40 justify-start gap-1.5 sm:gap-2 pb-1">
+          <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-purple-400/40 via-electric-400/60 to-purple-400/40" />
+          <div className="absolute top-1 bottom-0 w-[3px] bg-gradient-to-b from-white/5 to-white/10 rounded-full" style={{ left: '50%', transform: 'translateX(-50%)' }} />
+          {[0, 1, 2, 3].map((i) => {
+            const isActive = i < lower;
+            return (
+              <motion.button
+                key={i}
+                onClick={incrementLower}
+                whileTap={{ scale: 0.85 }}
+                className="relative z-10 w-7 h-7 sm:w-9 sm:h-9 rounded-full bg-gradient-to-br from-electric-400 to-electric-600 border-[3px] border-white/60 shadow-xl cursor-pointer touch-manipulation"
+                style={{ boxShadow: isActive ? '0 4px 14px rgba(59,130,246,0.55)' : '0 2px 6px rgba(59,130,246,0.25)' }}
+                animate={{ y: isActive ? -18 : 0 }}
+                transition={{ type: 'spring', stiffness: 300, damping: 22 }}
+                aria-label={`خرزة سفلية ${i + 1}`}
+              >
+                <div className="absolute inset-1 rounded-full bg-gradient-to-tr from-white/40 to-transparent" />
+              </motion.button>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="flex items-center gap-3 mt-1">
+        <p className={`text-2xl font-extrabold font-display ${solved ? 'text-emerald2-300' : 'text-white/70'}`}>
+          {currentValue}
+        </p>
+        <button onClick={reset} className="btn-ghost !p-2" aria-label="تصفير">
+          <RotateCcw className="w-4 h-4" />
+        </button>
+      </div>
+
+      {solved && (
+        <motion.p
+          initial={{ opacity: 0, y: -8 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-emerald2-300 font-bold font-body text-sm flex items-center gap-1.5"
+        >
+          <CheckCircle2 className="w-4 h-4" /> أحسنت! وصلت للقيمة الصحيحة
+        </motion.p>
+      )}
+    </div>
+  );
+}
+
 export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
   const [selected, setSelected] = useState<LearnModule | null>(null);
   const [completed, setCompleted] = useState<number[]>([]);
+  const [mode, setMode] = useState<LessonMode>('watch');
+  const [triedSolved, setTriedSolved] = useState(false);
 
   const handleOpen = (mod: LearnModule) => {
     if (mod.status === 'locked') return;
     playSound('click');
     setSelected(mod);
+    setMode('watch');
+    setTriedSolved(false);
   };
 
   const handleComplete = () => {
@@ -36,6 +160,11 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
       onXP(30);
     }
     setSelected(null);
+  };
+
+  const switchMode = (m: LessonMode) => {
+    playSound('click');
+    setMode(m);
   };
 
   return (
@@ -121,24 +250,80 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
                 </button>
               </div>
 
-              <p className="text-white/60 font-body text-sm mb-5">{selected.descriptionAr}</p>
+              <p className="text-white/60 font-body text-sm mb-4">{selected.descriptionAr}</p>
+
+              {/* Mode toggle */}
+              <div className="flex gap-2 mb-5 p-1 rounded-2xl bg-white/5 border border-white/10">
+                <button
+                  onClick={() => switchMode('watch')}
+                  className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl font-bold font-body text-sm transition-all ${
+                    mode === 'watch'
+                      ? 'bg-gradient-to-br from-purple-500 to-electric-500 text-white shadow-lg'
+                      : 'text-white/50 hover:text-white/80'
+                  }`}
+                >
+                  <Eye className="w-4 h-4" /> شاهد
+                </button>
+                <button
+                  onClick={() => switchMode('try')}
+                  className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl font-bold font-body text-sm transition-all ${
+                    mode === 'try'
+                      ? 'bg-gradient-to-br from-purple-500 to-electric-500 text-white shadow-lg'
+                      : 'text-white/50 hover:text-white/80'
+                  }`}
+                >
+                  <Hand className="w-4 h-4" /> جرّب
+                </button>
+              </div>
 
               {/* Soroban Visual */}
               <div className="flex justify-center mb-5">
-                <Soroban value={selected.value} columns={1} showLabels />
+                <AnimatePresence mode="wait">
+                  {mode === 'watch' ? (
+                    <motion.div
+                      key="watch"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                    >
+                      <Soroban value={selected.value} columns={1} showLabels />
+                    </motion.div>
+                  ) : (
+                    <motion.div
+                      key="try"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                    >
+                      <TryColumn
+                        target={selected.value}
+                        playSound={playSound}
+                        onSolved={() => setTriedSolved(true)}
+                      />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
 
-              {/* Value display */}
-              <div className="text-center mb-5">
-                <p className="text-white/40 font-body text-xs mb-1">القيمة</p>
-                <motion.p
-                  initial={{ scale: 0.5 }}
-                  animate={{ scale: 1 }}
-                  className="text-5xl font-extrabold font-display shimmer-text"
-                >
-                  {selected.value}
-                </motion.p>
-              </div>
+              {mode === 'try' && !triedSolved && (
+                <p className="text-center text-xs text-white/40 font-body mb-5">
+                  حرّك الخرزات حتى تصل إلى القيمة {selected.value}
+                </p>
+              )}
+
+              {/* Value display (only in watch mode, since try mode shows its own live value) */}
+              {mode === 'watch' && (
+                <div className="text-center mb-5">
+                  <p className="text-white/40 font-body text-xs mb-1">القيمة</p>
+                  <motion.p
+                    initial={{ scale: 0.5 }}
+                    animate={{ scale: 1 }}
+                    className="text-5xl font-extrabold font-display shimmer-text"
+                  >
+                    {selected.value}
+                  </motion.p>
+                </div>
+              )}
 
               {/* Concept */}
               <div className="flex gap-3 p-4 rounded-2xl bg-purple-500/10 border border-purple-400/20 mb-5">
