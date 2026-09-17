@@ -1,9 +1,10 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import type { Role, Screen } from './types';
 import { useGameStats } from './hooks/useGameStats';
 import { useSound } from './hooks/useSound';
 import { useConfetti } from './hooks/useConfetti';
+import { BADGES } from './data';
 import { Header } from './components/Header';
 import { RoleSelection } from './components/RoleSelection';
 import { HeroDashboard } from './components/HeroDashboard';
@@ -13,14 +14,25 @@ import { AnzanScreen } from './components/AnzanScreen';
 import { QuestsScreen } from './components/QuestsScreen';
 import { GuardianDashboard } from './components/GuardianDashboard';
 import { InteractiveSoroban } from './components/InteractiveSoroban';
+import { BadgeModal } from './components/BadgeModal';
 
 function App() {
   const [role, setRole] = useState<Role>(null);
   const [screen, setScreen] = useState<Screen>('role');
 
-  const { stats, addXP, toggleSound, incrementStreak } = useGameStats();
+  const { stats, addXP, toggleSound, incrementStreak, newBadge, clearNewBadge } = useGameStats();
   const playSound = useSound(stats.soundEnabled);
   const { burst, celebrate } = useConfetti();
+
+  // عند ظهور شارة جديدة: صوت + confetti تلقائياً من أي شاشة كانت
+  useEffect(() => {
+    if (newBadge) {
+      playSound('levelup');
+      celebrate();
+    }
+  }, [newBadge, playSound, celebrate]);
+
+  const activeBadge = newBadge ? BADGES.find((b) => b.id === newBadge) || null : null;
 
   const handleRoleSelect = useCallback((r: Role) => {
     setRole(r);
@@ -89,6 +101,7 @@ function App() {
               playSound={playSound}
               xp={stats.xp}
               streak={stats.streak}
+              earnedBadges={stats.earnedBadges}
             />
           )}
 
@@ -146,6 +159,8 @@ function App() {
           )}
         </motion.main>
       </AnimatePresence>
+
+      <BadgeModal badge={activeBadge} onClose={clearNewBadge} />
     </div>
   );
 }
