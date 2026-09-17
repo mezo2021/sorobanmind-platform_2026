@@ -2,9 +2,10 @@ import { motion } from 'framer-motion';
 import {
   BookOpen, Dumbbell, Eye, Swords, Calculator,
   Lock, CheckCircle2, Circle, ArrowLeft,
+  Star, Award, Crown, Lock as LockBadge,
   type LucideIcon,
 } from 'lucide-react';
-import { LEVELS, QUESTS } from '@/data';
+import { LEVELS, QUESTS, BADGES } from '@/data';
 import type { Screen, LevelNode } from '@/types';
 
 interface HeroDashboardProps {
@@ -12,6 +13,7 @@ interface HeroDashboardProps {
   playSound: (type: 'click' | 'whoosh') => void;
   xp: number;
   streak: number;
+  earnedBadges: string[];
 }
 
 const ACTION_CARDS: {
@@ -70,6 +72,20 @@ const ACTION_CARDS: {
   },
 ];
 
+const BADGE_ICONS: Record<string, LucideIcon> = {
+  Star,
+  Eye,
+  Award,
+  Crown,
+};
+
+const BADGE_GRADIENTS: Record<string, string> = {
+  beginner: 'from-emerald2-400 to-emerald2-600',
+  'anzan-master': 'from-electric-400 to-electric-600',
+  'soroban-expert': 'from-purple-400 to-purple-600',
+  legend: 'from-gold-400 to-gold-600',
+};
+
 function LevelNodeButton({ level, index, onClick, playSound }: {
   level: LevelNode;
   index: number;
@@ -124,11 +140,20 @@ function LevelNodeButton({ level, index, onClick, playSound }: {
   );
 }
 
-export function HeroDashboard({ onNavigate, playSound, xp, streak }: HeroDashboardProps) {
+export function HeroDashboard({ onNavigate, playSound, xp, streak, earnedBadges }: HeroDashboardProps) {
   const handleNav = (screen: Screen) => {
     playSound('click');
     onNavigate(screen);
   };
+
+  const nextBadge = BADGES.find((b) => !earnedBadges.includes(b.id));
+  const prevThreshold = (() => {
+    const idx = nextBadge ? BADGES.findIndex((b) => b.id === nextBadge.id) : -1;
+    return idx > 0 ? BADGES[idx - 1].xpRequired : 0;
+  })();
+  const progressPct = nextBadge
+    ? Math.min(100, Math.max(0, ((xp - prevThreshold) / (nextBadge.xpRequired - prevThreshold)) * 100))
+    : 100;
 
   return (
     <div className="px-3 sm:px-6 py-6 max-w-6xl mx-auto">
@@ -160,6 +185,84 @@ export function HeroDashboard({ onNavigate, playSound, xp, streak }: HeroDashboa
             </div>
           </div>
         </div>
+      </motion.div>
+
+      {/* Badges Section */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+        className="glass-card p-5 sm:p-6 mb-6"
+      >
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-xl font-extrabold font-display text-white">
+            الشارات
+          </h3>
+          <span className="badge bg-gold-400/15 border-gold-400/20 text-gold-200 text-xs">
+            {earnedBadges.length}/{BADGES.length}
+          </span>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
+          {BADGES.map((badge, i) => {
+            const isEarned = earnedBadges.includes(badge.id);
+            const Icon = BADGE_ICONS[badge.icon] || Star;
+            const gradient = BADGE_GRADIENTS[badge.id] || 'from-purple-400 to-electric-500';
+            return (
+              <motion.div
+                key={badge.id}
+                initial={{ opacity: 0, scale: 0.7 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: i * 0.08 }}
+                className={`flex flex-col items-center gap-2 p-3 rounded-2xl border ${
+                  isEarned ? 'bg-white/5 border-white/10' : 'bg-white/[0.02] border-white/5'
+                }`}
+              >
+                <div
+                  className={`relative w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg ${
+                    isEarned ? `bg-gradient-to-br ${gradient}` : 'bg-white/5'
+                  }`}
+                >
+                  {isEarned ? (
+                    <Icon className="w-7 h-7 text-white" />
+                  ) : (
+                    <LockBadge className="w-6 h-6 text-white/25" />
+                  )}
+                </div>
+                <p className={`text-xs font-bold font-body text-center ${isEarned ? 'text-white/80' : 'text-white/30'}`}>
+                  {badge.nameAr}
+                </p>
+                <p className="text-[10px] text-white/40 font-body">{badge.xpRequired} XP</p>
+              </motion.div>
+            );
+          })}
+        </div>
+
+        {/* Progress to next badge */}
+        {nextBadge ? (
+          <div>
+            <div className="flex items-center justify-between mb-1.5">
+              <p className="text-xs text-white/50 font-body">
+                المسافة نحو شارة "{nextBadge.nameAr}"
+              </p>
+              <p className="text-xs text-white/50 font-body">
+                {xp}/{nextBadge.xpRequired} XP
+              </p>
+            </div>
+            <div className="h-3 rounded-full bg-white/10 overflow-hidden">
+              <motion.div
+                className={`h-full rounded-full bg-gradient-to-r ${BADGE_GRADIENTS[nextBadge.id] || 'from-purple-400 to-electric-500'}`}
+                initial={{ width: 0 }}
+                animate={{ width: `${progressPct}%` }}
+                transition={{ duration: 0.8, ease: 'easeOut' }}
+              />
+            </div>
+          </div>
+        ) : (
+          <p className="text-center text-sm text-gold-300 font-body font-bold">
+            🏆 حصلت على جميع الشارات! أنت أسطورة حقيقية
+          </p>
+        )}
       </motion.div>
 
       {/* Quick Action Cards */}
