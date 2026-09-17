@@ -7,6 +7,7 @@ export type Screen =
   | 'practice'
   | 'anzan'
   | 'quests'
+  | 'soroban'
   | 'guardian-dashboard';
 
 export type LearnModuleStatus = 'locked' | 'available' | 'completed';

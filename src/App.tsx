@@ -12,6 +12,7 @@ import { PracticeScreen } from './components/PracticeScreen';
 import { AnzanScreen } from './components/AnzanScreen';
 import { QuestsScreen } from './components/QuestsScreen';
 import { GuardianDashboard } from './components/GuardianDashboard';
+import { InteractiveSoroban } from './components/InteractiveSoroban';
 
 function App() {
   const [role, setRole] = useState<Role>(null);
@@ -123,6 +124,14 @@ function App() {
               playSound={playSound}
               onXP={addXP}
               burst={burst}
+            />
+          )}
+
+          {screen === 'soroban' && (
+            <InteractiveSoroban
+              onBack={() => handleNavigate('hero-dashboard')}
+              playSound={playSound}
+              onXP={addXP}
             />
           )}
 

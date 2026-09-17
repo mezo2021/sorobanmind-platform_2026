@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import {
-  BookOpen, Dumbbell, Eye, Swords,
+  BookOpen, Dumbbell, Eye, Swords, Calculator,
   Lock, CheckCircle2, Circle, ArrowLeft,
   type LucideIcon,
 } from 'lucide-react';
@@ -58,6 +58,15 @@ const ACTION_CARDS: {
     icon: Swords,
     gradient: 'from-gold-400 to-gold-600',
     glow: 'shadow-gold-500/40',
+  },
+  {
+    screen: 'soroban',
+    title: 'السوروبان',
+    titleEn: 'Interactive Soroban',
+    desc: 'العب بالعداد الياباني تفاعلياً',
+    icon: Calculator,
+    gradient: 'from-pink-500 to-purple-700',
+    glow: 'shadow-pink-500/40',
   },
 ];
 
@@ -154,7 +163,7 @@ export function HeroDashboard({ onNavigate, playSound, xp, streak }: HeroDashboa
       </motion.div>
 
       {/* Quick Action Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5 mb-8">
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-5 mb-8">
         {ACTION_CARDS.map((card, i) => {
           const Icon = card.icon;
           return (
