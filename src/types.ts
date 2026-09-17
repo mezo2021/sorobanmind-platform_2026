@@ -54,11 +54,19 @@ export interface PracticeQuestion {
   choices: number[];
 }
 
+export interface Badge {
+  id: string;
+  nameAr: string;
+  xpRequired: number;
+  icon: string;
+}
+
 export interface GameStats {
   xp: number;
   streak: number;
   level: number;
   soundEnabled: boolean;
+  earnedBadges: string[];
 }
 
 export interface ProgressData {
