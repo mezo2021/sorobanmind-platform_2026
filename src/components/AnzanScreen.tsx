@@ -1,7 +1,6 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowRight, Eye, Play, Zap, Trophy, RotateCcw } from 'lucide-react';
-import { ANZAN_SEQUENCE } from '@/data';
+import { ArrowRight, Eye, Play, Zap, Trophy, RotateCcw, Settings2 } from 'lucide-react';
 
 interface AnzanScreenProps {
   onBack: () => void;
@@ -11,6 +10,23 @@ interface AnzanScreenProps {
 }
 
 type Phase = 'idle' | 'flashing' | 'answer' | 'result';
+type Speed = 'slow' | 'medium' | 'fast';
+
+const SPEED_MS: Record<Speed, number> = {
+  slow: 1400,
+  medium: 900,
+  fast: 550,
+};
+
+const SPEED_LABELS: Record<Speed, string> = {
+  slow: 'بطيء',
+  medium: 'متوسط',
+  fast: 'سريع',
+};
+
+function generateSequence(count: number): number[] {
+  return Array.from({ length: count }, () => Math.floor(Math.random() * 9) + 1);
+}
 
 export function AnzanScreen({ onBack, playSound, onXP, burst }: AnzanScreenProps) {
   const [phase, setPhase] = useState<Phase>('idle');
@@ -20,27 +36,35 @@ export function AnzanScreen({ onBack, playSound, onXP, burst }: AnzanScreenProps
   const [score, setScore] = useState(0);
   const [round, setRound] = useState(0);
 
-  const total = ANZAN_SEQUENCE.reduce((a, b) => a + b, 0);
+  const [numCount, setNumCount] = useState(3);
+  const [speed, setSpeed] = useState<Speed>('medium');
+  const [showSettings, setShowSettings] = useState(false);
+
+  const [sequence, setSequence] = useState<number[]>(() => generateSequence(3));
+
+  const total = useMemo(() => sequence.reduce((a, b) => a + b, 0), [sequence]);
+  const flashDuration = SPEED_MS[speed];
 
   const startGame = useCallback(() => {
+    setSequence(generateSequence(numCount));
     setPhase('flashing');
     setFlashIndex(-1);
     setUserAnswer('');
     playSound('click');
-  }, [playSound]);
+  }, [playSound, numCount]);
 
   useEffect(() => {
     if (phase !== 'flashing') return;
-    if (flashIndex >= ANZAN_SEQUENCE.length) {
+    if (flashIndex >= sequence.length) {
       setPhase('answer');
       return;
     }
     const timer = setTimeout(() => {
       if (flashIndex >= 0) playSound('bead');
       setFlashIndex((prev) => prev + 1);
-    }, flashIndex === -1 ? 600 : 900);
+    }, flashIndex === -1 ? 600 : flashDuration);
     return () => clearTimeout(timer);
-  }, [phase, flashIndex, playSound]);
+  }, [phase, flashIndex, playSound, sequence, flashDuration]);
 
   const submitAnswer = () => {
     const answer = parseInt(userAnswer, 10);
@@ -62,7 +86,7 @@ export function AnzanScreen({ onBack, playSound, onXP, burst }: AnzanScreenProps
     startGame();
   };
 
-  const currentNumber = flashIndex >= 0 && flashIndex < ANZAN_SEQUENCE.length ? ANZAN_SEQUENCE[flashIndex] : null;
+  const currentNumber = flashIndex >= 0 && flashIndex < sequence.length ? sequence[flashIndex] : null;
 
   return (
     <div className="px-3 sm:px-6 py-6 max-w-2xl mx-auto">
@@ -70,10 +94,19 @@ export function AnzanScreen({ onBack, playSound, onXP, burst }: AnzanScreenProps
         <button onClick={() => { playSound('click'); onBack(); }} className="btn-ghost !px-3 !py-2">
           <ArrowRight className="w-5 h-5" />
         </button>
-        <div>
+        <div className="flex-1">
           <h2 className="text-2xl sm:text-3xl font-extrabold font-display text-white">التصور الذهني</h2>
           <p className="text-sm text-white/50 font-body">شاهد الأرقام تومض وجمعها بذهنك</p>
         </div>
+        {phase === 'idle' && (
+          <button
+            onClick={() => { playSound('click'); setShowSettings((s) => !s); }}
+            className="btn-ghost !px-3 !py-2"
+            aria-label="إعدادات التحدي"
+          >
+            <Settings2 className="w-5 h-5" />
+          </button>
+        )}
       </div>
 
       {/* Score */}
@@ -87,6 +120,55 @@ export function AnzanScreen({ onBack, playSound, onXP, burst }: AnzanScreenProps
           <span className="text-gold-200 text-sm">نقاط: {score}</span>
         </div>
       </div>
+
+      {/* Settings panel */}
+      <AnimatePresence>
+        {showSettings && phase === 'idle' && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="glass-card p-4 sm:p-5 mb-4 overflow-hidden"
+          >
+            <div className="mb-4">
+              <p className="text-sm text-white/60 font-body mb-2">عدد الأرقام: <span className="text-white font-bold">{numCount}</span></p>
+              <div className="flex gap-2">
+                {[3, 4, 5].map((n) => (
+                  <button
+                    key={n}
+                    onClick={() => { playSound('click'); setNumCount(n); }}
+                    className={`flex-1 py-2 rounded-xl font-bold font-body transition-all ${
+                      numCount === n
+                        ? 'bg-gradient-to-br from-emerald2-500 to-electric-500 text-white shadow-lg'
+                        : 'bg-white/10 text-white/60 hover:bg-white/15'
+                    }`}
+                  >
+                    {n}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div>
+              <p className="text-sm text-white/60 font-body mb-2">سرعة العرض</p>
+              <div className="flex gap-2">
+                {(['slow', 'medium', 'fast'] as Speed[]).map((s) => (
+                  <button
+                    key={s}
+                    onClick={() => { playSound('click'); setSpeed(s); }}
+                    className={`flex-1 py-2 rounded-xl font-bold font-body transition-all ${
+                      speed === s
+                        ? 'bg-gradient-to-br from-emerald2-500 to-electric-500 text-white shadow-lg'
+                        : 'bg-white/10 text-white/60 hover:bg-white/15'
+                    }`}
+                  >
+                    {SPEED_LABELS[s]}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Game area */}
       <div className="glass-card p-6 sm:p-10 min-h-[320px] flex flex-col items-center justify-center relative overflow-hidden">
@@ -110,7 +192,7 @@ export function AnzanScreen({ onBack, playSound, onXP, burst }: AnzanScreenProps
                 <Eye className="w-10 h-10 text-white" />
               </motion.div>
               <p className="text-white/60 font-body mb-5 max-w-sm mx-auto">
-                ستظهر أرقام بسرعة على الشاشة. اجمعها بذهنك باستخدام تخيل السوروبان، ثم اكتب الإجابة!
+                ستظهر {numCount} أرقام بسرعة {SPEED_LABELS[speed]}ة على الشاشة. اجمعها بذهنك باستخدام تخيل السوروبان، ثم اكتب الإجابة!
               </p>
               <button onClick={startGame} className="btn-primary">
                 <Play className="w-5 h-5" /> ابدأ التحدي
@@ -144,7 +226,7 @@ export function AnzanScreen({ onBack, playSound, onXP, burst }: AnzanScreenProps
                 </motion.p>
               )}
               <div className="flex gap-1.5 mt-6">
-                {ANZAN_SEQUENCE.map((_, i) => (
+                {sequence.map((_, i) => (
                   <div
                     key={i}
                     className={`w-2 h-2 rounded-full transition-all ${i < flashIndex ? 'bg-emerald2-400' : i === flashIndex ? 'bg-white scale-150' : 'bg-white/15'}`}
@@ -168,13 +250,13 @@ export function AnzanScreen({ onBack, playSound, onXP, burst }: AnzanScreenProps
                 autoFocus
                 value={userAnswer}
                 onChange={(e) => setUserAnswer(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && submitAnswer()}
+                onKeyDown={(e) => e.key === 'Enter' && userAnswer && submitAnswer()}
                 className="w-48 text-5xl font-extrabold font-display text-center bg-white/10 border-2 border-purple-400/30 rounded-2xl py-4 text-white focus:outline-none focus:border-purple-400/60 transition-colors mb-5"
                 placeholder="؟"
               />
               <br />
               <button onClick={submitAnswer} disabled={!userAnswer} className="btn-primary disabled:opacity-40">
-                تأكيد الإجابة
+                تحقق
               </button>
             </motion.div>
           )}
