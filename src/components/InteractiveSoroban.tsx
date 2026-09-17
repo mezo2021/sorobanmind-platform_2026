@@ -775,18 +775,18 @@ export function InteractiveSoroban({
                     onClick={() => toggleUpper(rodIndex)}
                     whileTap={{ scale: 0.85 }}
                     animate={{
-                      y: rod.upper ? [0, 28] : [28, 0],
+                      y: rod.upper ? [0, 32] : [32, 0],
                     }}
                     transition={{
                       type: 'spring',
                       stiffness: 400,
                       damping: 25,
                     }}
-                    className="relative z-10 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-gold-300 to-gold-500 border-2 border-gold-200/50 shadow-lg cursor-pointer touch-manipulation"
+                    className="relative z-10 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-gold-300 to-gold-500 border-[3px] border-white/60 shadow-xl cursor-pointer touch-manipulation"
                     style={{
                       boxShadow: rod.upper
-                        ? '0 4px 12px rgba(251,191,36,0.4)'
-                        : '0 2px 6px rgba(251,191,36,0.2)',
+                        ? '0 4px 14px rgba(251,191,36,0.55)'
+                        : '0 2px 6px rgba(251,191,36,0.25)',
                     }}
                     aria-label={`خرزة علوية - قضيب ${rodIndex + 1}`}
                   >
@@ -798,7 +798,7 @@ export function InteractiveSoroban({
                 <div className="w-9 sm:w-13 h-[4px] sm:h-[5px] rounded-full bg-gradient-to-r from-purple-500 via-electric-500 to-purple-500 shadow-md shadow-purple-500/50 my-0.5" />
 
                 {/* Lower deck */}
-                <div className="relative w-10 sm:w-14 h-28 sm:h-36 flex flex-col-reverse items-center justify-start pb-1 gap-0.5">
+                <div className="relative w-10 sm:w-14 h-32 sm:h-40 flex flex-col-reverse items-center justify-start pb-1 gap-1.5 sm:gap-2">
                   <div
                     className="absolute top-0 bottom-0 w-[3px] bg-gradient-to-b from-amber-700/20 to-amber-600/30 rounded-full"
                     style={{
@@ -816,18 +816,18 @@ export function InteractiveSoroban({
                         onClick={() => incrementLower(rodIndex)}
                         whileTap={{ scale: 0.85 }}
                         animate={{
-                          y: isActive ? [0, -28] : [-28, 0],
+                          y: isActive ? [0, -34] : [-34, 0],
                         }}
                         transition={{
                           type: 'spring',
                           stiffness: 400,
                           damping: 25,
                         }}
-                        className="relative z-10 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-electric-400 to-electric-600 border-2 border-electric-300/50 shadow-lg cursor-pointer touch-manipulation"
+                        className="relative z-10 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-electric-400 to-electric-600 border-[3px] border-white/60 shadow-xl cursor-pointer touch-manipulation"
                         style={{
                           boxShadow: isActive
-                            ? '0 4px 12px rgba(59,130,246,0.4)'
-                            : '0 2px 6px rgba(59,130,246,0.2)',
+                            ? '0 4px 14px rgba(59,130,246,0.55)'
+                            : '0 2px 6px rgba(59,130,246,0.25)',
                         }}
                         aria-label={`خرزة سفلية ${beadIdx + 1} - قضيب ${rodIndex + 1}`}
                       >
@@ -905,4 +905,3 @@ export function InteractiveSoroban({
     </div>
   );
 }
-
