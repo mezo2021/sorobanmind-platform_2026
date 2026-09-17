@@ -1,0 +1,283 @@
+import { motion } from 'framer-motion';
+import {
+  BookOpen, Dumbbell, Eye, Swords,
+  Lock, CheckCircle2, Circle, ArrowLeft,
+  type LucideIcon,
+} from 'lucide-react';
+import { LEVELS, QUESTS } from '@/data';
+import type { Screen, LevelNode } from '@/types';
+
+interface HeroDashboardProps {
+  onNavigate: (screen: Screen) => void;
+  playSound: (type: 'click' | 'whoosh') => void;
+  xp: number;
+  streak: number;
+}
+
+const ACTION_CARDS: {
+  screen: Screen;
+  title: string;
+  titleEn: string;
+  desc: string;
+  icon: LucideIcon;
+  gradient: string;
+  glow: string;
+}[] = [
+  {
+    screen: 'learn',
+    title: 'التعلّم',
+    titleEn: 'Learn',
+    desc: 'تعرّف على السوروبان وخرزاته',
+    icon: BookOpen,
+    gradient: 'from-purple-500 to-purple-700',
+    glow: 'shadow-purple-500/40',
+  },
+  {
+    screen: 'practice',
+    title: 'التدريب',
+    titleEn: 'Practice',
+    desc: 'تمارين تفاعلية لزيادة المهارة',
+    icon: Dumbbell,
+    gradient: 'from-electric-500 to-electric-700',
+    glow: 'shadow-electric-500/40',
+  },
+  {
+    screen: 'anzan',
+    title: 'التصور الذهني',
+    titleEn: 'Anzan Flash',
+    desc: 'أرقام تومض بسرعة وحلّها بذهنك',
+    icon: Eye,
+    gradient: 'from-emerald2-500 to-emerald2-700',
+    glow: 'shadow-emerald2-500/40',
+  },
+  {
+    screen: 'quests',
+    title: 'المغامرات',
+    titleEn: 'Quests',
+    desc: 'تحديات يومية ومكافآت ممتعة',
+    icon: Swords,
+    gradient: 'from-gold-400 to-gold-600',
+    glow: 'shadow-gold-500/40',
+  },
+];
+
+function LevelNodeButton({ level, index, onClick, playSound }: {
+  level: LevelNode;
+  index: number;
+  onClick: () => void;
+  playSound: (type: 'click' | 'whoosh') => void;
+}) {
+  const isOdd = index % 2 === 1;
+  const Icon = level.status === 'locked' ? Lock : level.status === 'completed' ? CheckCircle2 : Circle;
+  const statusColor =
+    level.status === 'completed' ? 'from-emerald2-400 to-emerald2-600' :
+    level.status === 'available' ? 'from-purple-400 to-electric-500' :
+    'from-gray-600 to-gray-800';
+
+  return (
+    <motion.button
+      initial={{ opacity: 0, scale: 0.5 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ delay: index * 0.08, type: 'spring', stiffness: 200, damping: 15 }}
+      whileHover={level.status !== 'locked' ? { scale: 1.1, y: -3 } : {}}
+      whileTap={level.status !== 'locked' ? { scale: 0.95 } : {}}
+      onClick={() => {
+        if (level.status !== 'locked') {
+          playSound('click');
+          onClick();
+        }
+      }}
+      disabled={level.status === 'locked'}
+      className={`relative flex flex-col items-center gap-2 ${isOdd ? 'mt-12' : ''}`}
+    >
+      {level.status === 'available' && (
+        <motion.div
+          className="absolute -inset-1 rounded-2xl bg-purple-500/30"
+          animate={{ scale: [1, 1.15, 1], opacity: [0.5, 0.2, 0.5] }}
+          transition={{ duration: 2, repeat: Infinity }}
+        />
+      )}
+      <div className={`relative w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br ${statusColor} flex items-center justify-center shadow-xl ${level.status === 'available' ? 'shadow-purple-500/50' : ''}`}>
+        <Icon className="w-7 h-7 sm:w-8 sm:h-8 text-white" />
+        <span className="absolute -top-1.5 -right-1.5 w-6 h-6 rounded-full bg-gold-400 text-gold-900 text-xs font-extrabold flex items-center justify-center shadow-lg">
+          {level.id}
+        </span>
+      </div>
+      <div className="text-center max-w-[90px]">
+        <p className={`text-xs sm:text-sm font-bold font-body ${level.status === 'locked' ? 'text-white/30' : 'text-white/80'}`}>
+          {level.nameAr}
+        </p>
+        {level.status === 'available' && (
+          <p className="text-[10px] text-purple-300 font-body mt-0.5">{level.xpRequired} XP</p>
+        )}
+      </div>
+    </motion.button>
+  );
+}
+
+export function HeroDashboard({ onNavigate, playSound, xp, streak }: HeroDashboardProps) {
+  const handleNav = (screen: Screen) => {
+    playSound('click');
+    onNavigate(screen);
+  };
+
+  return (
+    <div className="px-3 sm:px-6 py-6 max-w-6xl mx-auto">
+      {/* Welcome banner */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="glass-card p-5 sm:p-6 mb-6 overflow-hidden relative"
+      >
+        <div className="absolute top-0 right-0 w-48 h-48 bg-purple-500/10 rounded-full blur-3xl" />
+        <div className="absolute bottom-0 left-0 w-40 h-40 bg-electric-500/10 rounded-full blur-3xl" />
+        <div className="relative flex items-center justify-between flex-wrap gap-3">
+          <div>
+            <h2 className="text-2xl sm:text-3xl font-extrabold font-display text-white mb-1">
+              مرحباً أيها البطل!
+            </h2>
+            <p className="text-white/60 font-body text-sm">
+              واصل رحلتك في إتقان الحساب الذهني بالسوروبان
+            </p>
+          </div>
+          <div className="flex gap-3">
+            <div className="text-center px-4 py-2 rounded-2xl bg-purple-500/15 border border-purple-400/20">
+              <p className="text-2xl font-extrabold text-purple-300 font-display">{xp}</p>
+              <p className="text-[10px] text-white/50 font-body">نقطة خبرة</p>
+            </div>
+            <div className="text-center px-4 py-2 rounded-2xl bg-orange-500/15 border border-orange-400/20">
+              <p className="text-2xl font-extrabold text-orange-300 font-display">{streak}</p>
+              <p className="text-[10px] text-white/50 font-body">أيام متتالية</p>
+            </div>
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Quick Action Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5 mb-8">
+        {ACTION_CARDS.map((card, i) => {
+          const Icon = card.icon;
+          return (
+            <motion.button
+              key={card.screen}
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.08, type: 'spring', stiffness: 200, damping: 20 }}
+              whileHover={{ scale: 1.05, y: -5 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => handleNav(card.screen)}
+              className="group relative glass-card p-4 sm:p-6 text-center overflow-hidden"
+            >
+              <div className={`absolute inset-0 bg-gradient-to-br ${card.gradient} opacity-0 group-hover:opacity-15 transition-opacity duration-500`} />
+              <div className={`relative inline-flex w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br ${card.gradient} items-center justify-center shadow-xl ${card.glow} mb-3`}>
+                <Icon className="w-7 h-7 sm:w-8 sm:h-8 text-white" />
+                <motion.div
+                  className="absolute inset-0 rounded-2xl border-2 border-white/30"
+                  initial={{ scale: 1, opacity: 0 }}
+                  whileHover={{ scale: 1.3, opacity: [0, 1, 0] }}
+                  transition={{ duration: 0.6 }}
+                />
+              </div>
+              <h3 className="text-base sm:text-lg font-extrabold font-display text-white mb-0.5">
+                {card.title}
+              </h3>
+              <p className="text-[10px] sm:text-xs text-white/40 font-body mb-1.5">
+                {card.titleEn}
+              </p>
+              <p className="text-xs text-white/60 font-body leading-snug">
+                {card.desc}
+              </p>
+            </motion.button>
+          );
+        })}
+      </div>
+
+      {/* Level Roadmap */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3 }}
+        className="glass-card p-5 sm:p-6 mb-6"
+      >
+        <div className="flex items-center justify-between mb-5">
+          <h3 className="text-xl font-extrabold font-display text-white">
+            خارطة المستويات
+          </h3>
+          <span className="badge bg-purple-500/15 border-purple-400/20 text-purple-300 text-xs">
+            {LEVELS.filter(l => l.status === 'completed').length}/{LEVELS.length} مكتمل
+          </span>
+        </div>
+
+        {/* Path */}
+        <div className="relative overflow-x-auto scrollbar-hide pb-4">
+          <div className="flex items-start gap-3 sm:gap-5 min-w-max pr-2 pl-8">
+            {/* Dotted path */}
+            <div className="absolute top-8 right-0 left-0 h-1 bg-gradient-to-r from-purple-500/30 via-electric-500/30 to-white/5 rounded-full" />
+            {LEVELS.map((level, i) => (
+              <LevelNodeButton
+                key={level.id}
+                level={level}
+                index={i}
+                onClick={() => onNavigate('learn')}
+                playSound={playSound}
+              />
+            ))}
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Active Quests Preview */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.4 }}
+        className="glass-card p-5 sm:p-6"
+      >
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-xl font-extrabold font-display text-white">
+            المغامرات النشطة
+          </h3>
+          <button
+            onClick={() => handleNav('quests')}
+            className="flex items-center gap-1 text-sm text-purple-300 font-body hover:text-purple-200 transition-colors"
+          >
+            عرض الكل
+            <ArrowLeft className="w-4 h-4" />
+          </button>
+        </div>
+        <div className="space-y-3">
+          {QUESTS.slice(0, 2).map((quest, i) => {
+            const pct = Math.min(100, (quest.progress / quest.target) * 100);
+            return (
+              <motion.div
+                key={quest.id}
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.5 + i * 0.1 }}
+                className="p-4 rounded-2xl bg-white/5 border border-white/10"
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <p className="font-bold text-white font-body text-sm">{quest.titleAr}</p>
+                  <span className="text-xs font-bold text-gold-300">+{quest.xpReward} XP</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="flex-1 h-2.5 rounded-full bg-white/10 overflow-hidden">
+                    <motion.div
+                      className={`h-full rounded-full bg-gradient-to-r ${quest.color}`}
+                      initial={{ width: 0 }}
+                      animate={{ width: `${pct}%` }}
+                      transition={{ delay: 0.7 + i * 0.1, duration: 0.8, ease: 'easeOut' }}
+                    />
+                  </div>
+                  <span className="text-xs text-white/50 font-body whitespace-nowrap">
+                    {quest.progress}/{quest.target}
+                  </span>
+                </div>
+              </motion.div>
+            );
+          })}
+        </div>
+      </motion.div>
+    </div>
+  );
+}
