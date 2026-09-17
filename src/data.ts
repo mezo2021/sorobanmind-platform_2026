@@ -1,4 +1,4 @@
-import type { LearnModule, LevelNode, Quest, ProgressData, PracticeQuestion } from './types';
+import type { LearnModule, LevelNode, Quest, ProgressData, PracticeQuestion, Badge } from './types';
 
 export const LEVELS: LevelNode[] = [
   { id: 1, name: 'Bead Basics', nameAr: 'الخرزات الأساسية', status: 'completed', icon: 'Circle', xpRequired: 0 },
@@ -173,4 +173,9 @@ export const PROGRESS_DATA: ProgressData = {
   ],
 };
 
-export const ANZAN_SEQUENCE = [3, 4, 2, 5, 1, 4, 3, 2, 5, 1];
+export const BADGES: Badge[] = [
+  { id: 'beginner', nameAr: 'مبتدئ', xpRequired: 50, icon: 'Star' },
+  { id: 'anzan-master', nameAr: 'سيد الأنزان', xpRequired: 100, icon: 'Eye' },
+  { id: 'soroban-expert', nameAr: 'خبير السوروبان', xpRequired: 200, icon: 'Award' },
+  { id: 'legend', nameAr: 'أسطورة', xpRequired: 500, icon: 'Crown' },
+];
