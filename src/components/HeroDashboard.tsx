@@ -6,10 +6,11 @@ import {
   Star, Award, Crown, Lock as LockBadge, X, Palette, Trash2,
   type LucideIcon,
 } from 'lucide-react';
-import { LEVELS, QUESTS, BADGES } from '@/data';
+import { LEVELS, BADGES } from '@/data';
 import type { Screen, LevelNode } from '@/types';
 import { Companion, type CharacterType } from './Companion';
 import { CharacterSelector } from './CharacterSelector';
+import { useQuests } from '@/hooks/useQuests';
 
 interface HeroDashboardProps {
   onNavigate: (screen: Screen) => void;
@@ -156,6 +157,9 @@ export function HeroDashboard({ onNavigate, playSound, xp, streak, earnedBadges 
   const [childName, setChildName] = useState<string>('');
   const [showResetConfirm, setShowResetConfirm] = useState(false);
 
+  // التحديات الديناميكية
+  const quests = useQuests();
+
   useEffect(() => {
     const saved = localStorage.getItem('soroban_companion') as CharacterType | null;
     if (saved && ['fox', 'owl', 'panda', 'rabbit'].includes(saved)) {
@@ -181,7 +185,6 @@ export function HeroDashboard({ onNavigate, playSound, xp, streak, earnedBadges 
   };
 
   const handleReset = () => {
-    // مسح جميع المفاتيح المحفوظة (باستثناء الرفيق والاسم)
     const keysToKeep = ['soroban_companion', 'soroban_child_name'];
     const allKeys = Object.keys(localStorage);
     allKeys.forEach((key) => {
@@ -191,7 +194,6 @@ export function HeroDashboard({ onNavigate, playSound, xp, streak, earnedBadges 
     });
     playSound('whoosh');
     setShowResetConfirm(false);
-    // إعادة تحميل الصفحة لتحديث الحالة
     window.location.reload();
   };
 
@@ -430,7 +432,7 @@ export function HeroDashboard({ onNavigate, playSound, xp, streak, earnedBadges 
           </button>
         </div>
         <div className="space-y-3">
-          {QUESTS.slice(0, 2).map((quest, i) => {
+          {quests.slice(0, 2).map((quest, i) => {
             const pct = Math.min(100, (quest.progress / quest.target) * 100);
             return (
               <motion.div
