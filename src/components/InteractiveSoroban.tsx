@@ -24,13 +24,11 @@ const InteractiveSorobanColumn: React.FC<InteractiveSorobanColumnProps> = ({
   };
 
   // النقر على خرزة مفعّلة (رقمها index من 0، الأقرب للعارضة = 0):
-  // تُلغى هي وكل ما بعدها (الأبعد عن العارضة)
   const handleActiveLowerClick = (index: number) => {
     onChange((upperActive ? 5 : 0) + index);
   };
 
-  // النقر على خرزة غير مفعّلة (رقمها index من 0، الأقرب للمجموعة المفعّلة = 0):
-  // تُفعَّل هي وكل ما بينها وبين العارضة
+  // النقر على خرزة غير مفعّلة:
   const handleInactiveLowerClick = (index: number) => {
     const newCount = Math.min(lowerActiveCount + index + 1, 4);
     onChange((upperActive ? 5 : 0) + newCount);
@@ -41,7 +39,7 @@ const InteractiveSorobanColumn: React.FC<InteractiveSorobanColumnProps> = ({
       {/* العمود الرأسي (القضيب) */}
       <div className="absolute top-0 bottom-0 left-1/2 -translate-x-1/2 w-[3px] bg-amber-800/70" />
 
-      {/* القسم العلوي: السماء (خرزة ذهبية واحدة قابلة للنقر) */}
+      {/* القسم العلوي: السماء */}
       <div className="relative z-10 flex flex-col w-full items-center h-[60px] sm:h-[68px]">
         <motion.button
           type="button"
@@ -57,9 +55,8 @@ const InteractiveSorobanColumn: React.FC<InteractiveSorobanColumnProps> = ({
       {/* العارضة الوسطى */}
       <div className="relative z-10 w-full h-[3px] bg-gradient-to-r from-purple-500 via-indigo-400 to-purple-500" />
 
-      {/* القسم السفلي: الأرض (أربع خرزات زرقاء قابلة للنقر) */}
+      {/* القسم السفلي: الأرض */}
       <div className="relative z-10 flex flex-col justify-between w-full items-center h-[132px] sm:h-[148px]">
-        {/* الخرزات المفعّلة: ملتصقة بالعارضة، كل واحدة منفصلة بفجوة gap-[3px] */}
         <div className="flex flex-col items-center gap-[3px] mt-1.5">
           {Array.from({ length: lowerActiveCount }).map((_, i) => (
             <motion.button
@@ -74,7 +71,6 @@ const InteractiveSorobanColumn: React.FC<InteractiveSorobanColumnProps> = ({
             </motion.button>
           ))}
         </div>
-        {/* الخرزات غير المفعّلة: بعيدة في أسفل الإطار، كل واحدة منفصلة بفجوة gap-[3px] */}
         <div className="flex flex-col items-center gap-[3px] mb-1.5">
           {Array.from({ length: lowerInactiveCount }).map((_, i) => (
             <motion.button
@@ -95,12 +91,12 @@ const InteractiveSorobanColumn: React.FC<InteractiveSorobanColumnProps> = ({
 };
 
 // ============================================================
-// السوروبان الكامل التفاعلي (5 أعمدة افتراضياً) — وضع "جرّب"
+// السوروبان الكامل التفاعلي — وضع "جرّب"
 // ============================================================
 
 interface InteractiveSorobanProps {
   columns?: number;
-  value?: number; // قيمة مبدئية/متحكّم بها من الخارج (اختياري)
+  value?: number;
   onValueChange?: (value: number) => void;
   className?: string;
 }
@@ -115,7 +111,6 @@ const InteractiveSoroban: React.FC<InteractiveSorobanProps> = ({
     valueToDigits(value ?? 0, columns)
   );
 
-  // مزامنة الحالة الداخلية إذا تغيّرت القيمة من الخارج
   useEffect(() => {
     if (value !== undefined) {
       setDigits(valueToDigits(value, columns));
@@ -129,7 +124,12 @@ const InteractiveSoroban: React.FC<InteractiveSorobanProps> = ({
       const next = [...prev];
       next[index] = clamped;
       if (onValueChange) {
-        onValueChange(Number(next.join('')));
+        // digits[0] = الآحاد، لذا نحسب القيمة الإجمالية بالعكس
+        const totalValue = next.reduce(
+          (acc, d, i) => acc + d * Math.pow(10, i),
+          0
+        );
+        onValueChange(totalValue);
       }
       return next;
     });
@@ -139,13 +139,15 @@ const InteractiveSoroban: React.FC<InteractiveSorobanProps> = ({
     <div
       className={`inline-flex bg-amber-950 rounded-xl p-3 sm:p-4 gap-1 sm:gap-2 shadow-lg ${className}`}
     >
-      {digits.map((digit, idx) => (
-        <InteractiveSorobanColumn
-          key={idx}
-          digit={digit}
-          onChange={(newDigit) => updateDigit(idx, newDigit)}
-        />
-      ))}
+      <div className="flex flex-row-reverse items-center justify-center gap-1 sm:gap-2" dir="ltr">
+        {digits.map((digit, idx) => (
+          <InteractiveSorobanColumn
+            key={idx}
+            digit={digit}
+            onChange={(newDigit) => updateDigit(idx, newDigit)}
+          />
+        ))}
+      </div>
     </div>
   );
 };
