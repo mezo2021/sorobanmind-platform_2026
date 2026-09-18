@@ -1,4 +1,4 @@
-import React from 'react';
+مimport React from 'react';
 
 interface AvatarProps {
   className?: string;
