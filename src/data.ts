@@ -18,7 +18,7 @@ export const LEARN_MODULES: LearnModule[] = [
     titleAr: 'تعرف على السوروبان',
     description: 'Discover the parts of the Japanese abacus',
     descriptionAr: 'اكتشف أجزاء العداد الياباني',
-    status: 'completed',
+    status: 'available',
     beads: { upper: 0, lower: 0 },
     value: 0,
     concept: 'The Soroban has a top deck (heaven) and bottom deck (earth)',
@@ -31,7 +31,7 @@ export const LEARN_MODULES: LearnModule[] = [
     titleAr: 'خرزة السماء',
     description: 'The top bead is worth 5',
     descriptionAr: 'الخرزة العلوية قيمتها ٥',
-    status: 'completed',
+    status: 'locked',
     beads: { upper: 1, lower: 0 },
     value: 5,
     concept: 'One upper bead activated = 5',
@@ -44,7 +44,7 @@ export const LEARN_MODULES: LearnModule[] = [
     titleAr: 'خرزات الأرض',
     description: 'Each bottom bead is worth 1',
     descriptionAr: 'كل خرزة سفلية قيمتها ١',
-    status: 'completed',
+    status: 'locked',
     beads: { upper: 0, lower: 3 },
     value: 3,
     concept: 'Three lower beads activated = 3',
@@ -57,7 +57,7 @@ export const LEARN_MODULES: LearnModule[] = [
     titleAr: 'دمج الخرزات',
     description: 'Mix upper and lower beads',
     descriptionAr: 'امزج الخرزات العلوية والسفلية',
-    status: 'available',
+    status: 'locked',
     beads: { upper: 1, lower: 2 },
     value: 7,
     concept: 'Upper (5) + Lower (2) = 7',
@@ -90,7 +90,6 @@ export const LEARN_MODULES: LearnModule[] = [
     conceptAr: 'عمود العشرات + عمود الآحاد = أرقام ذات خانتين',
     icon: 'Sigma',
   },
-  // ========== دروس الجمع الأساسية ==========
   {
     id: 7,
     title: 'Simple Addition',
@@ -130,7 +129,6 @@ export const LEARN_MODULES: LearnModule[] = [
     conceptAr: 'عند تجاوز الجمع للعدد ٩، احمل ١٠ إلى العمود التالي. مثال: ٧ + ٥ = ١٢',
     icon: 'Plus',
   },
-  // ========== دروس الطرح ==========
   {
     id: 10,
     title: 'Simple Subtraction',
@@ -171,10 +169,6 @@ export const LEARN_MODULES: LearnModule[] = [
     icon: 'Minus',
   },
 ];
-
-// ============================================================
-// التحديات (Quests) — ديناميكية
-// ============================================================
 
 export const QUESTS: Quest[] = [
   {
@@ -257,12 +251,7 @@ export const QUESTS: Quest[] = [
   },
 ];
 
-// ============================================================
-// أسئلة التدريب المنظمة — 20 سؤال جمع + 20 سؤال طرح
-// ============================================================
-
 export const ADDITION_QUESTIONS: PracticeQuestion[] = [
-  // ===== جمع بسيط (نتيجة ≤ 9) =====
   { question: '٢ + ٣', answer: 5, choices: [4, 5, 6, 7] },
   { question: '٣ + ٢', answer: 5, choices: [4, 5, 6, 7] },
   { question: '٤ + ٢', answer: 6, choices: [5, 6, 7, 8] },
@@ -273,13 +262,11 @@ export const ADDITION_QUESTIONS: PracticeQuestion[] = [
   { question: '٦ + ٢', answer: 8, choices: [7, 8, 9, 10] },
   { question: '٥ + ٤', answer: 9, choices: [8, 9, 10, 11] },
   { question: '٣ + ٦', answer: 9, choices: [8, 9, 10, 11] },
-  // ===== جمع مع أصدقاء 5 =====
   { question: '٥ + ١', answer: 6, choices: [5, 6, 7, 8] },
   { question: '٦ + ١', answer: 7, choices: [6, 7, 8, 9] },
   { question: '٧ + ١', answer: 8, choices: [7, 8, 9, 10] },
   { question: '٥ + ٣', answer: 8, choices: [7, 8, 9, 10] },
   { question: '٦ + ٣', answer: 9, choices: [8, 9, 10, 11] },
-  // ===== جمع مع أصدقاء 10 (حمل) =====
   { question: '٦ + ٥', answer: 11, choices: [10, 11, 12, 13] },
   { question: '٧ + ٥', answer: 12, choices: [11, 12, 13, 14] },
   { question: '٨ + ٥', answer: 13, choices: [12, 13, 14, 15] },
@@ -288,7 +275,6 @@ export const ADDITION_QUESTIONS: PracticeQuestion[] = [
 ];
 
 export const SUBTRACTION_QUESTIONS: PracticeQuestion[] = [
-  // ===== طرح بسيط (نتيجة 1-9) =====
   { question: '٥ - ١', answer: 4, choices: [3, 4, 5, 6] },
   { question: '٦ - ١', answer: 5, choices: [4, 5, 6, 7] },
   { question: '٦ - ٢', answer: 4, choices: [3, 4, 5, 6] },
@@ -299,13 +285,11 @@ export const SUBTRACTION_QUESTIONS: PracticeQuestion[] = [
   { question: '٩ - ٣', answer: 6, choices: [5, 6, 7, 8] },
   { question: '٩ - ٤', answer: 5, choices: [4, 5, 6, 7] },
   { question: '٩ - ٥', answer: 4, choices: [3, 4, 5, 6] },
-  // ===== طرح مع أصدقاء 5 =====
   { question: '٧ - ٥', answer: 2, choices: [1, 2, 3, 4] },
   { question: '٨ - ٥', answer: 3, choices: [2, 3, 4, 5] },
   { question: '٩ - ٥', answer: 4, choices: [3, 4, 5, 6] },
   { question: '٨ - ٦', answer: 2, choices: [1, 2, 3, 4] },
   { question: '٩ - ٦', answer: 3, choices: [2, 3, 4, 5] },
-  // ===== طرح مع أصدقاء 10 (استلاف) =====
   { question: '١٠ - ٣', answer: 7, choices: [6, 7, 8, 9] },
   { question: '١١ - ٤', answer: 7, choices: [6, 7, 8, 9] },
   { question: '١٢ - ٤', answer: 8, choices: [7, 8, 9, 10] },
@@ -334,10 +318,6 @@ export const PROGRESS_DATA: ProgressData = {
     { day: 'الجمعة', xp: 0 },
   ],
 };
-
-// ============================================================
-// الشارات — 8 شارات تدريجية
-// ============================================================
 
 export const BADGES = [
   { id: 'beginner', name: 'Beginner', nameAr: 'مبتدئ', xpRequired: 200, icon: 'Star' },
