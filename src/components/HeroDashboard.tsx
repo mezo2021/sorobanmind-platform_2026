@@ -156,7 +156,6 @@ export function HeroDashboard({ onNavigate, playSound, xp, streak, earnedBadges 
   const [childName, setChildName] = useState<string>('');
 
   useEffect(() => {
-    // قراءة الرفيق
     const saved = localStorage.getItem('soroban_companion') as CharacterType | null;
     if (saved && ['fox', 'owl', 'panda', 'rabbit'].includes(saved)) {
       setCompanion(saved);
@@ -164,7 +163,6 @@ export function HeroDashboard({ onNavigate, playSound, xp, streak, earnedBadges 
       setShowSelector(true);
     }
 
-    // قراءة اسم الطفل
     const savedName = localStorage.getItem('soroban_child_name');
     if (savedName) {
       setChildName(savedName);
@@ -209,7 +207,7 @@ export function HeroDashboard({ onNavigate, playSound, xp, streak, earnedBadges 
               واصل رحلتك في إتقان الحساب الذهني بالسوروبان
             </p>
           </div>
-          <div className="flex gap-3">
+          <div className="flex items-center gap-2">
             <div className="text-center px-4 py-2 rounded-2xl bg-purple-500/15 border border-purple-400/20">
               <p className="text-2xl font-extrabold text-purple-300 font-display">
                 {toArabicNumber(xp)}
@@ -222,27 +220,18 @@ export function HeroDashboard({ onNavigate, playSound, xp, streak, earnedBadges 
               </p>
               <p className="text-[10px] text-white/50 font-body">أيام متتالية</p>
             </div>
+            <button
+              onClick={() => {
+                playSound('click');
+                setShowSelector(true);
+              }}
+              className="flex items-center gap-2 px-3 py-2 rounded-2xl bg-gradient-to-br from-purple-500/20 to-electric-500/20 border border-purple-400/30 text-purple-200 hover:from-purple-500/30 hover:to-electric-500/30 transition-all text-xs font-body"
+            >
+              <Palette className="w-4 h-4" />
+              <span className="hidden sm:inline">تغيير الرفيق</span>
+            </button>
           </div>
         </div>
-      </motion.div>
-
-      {/* Companion button */}
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.05 }}
-        className="mb-6 flex justify-end"
-      >
-        <button
-          onClick={() => {
-            playSound('click');
-            setShowSelector(true);
-          }}
-          className="flex items-center gap-2 px-4 py-2 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 text-white/70 hover:text-white font-body text-sm transition-all"
-        >
-          <Palette className="w-4 h-4" />
-          غيّر رفيقك
-        </button>
       </motion.div>
 
       {/* Badges Section */}
