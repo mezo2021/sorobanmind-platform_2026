@@ -12,6 +12,17 @@ export type Screen =
 
 export type LearnModuleStatus = 'locked' | 'available' | 'completed';
 
+export type LessonOperation = 'set' | 'add' | 'subtract';
+
+export interface LessonExample {
+  /** السؤال المعروض للطفل */
+  question: string;
+  /** القيمة المطلوبة (الإجابة) */
+  targetValue: number;
+  /** الشرح النصي */
+  explanation: string;
+}
+
 export interface LearnModule {
   id: number;
   title: string;
@@ -24,6 +35,10 @@ export interface LearnModule {
   concept: string;
   conceptAr: string;
   icon: string;
+  /** النص الصوتي للدرس */
+  audioText: string;
+  /** أمثلة الدرس: شاهد + جرّب */
+  examples: LessonExample[];
 }
 
 export interface LevelNode {
