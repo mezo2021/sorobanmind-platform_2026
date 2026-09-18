@@ -1,7 +1,12 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowRight, CheckCircle2, XCircle, Trophy, RotateCcw, BookOpen } from 'lucide-react';
-import { ADDITION_QUESTIONS, SUBTRACTION_QUESTIONS } from '@/data';
+import {
+  ADDITION_QUESTIONS,
+  SUBTRACTION_QUESTIONS,
+  MULTIPLICATION_QUESTIONS,
+  DIVISION_QUESTIONS,
+} from '@/data';
 import AbacusInput from './AbacusInput';
 import type { PracticeQuestion } from '@/types';
 
@@ -13,6 +18,8 @@ interface PracticeStats {
   correctAnswers: number;
   additionProblems: number;
   subtractionProblems: number;
+  multiplicationProblems: number;
+  divisionProblems: number;
 }
 
 function loadPracticeStats(): PracticeStats {
@@ -25,12 +32,21 @@ function loadPracticeStats(): PracticeStats {
         correctAnswers: typeof parsed.correctAnswers === 'number' ? parsed.correctAnswers : 0,
         additionProblems: typeof parsed.additionProblems === 'number' ? parsed.additionProblems : 0,
         subtractionProblems: typeof parsed.subtractionProblems === 'number' ? parsed.subtractionProblems : 0,
+        multiplicationProblems: typeof parsed.multiplicationProblems === 'number' ? parsed.multiplicationProblems : 0,
+        divisionProblems: typeof parsed.divisionProblems === 'number' ? parsed.divisionProblems : 0,
       };
     }
   } catch {
     /* ignore */
   }
-  return { totalProblems: 0, correctAnswers: 0, additionProblems: 0, subtractionProblems: 0 };
+  return {
+    totalProblems: 0,
+    correctAnswers: 0,
+    additionProblems: 0,
+    subtractionProblems: 0,
+    multiplicationProblems: 0,
+    divisionProblems: 0,
+  };
 }
 
 function savePracticeStats(stats: PracticeStats) {
@@ -41,7 +57,6 @@ function savePracticeStats(stats: PracticeStats) {
   }
 }
 
-/** تحويل الأرقام إلى أرقام عربية */
 function toArabicNumber(value: number | string): string {
   return String(value).replace(/\d/g, (d) => '٠١٢٣٤٥٦٧٨٩'[Number(d)]);
 }
@@ -74,11 +89,17 @@ export function PracticeScreen({ onBack, playSound, onXP, burst }: PracticeScree
     }
   }, []);
 
+  // فتح الأنواع تدريجياً
   const hasSubtraction = completed.includes(10);
+  const hasMultiplication = completed.includes(13);
+  const hasDivision = completed.includes(15);
 
-  const questions: PracticeQuestion[] = hasSubtraction
-    ? [...ADDITION_QUESTIONS, ...SUBTRACTION_QUESTIONS]
-    : ADDITION_QUESTIONS;
+  const questions: PracticeQuestion[] = [
+    ...ADDITION_QUESTIONS,
+    ...(hasSubtraction ? SUBTRACTION_QUESTIONS : []),
+    ...(hasMultiplication ? MULTIPLICATION_QUESTIONS : []),
+    ...(hasDivision ? DIVISION_QUESTIONS : []),
+  ];
 
   const [index, setIndex] = useState(0);
   const [score, setScore] = useState(0);
@@ -88,8 +109,11 @@ export function PracticeScreen({ onBack, playSound, onXP, burst }: PracticeScree
 
   const question = questions[index];
 
-  // تحديد نوع السؤال (جمع أو طرح)
+  // تحديد نوع السؤال
+  const isAddition = question?.question.includes('+');
   const isSubtraction = question?.question.includes('-');
+  const isMultiplication = question?.question.includes('×');
+  const isDivision = question?.question.includes('÷');
 
   const handleCorrect = () => {
     if (currentSolved) return;
@@ -100,13 +124,14 @@ export function PracticeScreen({ onBack, playSound, onXP, burst }: PracticeScree
     onXP(15);
     burst(0.5, 0.5);
 
-    // حفظ الإحصائيات
     const stats = loadPracticeStats();
     savePracticeStats({
       totalProblems: stats.totalProblems + 1,
       correctAnswers: stats.correctAnswers + 1,
-      additionProblems: isSubtraction ? stats.additionProblems : stats.additionProblems + 1,
+      additionProblems: isAddition ? stats.additionProblems + 1 : stats.additionProblems,
       subtractionProblems: isSubtraction ? stats.subtractionProblems + 1 : stats.subtractionProblems,
+      multiplicationProblems: isMultiplication ? stats.multiplicationProblems + 1 : stats.multiplicationProblems,
+      divisionProblems: isDivision ? stats.divisionProblems + 1 : stats.divisionProblems,
     });
   };
 
@@ -217,7 +242,6 @@ export function PracticeScreen({ onBack, playSound, onXP, burst }: PracticeScree
         </div>
       </div>
 
-      {/* Progress bar */}
       <div className="flex items-center gap-3 mb-5">
         <div className="flex-1 h-3 rounded-full bg-white/10 overflow-hidden">
           <motion.div
@@ -231,7 +255,6 @@ export function PracticeScreen({ onBack, playSound, onXP, burst }: PracticeScree
         </span>
       </div>
 
-      {/* Score & Streak */}
       <div className="flex gap-3 mb-5 flex-wrap">
         <div className="badge bg-emerald2-500/15 border-emerald2-400/20">
           <CheckCircle2 className="w-4 h-4 text-emerald2-300" />
@@ -244,14 +267,22 @@ export function PracticeScreen({ onBack, playSound, onXP, burst }: PracticeScree
             سلسلة: {toArabicNumber(streak)}
           </span>
         </div>
-        {hasSubtraction && (
+        {(hasSubtraction || hasMultiplication || hasDivision) && (
           <div className="badge bg-purple-500/15 border-purple-400/20">
-            <span className="text-purple-200 text-sm">جمع + طرح</span>
+            <span className="text-purple-200 text-sm">
+              {[
+                'جمع',
+                hasSubtraction ? 'طرح' : null,
+                hasMultiplication ? 'ضرب' : null,
+                hasDivision ? 'قسمة' : null,
+              ]
+                .filter(Boolean)
+                .join(' + ')}
+            </span>
           </div>
         )}
       </div>
 
-      {/* Question card */}
       <AnimatePresence mode="wait">
         <motion.div
           key={index}
