@@ -1,12 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowRight, CheckCircle2, XCircle, Trophy, RotateCcw, BookOpen } from 'lucide-react';
-import {
-  ADDITION_QUESTIONS,
-  SUBTRACTION_QUESTIONS,
-  MULTIPLICATION_QUESTIONS,
-  DIVISION_QUESTIONS,
-} from '@/data';
+import { ArrowRight, CheckCircle2, Trophy, RotateCcw, BookOpen } from 'lucide-react';
+import { ADDITION_QUESTIONS, SUBTRACTION_QUESTIONS, MULTIPLICATION_QUESTIONS, DIVISION_QUESTIONS } from '@/data';
 import AbacusInput from './AbacusInput';
 import type { PracticeQuestion } from '@/types';
 
@@ -36,25 +31,14 @@ function loadPracticeStats(): PracticeStats {
         divisionProblems: typeof parsed.divisionProblems === 'number' ? parsed.divisionProblems : 0,
       };
     }
-  } catch {
-    /* ignore */
-  }
-  return {
-    totalProblems: 0,
-    correctAnswers: 0,
-    additionProblems: 0,
-    subtractionProblems: 0,
-    multiplicationProblems: 0,
-    divisionProblems: 0,
-  };
+  } catch { /* ignore */ }
+  return { totalProblems: 0, correctAnswers: 0, additionProblems: 0, subtractionProblems: 0, multiplicationProblems: 0, divisionProblems: 0 };
 }
 
 function savePracticeStats(stats: PracticeStats) {
   try {
     localStorage.setItem(PRACTICE_STORAGE_KEY, JSON.stringify(stats));
-  } catch {
-    /* ignore */
-  }
+  } catch { /* ignore */ }
 }
 
 function toArabicNumber(value: number | string): string {
@@ -73,26 +57,21 @@ export function PracticeScreen({ onBack, playSound, onXP, burst }: PracticeScree
     try {
       const saved = localStorage.getItem(COMPLETED_STORAGE_KEY);
       return saved ? JSON.parse(saved) : [];
-    } catch {
-      return [];
-    }
+    } catch { return []; }
   });
 
   useEffect(() => {
     const saved = localStorage.getItem(COMPLETED_STORAGE_KEY);
     if (saved) {
-      try {
-        setCompleted(JSON.parse(saved));
-      } catch {
-        /* ignore */
-      }
+      try { setCompleted(JSON.parse(saved)); } catch { /* ignore */ }
     }
   }, []);
 
-  // فتح الأنواع تدريجياً
-  const hasSubtraction = completed.includes(10);
-  const hasMultiplication = completed.includes(13);
-  const hasDivision = completed.includes(15);
+  const hasSubtraction = completed.includes(2);
+  const hasSmallFriends = completed.includes(3);
+  const hasBigFriends = completed.includes(4);
+  const hasMultiplication = completed.includes(7);
+  const hasDivision = completed.includes(8);
 
   const questions: PracticeQuestion[] = [
     ...ADDITION_QUESTIONS,
@@ -109,9 +88,8 @@ export function PracticeScreen({ onBack, playSound, onXP, burst }: PracticeScree
 
   const question = questions[index];
 
-  // تحديد نوع السؤال
   const isAddition = question?.question.includes('+');
-  const isSubtraction = question?.question.includes('-');
+  const isSubtraction = question?.question.includes('-') && !question?.question.includes('÷');
   const isMultiplication = question?.question.includes('×');
   const isDivision = question?.question.includes('÷');
 
@@ -160,21 +138,9 @@ export function PracticeScreen({ onBack, playSound, onXP, burst }: PracticeScree
         <div className="w-20 h-20 rounded-3xl bg-purple-500/20 flex items-center justify-center mb-5">
           <BookOpen className="w-10 h-10 text-purple-300" />
         </div>
-        <h2 className="text-2xl font-extrabold font-display text-white mb-2">
-          لا توجد أسئلة متاحة
-        </h2>
-        <p className="text-white/60 font-body text-center mb-6">
-          أكمل دروس "التعلّم" أولاً لفتح أسئلة التدريب
-        </p>
-        <button
-          onClick={() => {
-            playSound('click');
-            onBack();
-          }}
-          className="btn-primary"
-        >
-          رجوع
-        </button>
+        <h2 className="text-2xl font-extrabold font-display text-white mb-2">لا توجد أسئلة متاحة</h2>
+        <p className="text-white/60 font-body text-center mb-6">أكمل دروس "التعلّم" أولاً</p>
+        <button onClick={() => { playSound('click'); onBack(); }} className="btn-primary">رجوع</button>
       </div>
     );
   }
@@ -182,39 +148,22 @@ export function PracticeScreen({ onBack, playSound, onXP, burst }: PracticeScree
   if (finished) {
     return (
       <div className="px-6 py-6 max-w-2xl mx-auto flex flex-col items-center justify-center min-h-[70vh]">
-        <motion.div
-          initial={{ scale: 0, rotate: -180 }}
-          animate={{ scale: 1, rotate: 0 }}
-          transition={{ type: 'spring', stiffness: 200, damping: 15 }}
-          className="w-24 h-24 rounded-3xl bg-gradient-to-br from-gold-400 to-gold-600 flex items-center justify-center shadow-2xl shadow-gold-500/40 mb-5"
-        >
+        <motion.div initial={{ scale: 0, rotate: -180 }} animate={{ scale: 1, rotate: 0 }} transition={{ type: 'spring', stiffness: 200, damping: 15 }} className="w-24 h-24 rounded-3xl bg-gradient-to-br from-gold-400 to-gold-600 flex items-center justify-center shadow-2xl shadow-gold-500/40 mb-5">
           <Trophy className="w-12 h-12 text-white" />
         </motion.div>
-        <h2 className="text-3xl font-extrabold font-display text-white mb-2">
-          انتهى التدريب!
-        </h2>
+        <h2 className="text-3xl font-extrabold font-display text-white mb-2">انتهى التدريب!</h2>
         <p className="text-white/60 font-body mb-6">
           أجبت بشكل صحيح على {toArabicNumber(score)} من {toArabicNumber(questions.length)} مسألة
         </p>
         <div className="glass-card p-5 w-full max-w-xs mb-5 text-center">
-          <p className="text-4xl font-extrabold font-display shimmer-text">
-            {toArabicNumber(score * 15)}
-          </p>
+          <p className="text-4xl font-extrabold font-display shimmer-text">{toArabicNumber(score * 15)}</p>
           <p className="text-sm text-white/50 font-body">نقاط خبرة مكتسبة</p>
         </div>
         <div className="flex gap-3 w-full max-w-xs">
           <button onClick={restart} className="btn-primary flex-1">
             <RotateCcw className="w-5 h-5" /> إعادة
           </button>
-          <button
-            onClick={() => {
-              playSound('click');
-              onBack();
-            }}
-            className="btn-ghost flex-1"
-          >
-            رجوع
-          </button>
+          <button onClick={() => { playSound('click'); onBack(); }} className="btn-ghost flex-1">رجوع</button>
         </div>
       </div>
     );
@@ -223,32 +172,18 @@ export function PracticeScreen({ onBack, playSound, onXP, burst }: PracticeScree
   return (
     <div className="px-3 sm:px-6 py-6 max-w-2xl mx-auto">
       <div className="flex items-center gap-3 mb-6">
-        <button
-          onClick={() => {
-            playSound('click');
-            onBack();
-          }}
-          className="btn-ghost !px-3 !py-2"
-        >
+        <button onClick={() => { playSound('click'); onBack(); }} className="btn-ghost !px-3 !py-2">
           <ArrowRight className="w-5 h-5" />
         </button>
         <div className="flex-1">
-          <h2 className="text-2xl sm:text-3xl font-extrabold font-display text-white">
-            التدريب
-          </h2>
-          <p className="text-sm text-white/50 font-body">
-            استخدم السوروبان لحل المسائل
-          </p>
+          <h2 className="text-2xl sm:text-3xl font-extrabold font-display text-white">التدريب</h2>
+          <p className="text-sm text-white/50 font-body">استخدم السوروبان لحل المسائل</p>
         </div>
       </div>
 
       <div className="flex items-center gap-3 mb-5">
         <div className="flex-1 h-3 rounded-full bg-white/10 overflow-hidden">
-          <motion.div
-            className="h-full rounded-full bg-gradient-to-r from-purple-500 to-electric-500"
-            animate={{ width: `${(index / questions.length) * 100}%` }}
-            transition={{ type: 'spring', stiffness: 200 }}
-          />
+          <motion.div className="h-full rounded-full bg-gradient-to-r from-purple-500 to-electric-500" animate={{ width: `${(index / questions.length) * 100}%` }} transition={{ type: 'spring', stiffness: 200 }} />
         </div>
         <span className="text-sm font-body text-white/50 whitespace-nowrap">
           {toArabicNumber(index + 1)}/{toArabicNumber(questions.length)}
@@ -258,29 +193,11 @@ export function PracticeScreen({ onBack, playSound, onXP, burst }: PracticeScree
       <div className="flex gap-3 mb-5 flex-wrap">
         <div className="badge bg-emerald2-500/15 border-emerald2-400/20">
           <CheckCircle2 className="w-4 h-4 text-emerald2-300" />
-          <span className="text-emerald2-200 text-sm">
-            {toArabicNumber(score)} صحيح
-          </span>
+          <span className="text-emerald2-200 text-sm">{toArabicNumber(score)} صحيح</span>
         </div>
         <div className="badge bg-orange-500/15 border-orange-400/20">
-          <span className="text-orange-200 text-sm">
-            سلسلة: {toArabicNumber(streak)}
-          </span>
+          <span className="text-orange-200 text-sm">سلسلة: {toArabicNumber(streak)}</span>
         </div>
-        {(hasSubtraction || hasMultiplication || hasDivision) && (
-          <div className="badge bg-purple-500/15 border-purple-400/20">
-            <span className="text-purple-200 text-sm">
-              {[
-                'جمع',
-                hasSubtraction ? 'طرح' : null,
-                hasMultiplication ? 'ضرب' : null,
-                hasDivision ? 'قسمة' : null,
-              ]
-                .filter(Boolean)
-                .join(' + ')}
-            </span>
-          </div>
-        )}
       </div>
 
       <AnimatePresence mode="wait">
@@ -292,11 +209,9 @@ export function PracticeScreen({ onBack, playSound, onXP, burst }: PracticeScree
           transition={{ type: 'spring', stiffness: 200, damping: 25 }}
           className="glass-card p-5 sm:p-6 mb-5"
         >
-          <p className="text-center text-white/40 font-body text-sm mb-2">
-            مثّل الناتج على السوروبان
-          </p>
+          <p className="text-center text-white/40 font-body text-sm mb-2">مثّل الناتج على السوروبان</p>
           <p className="text-center text-5xl sm:text-6xl font-extrabold font-display shimmer-text mb-6">
-            {question.question}
+            {question.question} = ؟
           </p>
 
           <AbacusInput
