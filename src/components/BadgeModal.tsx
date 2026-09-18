@@ -7,6 +7,11 @@ interface BadgeModalProps {
   onClose: () => void;
 }
 
+/** تحويل الأرقام إلى أرقام عربية */
+function toArabicNumber(value: number | string): string {
+  return String(value).replace(/\d/g, (d) => '٠١٢٣٤٥٦٧٨٩'[Number(d)]);
+}
+
 const BADGE_ICONS: Record<string, LucideIcon> = {
   Star,
   Eye,
@@ -73,7 +78,7 @@ export function BadgeModal({ badge, onClose }: BadgeModalProps) {
               {badge.nameAr}
             </h3>
             <p className="text-white/60 font-body mb-6">
-              وصلت إلى {badge.xpRequired} نقطة خبرة. أنت بطل حقيقي! 🎉
+              وصلت إلى {toArabicNumber(badge.xpRequired)} نقطة خبرة. أنت بطل حقيقي! 🎉
             </p>
 
             <button onClick={onClose} className="btn-primary w-full justify-center">
