@@ -10,6 +10,11 @@ interface HeaderProps {
   onHome: () => void;
 }
 
+/** تحويل الأرقام إلى أرقام عربية */
+function toArabicNumber(value: number | string): string {
+  return String(value).replace(/\d/g, (d) => '٠١٢٣٤٥٦٧٨٩'[Number(d)]);
+}
+
 export function Header({ xp, streak, level, soundEnabled, onToggleSound, onHome }: HeaderProps) {
   return (
     <motion.header
@@ -49,7 +54,9 @@ export function Header({ xp, streak, level, soundEnabled, onToggleSound, onHome 
           {/* Level Badge */}
           <div className="badge bg-gradient-to-r from-purple-500/20 to-purple-600/20 border-purple-400/30">
             <Sparkles className="w-4 h-4 text-purple-300" />
-            <span className="text-purple-200 text-xs sm:text-sm">Lv.{level}</span>
+            <span className="text-purple-200 text-xs sm:text-sm">
+              Lv.{toArabicNumber(level)}
+            </span>
           </div>
 
           {/* XP Badge */}
@@ -59,7 +66,9 @@ export function Header({ xp, streak, level, soundEnabled, onToggleSound, onHome 
             animate={{ scale: xp > 0 ? [1, 1.15, 1] : 1 }}
             className="badge bg-gradient-to-r from-gold-400/20 to-gold-500/20 border-gold-400/30"
           >
-            <span className="text-gold-300 font-extrabold text-xs sm:text-sm">{xp.toLocaleString()}</span>
+            <span className="text-gold-300 font-extrabold text-xs sm:text-sm">
+              {toArabicNumber(xp)}
+            </span>
             <span className="text-gold-200/70 text-[10px] sm:text-xs">XP</span>
           </motion.div>
 
@@ -70,7 +79,9 @@ export function Header({ xp, streak, level, soundEnabled, onToggleSound, onHome 
             className="badge bg-gradient-to-r from-orange-500/20 to-red-500/20 border-orange-400/30"
           >
             <Flame className="w-4 h-4 text-orange-400" />
-            <span className="text-orange-200 text-xs sm:text-sm font-bold">{streak}</span>
+            <span className="text-orange-200 text-xs sm:text-sm font-bold">
+              {toArabicNumber(streak)}
+            </span>
           </motion.div>
 
           {/* Sound Toggle */}
