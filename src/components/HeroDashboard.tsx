@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import {
   BookOpen, Dumbbell, Eye, Swords, Calculator,
   Lock, CheckCircle2, Circle, ArrowLeft,
-  Star, Award, Crown, Lock as LockBadge, X, Palette,
+  Star, Award, Crown, Lock as LockBadge, X, Palette, Trash2,
   type LucideIcon,
 } from 'lucide-react';
 import { LEVELS, QUESTS, BADGES } from '@/data';
@@ -154,6 +154,7 @@ export function HeroDashboard({ onNavigate, playSound, xp, streak, earnedBadges 
   const [companion, setCompanion] = useState<CharacterType>('fox');
   const [showSelector, setShowSelector] = useState(false);
   const [childName, setChildName] = useState<string>('');
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
 
   useEffect(() => {
     const saved = localStorage.getItem('soroban_companion') as CharacterType | null;
@@ -177,6 +178,21 @@ export function HeroDashboard({ onNavigate, playSound, xp, streak, earnedBadges 
   const handleNav = (screen: Screen) => {
     playSound('click');
     onNavigate(screen);
+  };
+
+  const handleReset = () => {
+    // مسح جميع المفاتيح المحفوظة (باستثناء الرفيق والاسم)
+    const keysToKeep = ['soroban_companion', 'soroban_child_name'];
+    const allKeys = Object.keys(localStorage);
+    allKeys.forEach((key) => {
+      if (!keysToKeep.includes(key)) {
+        localStorage.removeItem(key);
+      }
+    });
+    playSound('whoosh');
+    setShowResetConfirm(false);
+    // إعادة تحميل الصفحة لتحديث الحالة
+    window.location.reload();
   };
 
   const nextBadge = BADGES.find((b) => !earnedBadges.includes(b.id));
@@ -207,7 +223,7 @@ export function HeroDashboard({ onNavigate, playSound, xp, streak, earnedBadges 
               واصل رحلتك في إتقان الحساب الذهني بالسوروبان
             </p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <div className="text-center px-4 py-2 rounded-2xl bg-purple-500/15 border border-purple-400/20">
               <p className="text-2xl font-extrabold text-purple-300 font-display">
                 {toArabicNumber(xp)}
@@ -229,6 +245,16 @@ export function HeroDashboard({ onNavigate, playSound, xp, streak, earnedBadges 
             >
               <Palette className="w-4 h-4" />
               <span className="hidden sm:inline">تغيير الرفيق</span>
+            </button>
+            <button
+              onClick={() => {
+                playSound('click');
+                setShowResetConfirm(true);
+              }}
+              className="flex items-center gap-2 px-3 py-2 rounded-2xl bg-red-500/10 border border-red-400/30 text-red-300 hover:bg-red-500/20 transition-all text-xs font-body"
+            >
+              <Trash2 className="w-4 h-4" />
+              <span className="hidden sm:inline">تصفير</span>
             </button>
           </div>
         </div>
@@ -474,6 +500,57 @@ export function HeroDashboard({ onNavigate, playSound, xp, streak, earnedBadges 
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Reset Confirm Modal */}
+      <AnimatePresence>
+        {showResetConfirm && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.85, opacity: 0, y: 30 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.85, opacity: 0, y: 30 }}
+              transition={{ type: 'spring', stiffness: 250, damping: 25 }}
+              className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-3xl p-6 max-w-md w-full shadow-2xl border border-red-500/30 text-center"
+              dir="rtl"
+            >
+              <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-red-500/20 border border-red-400/30 flex items-center justify-center">
+                <Trash2 className="w-8 h-8 text-red-300" />
+              </div>
+              <h3 className="text-xl font-extrabold font-display text-white mb-2">
+                تصفير التقدم؟
+              </h3>
+              <p className="text-sm text-white/60 font-body mb-6">
+                سيتم حذف جميع نقاط الخبرة، الشارات، والدروس المكتملة. (الرفيق والاسم سيُحفظان)
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={handleReset}
+                  className="btn-primary flex-1 !bg-gradient-to-br !from-red-500 !to-red-700"
+                >
+                  نعم، صفّر
+                </button>
+                <button
+                  onClick={() => {
+                    playSound('click');
+                    setShowResetConfirm(false);
+                  }}
+                  className="btn-ghost flex-1"
+                >
+                  إلغاء
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
+
+export { HeroDashboard };
+export default HeroDashboard;
