@@ -65,18 +65,22 @@ export const SorobanColumn: React.FC<SorobanColumnProps> = ({ digit }) => {
       </div>
 
       {/* العارضة الوسطى */}
-      <div className="relative z-10 w-full h-[3px] bg-gradient-to-r from-purple-500 via-indigo-400 to-purple-500" />
+      <div className="relative z-10 w-full h-[3px] bg-gradient-to-r from-purple-500 via-indigo-400 to-purple-500 rounded-full" />
 
       {/* القسم السفلي: الأرض (أربع خرزات زرقاء) */}
-      <div className="relative z-10 flex flex-col justify-between w-full items-center h-[132px] sm:h-[148px]">
+      <div className="relative z-10 flex flex-col justify-between w-full items-center h-[132px] sm:h-[148px] py-1.5">
+        <div className="absolute left-1/2 top-0 bottom-0 w-[3px] -translate-x-1/2 bg-amber-800/70" />
+        <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-purple-500 via-indigo-400 to-purple-500 rounded-full" />
+        <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-gradient-to-r from-purple-500 via-indigo-400 to-purple-500 rounded-full" />
+
         {/* الخرزات المفعّلة: ملتصقة بالعارضة من الأسفل */}
-        <div className="flex flex-col items-center gap-[3px] mt-1.5">
+        <div className="relative z-10 flex flex-col items-center gap-[3px]">
           {Array.from({ length: lowerActiveCount }).map((_, i) => (
             <Bead key={`active-${i}`} color="blue" active />
           ))}
         </div>
         {/* الخرزات غير المفعّلة: بعيدة عند أسفل الإطار */}
-        <div className="flex flex-col items-center gap-[3px] mb-1.5">
+        <div className="relative z-10 flex flex-col items-center gap-[3px]">
           {Array.from({ length: lowerInactiveCount }).map((_, i) => (
             <Bead key={`inactive-${i}`} color="blue" active={false} />
           ))}
@@ -101,11 +105,13 @@ const Soroban: React.FC<SorobanProps> = ({ value, columns = 5, className = '' })
 
   return (
     <div
-      className={`inline-flex bg-amber-950 rounded-xl p-3 sm:p-4 gap-1 sm:gap-2 shadow-lg ${className}`}
+      className={`inline-flex flex-col items-center gap-3 p-5 glass rounded-3xl ${className}`}
     >
-      {digits.map((digit, idx) => (
-        <SorobanColumn key={idx} digit={digit} />
-      ))}
+      <div className="flex items-center justify-center gap-1 sm:gap-2">
+        {digits.map((digit, idx) => (
+          <SorobanColumn key={idx} digit={digit} />
+        ))}
+      </div>
     </div>
   );
 };
