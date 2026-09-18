@@ -1,4 +1,4 @@
-import type { LearnModule, LevelNode, Quest, ProgressData, PracticeQuestion, Badge } from './types';
+import type { LearnModule, LevelNode, Quest, ProgressData, PracticeQuestion } from './types';
 
 export const LEVELS: LevelNode[] = [
   { id: 1, name: 'Bead Basics', nameAr: 'الخرزات الأساسية', status: 'completed', icon: 'Circle', xpRequired: 0 },
@@ -90,6 +90,46 @@ export const LEARN_MODULES: LearnModule[] = [
     conceptAr: 'عمود العشرات + عمود الآحاد = أرقام ذات خانتين',
     icon: 'Sigma',
   },
+  // ========== دروس الطرح ==========
+  {
+    id: 7,
+    title: 'Simple Subtraction',
+    titleAr: 'الطرح البسيط',
+    description: 'Remove beads to subtract',
+    descriptionAr: 'أزل الخرزات لإتمام عملية الطرح',
+    status: 'locked',
+    beads: { upper: 0, lower: 1 },
+    value: 1,
+    concept: 'Simple subtraction: remove lower beads directly. Example: 5 - 2 = 3',
+    conceptAr: 'الطرح البسيط: أزل خرزات سفلية مباشرة. مثال: ٥ - ٢ = ٣',
+    icon: 'Minus',
+  },
+  {
+    id: 8,
+    title: 'Subtracting 5',
+    titleAr: 'الطرح مع أصدقاء 5',
+    description: 'Use the upper bead to subtract',
+    descriptionAr: 'استخدم الخرزة العلوية في الطرح',
+    status: 'locked',
+    beads: { upper: 1, lower: 0 },
+    value: 5,
+    concept: 'When subtracting, sometimes we need to remove 5 and add back. Example: 7 - 3 = 4',
+    conceptAr: 'عند الطرح، أحياناً نحتاج لإزالة 5 وإرجاع الباقي. مثال: ٧ - ٣ = ٤',
+    icon: 'Minus',
+  },
+  {
+    id: 9,
+    title: 'Subtracting 10',
+    titleAr: 'الطرح مع أصدقاء 10',
+    description: 'Borrow from the tens column',
+    descriptionAr: 'استلف من عمود العشرات',
+    status: 'locked',
+    beads: { upper: 1, lower: 0 },
+    value: 10,
+    concept: 'When subtracting more than available, borrow 10 from the next column. Example: 12 - 5 = 7',
+    conceptAr: 'عند طرح رقم أكبر من المتوفر، استلف 10 من العمود التالي. مثال: ١٢ - ٥ = ٧',
+    icon: 'Minus',
+  },
 ];
 
 export const QUESTS: Quest[] = [
@@ -143,17 +183,40 @@ export const QUESTS: Quest[] = [
   },
 ];
 
-export const PRACTICE_QUESTIONS: PracticeQuestion[] = [
+// ============================================================
+// أسئلة التدريب المنظمة (جمع وطرح منفصلان)
+// ============================================================
+
+export const ADDITION_QUESTIONS: PracticeQuestion[] = [
   { question: '٣ + ٢', answer: 5, choices: [4, 5, 6, 7] },
   { question: '٧ + ١', answer: 8, choices: [6, 7, 8, 9] },
   { question: '٤ + ٤', answer: 8, choices: [7, 8, 9, 10] },
-  { question: '٩ - ٣', answer: 6, choices: [5, 6, 7, 8] },
   { question: '٦ + ٥', answer: 11, choices: [10, 11, 12, 13] },
-  { question: '٨ - ٢', answer: 6, choices: [4, 5, 6, 7] },
   { question: '٣ + ٦', answer: 9, choices: [8, 9, 10, 11] },
-  { question: '١٢ - ٤', answer: 8, choices: [7, 8, 9, 10] },
   { question: '٥ + ٥', answer: 10, choices: [9, 10, 11, 12] },
+  { question: '٢ + ٧', answer: 9, choices: [8, 9, 10, 11] },
+  { question: '١ + ٨', answer: 9, choices: [8, 9, 10, 11] },
+  { question: '٦ + ٣', answer: 9, choices: [8, 9, 10, 11] },
+  { question: '٤ + ٥', answer: 9, choices: [8, 9, 10, 11] },
+];
+
+export const SUBTRACTION_QUESTIONS: PracticeQuestion[] = [
+  { question: '٩ - ٣', answer: 6, choices: [5, 6, 7, 8] },
+  { question: '٨ - ٢', answer: 6, choices: [4, 5, 6, 7] },
+  { question: '١٢ - ٤', answer: 8, choices: [7, 8, 9, 10] },
   { question: '١٥ - ٧', answer: 8, choices: [6, 7, 8, 9] },
+  { question: '١٠ - ٥', answer: 5, choices: [4, 5, 6, 7] },
+  { question: '٧ - ٣', answer: 4, choices: [3, 4, 5, 6] },
+  { question: '١٤ - ٦', answer: 8, choices: [7, 8, 9, 10] },
+  { question: '١١ - ٥', answer: 6, choices: [5, 6, 7, 8] },
+  { question: '١٣ - ٤', answer: 9, choices: [8, 9, 10, 11] },
+  { question: '١٦ - ٨', answer: 8, choices: [7, 8, 9, 10] },
+];
+
+// للتوافق مع الكود القديم: PRACTICE_QUESTIONS = كل الأسئلة
+export const PRACTICE_QUESTIONS: PracticeQuestion[] = [
+  ...ADDITION_QUESTIONS,
+  ...SUBTRACTION_QUESTIONS,
 ];
 
 export const PROGRESS_DATA: ProgressData = {
@@ -172,10 +235,3 @@ export const PROGRESS_DATA: ProgressData = {
     { day: 'الجمعة', xp: 90 },
   ],
 };
-
-export const BADGES: Badge[] = [
-  { id: 'beginner', nameAr: 'مبتدئ', xpRequired: 50, icon: 'Star' },
-  { id: 'anzan-master', nameAr: 'سيد الأنزان', xpRequired: 100, icon: 'Eye' },
-  { id: 'soroban-expert', nameAr: 'خبير السوروبان', xpRequired: 200, icon: 'Award' },
-  { id: 'legend', nameAr: 'أسطورة', xpRequired: 500, icon: 'Crown' },
-];
