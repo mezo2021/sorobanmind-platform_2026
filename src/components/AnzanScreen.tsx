@@ -29,6 +29,39 @@ const SPEED_LABELS: Record<Speed, string> = {
   fast: 'سريع',
 };
 
+const ANZAN_STORAGE_KEY = 'soroban_anzan_stats';
+
+interface AnzanStats {
+  highScore: number;
+  totalRounds: number;
+  totalCorrect: number;
+}
+
+function loadAnzanStats(): AnzanStats {
+  try {
+    const saved = localStorage.getItem(ANZAN_STORAGE_KEY);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      return {
+        highScore: typeof parsed.highScore === 'number' ? parsed.highScore : 0,
+        totalRounds: typeof parsed.totalRounds === 'number' ? parsed.totalRounds : 0,
+        totalCorrect: typeof parsed.totalCorrect === 'number' ? parsed.totalCorrect : 0,
+      };
+    }
+  } catch {
+    /* ignore */
+  }
+  return { highScore: 0, totalRounds: 0, totalCorrect: 0 };
+}
+
+function saveAnzanStats(stats: AnzanStats) {
+  try {
+    localStorage.setItem(ANZAN_STORAGE_KEY, JSON.stringify(stats));
+  } catch {
+    /* ignore */
+  }
+}
+
 function generateSequence(count: number): number[] {
   return Array.from({ length: count }, () => Math.floor(Math.random() * 9) + 1);
 }
@@ -76,6 +109,16 @@ export function AnzanScreen({ onBack, playSound, onXP, burst }: AnzanScreenProps
     const isCorrect = answer === total;
     setCorrect(isCorrect);
     setPhase('result');
+
+    // حفظ الإحصائيات
+    const stats = loadAnzanStats();
+    const newStats: AnzanStats = {
+      highScore: isCorrect && score + 1 > stats.highScore ? score + 1 : stats.highScore,
+      totalRounds: stats.totalRounds + 1,
+      totalCorrect: stats.totalCorrect + (isCorrect ? 1 : 0),
+    };
+    saveAnzanStats(newStats);
+
     if (isCorrect) {
       playSound('success');
       setScore((s) => s + 1);
@@ -324,3 +367,5 @@ export function AnzanScreen({ onBack, playSound, onXP, burst }: AnzanScreenProps
     </div>
   );
 }
+
+export default AnzanScreen;
