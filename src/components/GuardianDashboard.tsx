@@ -1,14 +1,20 @@
 import { motion } from 'framer-motion';
+import { useState, useEffect } from 'react';
 import {
   ArrowRight, TrendingUp, Target, Clock, Award,
   Brain, Calendar, Zap, CheckCircle2, BarChart3,
 } from 'lucide-react';
-import { PROGRESS_DATA, LEVELS } from '@/data';
+import { LEVELS } from '@/data';
 
 /** تحويل الأرقام إلى أرقام عربية */
 function toArabicNumber(value: number | string): string {
   return String(value).replace(/\d/g, (d) => '٠١٢٣٤٥٦٧٨٩'[Number(d)]);
 }
+
+const STATS_KEY = 'sorobanmind-stats';
+const COMPLETED_KEY = 'soroban-completed-lessons';
+const ANZAN_KEY = 'soroban_anzan_stats';
+const PRACTICE_KEY = 'soroban_practice_stats';
 
 interface GuardianDashboardProps {
   onBack: () => void;
@@ -19,6 +25,19 @@ interface GuardianDashboardProps {
   childLevel: number;
 }
 
+interface AnzanStats {
+  highScore: number;
+  totalRounds: number;
+  totalCorrect: number;
+}
+
+interface PracticeStats {
+  totalProblems: number;
+  correctAnswers: number;
+  additionProblems: number;
+  subtractionProblems: number;
+}
+
 export function GuardianDashboard({
   onBack,
   playSound,
@@ -27,9 +46,71 @@ export function GuardianDashboard({
   childStreak,
   childLevel,
 }: GuardianDashboardProps) {
-  const accuracy = Math.round((PROGRESS_DATA.correctAnswers / PROGRESS_DATA.totalProblems) * 100);
-  const maxWeeklyXP = Math.max(...PROGRESS_DATA.weeklyXP.map((d) => d.xp));
-  const completedLevels = LEVELS.filter((l) => l.status === 'completed').length;
+  const [savedName, setSavedName] = useState(childName);
+  const [completed, setCompleted] = useState<number[]>([]);
+  const [anzanStats, setAnzanStats] = useState<AnzanStats>({ highScore: 0, totalRounds: 0, totalCorrect: 0 });
+  const [practiceStats, setPracticeStats] = useState<PracticeStats>({
+    totalProblems: 0,
+    correctAnswers: 0,
+    additionProblems: 0,
+    subtractionProblems: 0,
+  });
+  const [weeklyXP, setWeeklyXP] = useState<{ day: string; xp: number }[]>([]);
+
+  useEffect(() => {
+    // قراءة الاسم
+    const name = localStorage.getItem('soroban_child_name');
+    if (name) setSavedName(name);
+
+    // قراءة الدروس المكتملة
+    try {
+      const saved = localStorage.getItem(COMPLETED_KEY);
+      if (saved) setCompleted(JSON.parse(saved));
+    } catch {
+      /* ignore */
+    }
+
+    // قراءة إحصائيات الأنزان
+    try {
+      const saved = localStorage.getItem(ANZAN_KEY);
+      if (saved) setAnzanStats({ ...anzanStats, ...JSON.parse(saved) });
+    } catch {
+      /* ignore */
+    }
+
+    // قراءة إحصائيات التدريب
+    try {
+      const saved = localStorage.getItem(PRACTICE_KEY);
+      if (saved) setPracticeStats({ ...practiceStats, ...JSON.parse(saved) });
+    } catch {
+      /* ignore */
+    }
+
+    // قراءة نشاط الأسبوع (من sorobanmind-stats)
+    try {
+      const saved = localStorage.getItem(STATS_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        // استخدام XP الحالي كـ "نشاط اليوم"
+        // في المستقبل، يمكن تخزين XP لكل يوم
+        const days = ['السبت', 'الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة'];
+        const today = new Date().getDay();
+        const mapped = days.map((day, idx) => ({
+          day,
+          xp: idx === (today + 1) % 7 ? parsed.xp || 0 : 0,
+        }));
+        setWeeklyXP(mapped);
+      }
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
+  const accuracy = practiceStats.totalProblems > 0
+    ? Math.round((practiceStats.correctAnswers / practiceStats.totalProblems) * 100)
+    : 0;
+  const maxWeeklyXP = Math.max(...weeklyXP.map((d) => d.xp), 1);
+  const completedLevels = completed.length;
 
   const stats = [
     {
@@ -70,7 +151,13 @@ export function GuardianDashboard({
     <div className="px-3 sm:px-6 py-6 max-w-5xl mx-auto">
       {/* Back */}
       <div className="flex items-center gap-3 mb-6">
-        <button onClick={() => { playSound('click'); onBack(); }} className="btn-ghost !px-3 !py-2">
+        <button
+          onClick={() => {
+            playSound('click');
+            onBack();
+          }}
+          className="btn-ghost !px-3 !py-2"
+        >
           <ArrowRight className="w-5 h-5" />
           <span className="hidden sm:inline">تبديل الدور</span>
         </button>
@@ -94,7 +181,9 @@ export function GuardianDashboard({
           </motion.div>
           <div>
             <p className="text-sm text-white/50 font-body">تقدم الطفل</p>
-            <h2 className="text-2xl sm:text-3xl font-extrabold font-display text-white">{childName}</h2>
+            <h2 className="text-2xl sm:text-3xl font-extrabold font-display text-white">
+              {savedName}
+            </h2>
             <p className="text-sm text-emerald2-300 font-body mt-0.5">
               مستوى {toArabicNumber(childLevel)} · {toArabicNumber(completedLevels)}/{toArabicNumber(LEVELS.length)} دروس مكتملة
             </p>
@@ -114,10 +203,14 @@ export function GuardianDashboard({
               transition={{ delay: i * 0.08, type: 'spring', stiffness: 200, damping: 20 }}
               className="glass-card p-4 sm:p-5 text-center"
             >
-              <div className={`inline-flex w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-gradient-to-br ${stat.gradient} items-center justify-center shadow-lg ${stat.glow} mb-3`}>
+              <div
+                className={`inline-flex w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-gradient-to-br ${stat.gradient} items-center justify-center shadow-lg ${stat.glow} mb-3`}
+              >
                 <Icon className="w-6 h-6 text-white" />
               </div>
-              <p className="text-2xl sm:text-3xl font-extrabold font-display text-white mb-0.5">{stat.value}</p>
+              <p className="text-2xl sm:text-3xl font-extrabold font-display text-white mb-0.5">
+                {stat.value}
+              </p>
               <p className="text-xs sm:text-sm text-white/60 font-body">{stat.label}</p>
               <p className="text-[10px] text-white/30 font-body">{stat.labelEn}</p>
             </motion.div>
@@ -137,7 +230,7 @@ export function GuardianDashboard({
           <h3 className="text-lg font-extrabold font-display text-white">نشاط الأسبوع</h3>
         </div>
         <div className="flex items-end justify-between gap-2 sm:gap-3 h-40">
-          {PROGRESS_DATA.weeklyXP.map((day, i) => {
+          {weeklyXP.map((day, i) => {
             const height = (day.xp / maxWeeklyXP) * 100;
             return (
               <div key={day.day} className="flex flex-col items-center gap-2 flex-1">
@@ -171,10 +264,10 @@ export function GuardianDashboard({
             <p className="text-sm text-white/60 font-body">مسائل محلولة</p>
           </div>
           <p className="text-3xl font-extrabold font-display text-white">
-            {toArabicNumber(PROGRESS_DATA.totalProblems)}
+            {toArabicNumber(practiceStats.totalProblems)}
           </p>
           <p className="text-xs text-emerald2-300 font-body mt-1">
-            {toArabicNumber(PROGRESS_DATA.correctAnswers)} إجابة صحيحة
+            {toArabicNumber(practiceStats.correctAnswers)} إجابة صحيحة
           </p>
         </motion.div>
 
@@ -186,12 +279,14 @@ export function GuardianDashboard({
         >
           <div className="flex items-center gap-2 mb-2">
             <Clock className="w-5 h-5 text-electric-400" />
-            <p className="text-sm text-white/60 font-body">متوسط السرعة</p>
+            <p className="text-sm text-white/60 font-body">جولات الأنزان</p>
           </div>
           <p className="text-3xl font-extrabold font-display text-white">
-            {toArabicNumber(PROGRESS_DATA.averageSpeed)}<span className="text-lg text-white/40"> ثانية</span>
+            {toArabicNumber(anzanStats.totalRounds)}
           </p>
-          <p className="text-xs text-electric-300 font-body mt-1">لكل مسألة</p>
+          <p className="text-xs text-electric-300 font-body mt-1">
+            {toArabicNumber(anzanStats.totalCorrect)} إجابة صحيحة
+          </p>
         </motion.div>
 
         <motion.div
@@ -205,7 +300,7 @@ export function GuardianDashboard({
             <p className="text-sm text-white/60 font-body">رقم قياسي أنزان</p>
           </div>
           <p className="text-3xl font-extrabold font-display text-white">
-            {toArabicNumber(PROGRESS_DATA.anzanHighScore)}
+            {toArabicNumber(anzanStats.highScore)}
           </p>
           <p className="text-xs text-gold-300 font-body mt-1">أعلى نتيجة</p>
         </motion.div>
@@ -233,13 +328,31 @@ export function GuardianDashboard({
                 transition={{ delay: 0.6 + i * 0.04 }}
                 className="flex items-center gap-3"
               >
-                <span className={`w-2 h-2 rounded-full shrink-0 ${level.status === 'completed' ? 'bg-emerald2-400' : level.status === 'available' ? 'bg-purple-400 animate-pulse' : 'bg-white/20'}`} />
-                <span className={`text-sm font-body w-28 sm:w-36 shrink-0 ${level.status === 'locked' ? 'text-white/30' : 'text-white/70'}`}>
+                <span
+                  className={`w-2 h-2 rounded-full shrink-0 ${
+                    level.status === 'completed'
+                      ? 'bg-emerald2-400'
+                      : level.status === 'available'
+                      ? 'bg-purple-400 animate-pulse'
+                      : 'bg-white/20'
+                  }`}
+                />
+                <span
+                  className={`text-sm font-body w-28 sm:w-36 shrink-0 ${
+                    level.status === 'locked' ? 'text-white/30' : 'text-white/70'
+                  }`}
+                >
                   {level.nameAr}
                 </span>
                 <div className="flex-1 h-2 rounded-full bg-white/10 overflow-hidden">
                   <motion.div
-                    className={`h-full rounded-full ${level.status === 'completed' ? 'bg-gradient-to-r from-emerald2-400 to-emerald2-600' : level.status === 'available' ? 'bg-gradient-to-r from-purple-400 to-electric-500' : 'bg-white/10'}`}
+                    className={`h-full rounded-full ${
+                      level.status === 'completed'
+                        ? 'bg-gradient-to-r from-emerald2-400 to-emerald2-600'
+                        : level.status === 'available'
+                        ? 'bg-gradient-to-r from-purple-400 to-electric-500'
+                        : 'bg-white/10'
+                    }`}
                     initial={{ width: 0 }}
                     animate={{ width: `${pct}%` }}
                     transition={{ delay: 0.7 + i * 0.04, duration: 0.6 }}
@@ -256,3 +369,5 @@ export function GuardianDashboard({
     </div>
   );
 }
+
+export default GuardianDashboard;
