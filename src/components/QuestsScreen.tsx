@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
-import { ArrowRight, Swords, Eye, Flame, BookOpen, Gift, CheckCircle2 } from 'lucide-react';
-import { QUESTS } from '@/data';
+import { ArrowRight, Swords, Eye, Flame, BookOpen, Gift, CheckCircle2, Plus } from 'lucide-react';
+import { useQuests } from '@/hooks/useQuests';
 
 /** تحويل الأرقام إلى أرقام عربية */
 function toArabicNumber(value: number | string): string {
@@ -8,7 +8,11 @@ function toArabicNumber(value: number | string): string {
 }
 
 const ICONS: Record<string, typeof Swords> = {
-  Swords, Eye, Flame, BookOpen,
+  Swords,
+  Eye,
+  Flame,
+  BookOpen,
+  Plus,
 };
 
 interface QuestsScreenProps {
@@ -19,6 +23,8 @@ interface QuestsScreenProps {
 }
 
 export function QuestsScreen({ onBack, playSound, onXP, burst }: QuestsScreenProps) {
+  const quests = useQuests();
+
   const handleClaim = (questId: number, reward: number) => {
     playSound('success');
     onXP(reward);
@@ -28,18 +34,25 @@ export function QuestsScreen({ onBack, playSound, onXP, burst }: QuestsScreenPro
   return (
     <div className="px-3 sm:px-6 py-6 max-w-4xl mx-auto">
       <div className="flex items-center gap-3 mb-6">
-        <button onClick={() => { playSound('click'); onBack(); }} className="btn-ghost !px-3 !py-2">
+        <button
+          onClick={() => {
+            playSound('click');
+            onBack();
+          }}
+          className="btn-ghost !px-3 !py-2"
+        >
           <ArrowRight className="w-5 h-5" />
         </button>
         <div>
-          <h2 className="text-2xl sm:text-3xl font-extrabold font-display text-white">المغامرات</h2>
+          <h2 className="text-2xl sm:text-3xl font-extrabold font-display text-white">
+            المغامرات
+          </h2>
           <p className="text-sm text-white/50 font-body">أكمل التحديات واكسب المكافآت</p>
         </div>
       </div>
 
-      {/* Quest cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {QUESTS.map((quest, i) => {
+        {quests.map((quest, i) => {
           const Icon = ICONS[quest.icon] || Swords;
           const pct = Math.min(100, (quest.progress / quest.target) * 100);
           const isComplete = quest.progress >= quest.target;
@@ -52,16 +65,24 @@ export function QuestsScreen({ onBack, playSound, onXP, burst }: QuestsScreenPro
               transition={{ delay: i * 0.08, type: 'spring', stiffness: 200, damping: 20 }}
               className="glass-card p-5 overflow-hidden relative"
             >
-              <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${quest.color} opacity-10 rounded-full blur-2xl`} />
+              <div
+                className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${quest.color} opacity-10 rounded-full blur-2xl`}
+              />
 
               <div className="relative flex items-start gap-4 mb-4">
-                <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${quest.color} flex items-center justify-center shadow-lg shrink-0`}>
+                <div
+                  className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${quest.color} flex items-center justify-center shadow-lg shrink-0`}
+                >
                   <Icon className="w-7 h-7 text-white" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-lg font-extrabold font-display text-white mb-0.5">{quest.titleAr}</h3>
+                  <h3 className="text-lg font-extrabold font-display text-white mb-0.5">
+                    {quest.titleAr}
+                  </h3>
                   <p className="text-xs text-white/40 font-body mb-1">{quest.title}</p>
-                  <p className="text-sm text-white/60 font-body leading-snug">{quest.descriptionAr}</p>
+                  <p className="text-sm text-white/60 font-body leading-snug">
+                    {quest.descriptionAr}
+                  </p>
                 </div>
                 <div className="shrink-0 text-center">
                   <p className="text-xl font-extrabold text-gold-300 font-display">
@@ -71,7 +92,6 @@ export function QuestsScreen({ onBack, playSound, onXP, burst }: QuestsScreenPro
                 </div>
               </div>
 
-              {/* Progress */}
               <div className="flex items-center gap-3 mb-3">
                 <div className="flex-1 h-3 rounded-full bg-white/10 overflow-hidden">
                   <motion.div
@@ -86,7 +106,6 @@ export function QuestsScreen({ onBack, playSound, onXP, burst }: QuestsScreenPro
                 </span>
               </div>
 
-              {/* Claim button */}
               {isComplete ? (
                 <motion.button
                   initial={{ opacity: 0 }}
@@ -109,7 +128,6 @@ export function QuestsScreen({ onBack, playSound, onXP, burst }: QuestsScreenPro
         })}
       </div>
 
-      {/* Daily hint */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -125,9 +143,13 @@ export function QuestsScreen({ onBack, playSound, onXP, burst }: QuestsScreenPro
         </motion.div>
         <div>
           <p className="font-bold text-white font-body text-sm">مكافأة يومية متاحة!</p>
-          <p className="text-xs text-white/50 font-body">عد كل يوم للحفاظ على سلسلتك واكسب نقاط إضافية</p>
+          <p className="text-xs text-white/50 font-body">
+            عد كل يوم للحفاظ على سلسلتك واكسب نقاط إضافية
+          </p>
         </div>
       </motion.div>
     </div>
   );
 }
+
+export default QuestsScreen;
