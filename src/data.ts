@@ -187,27 +187,116 @@ export const LEARN_MODULES: LearnModule[] = [
       { problemText: '21 × 4 = ؟', answer: 84, ruleCategory: 'direct', steps: [{ stepIndex: 1, instructionText: '20 × 4 = 80', fingerUsed: 'thumb', direction: 'up', targetColumn: 'tens', beadsAffected: [1, 2, 3, 4, 5, 6, 7, 8], expectedValueAfter: 80 }, { stepIndex: 2, instructionText: '1 × 4 = 4', fingerUsed: 'thumb', direction: 'up', targetColumn: 'units', beadsAffected: [1, 2, 3, 4], expectedValueAfter: 84 }], explanation: '21 × 4 = 84' },
     ],
   },
+  // ============================================================
+  // الدرس 8: القسمة (معاد بناؤه بقاعدة السوروبان الدقيقة)
+  // ============================================================
   {
     id: 8, title: 'Division', titleAr: 'القسمة على المعداد',
-    description: 'Estimate, multiply, subtract', descriptionAr: 'قدّر، اضرب، اطرح',
+    description: 'Divide digit by digit', descriptionAr: 'اقسم رقماً برقم على المعداد',
     status: 'locked', beads: { upper: 0, lower: 3 }, value: 21,
-    concept: 'Estimate, multiply, subtract, repeat', conceptAr: 'قدّر، اضرب، اطرح، كرر',
+    concept: 'Divide tens, subtract, then divide units', conceptAr: 'اقسم العشرات، اطرح، ثم اقسم الآحاد',
     icon: 'Divide',
-    audioText: 'القسمة على المعداد تعتمد على الطرح المتكرر. نقدّر الناتج، نضربه في المقسوم عليه، ثم نطرحه.',
-    rule: 'Estimate → Multiply → Subtract → Repeat', ruleAr: 'قدّر → اضرب → اطرح → كرر',
-    story: 'لعبة القراصنة: نقسم الكنز بينهم بالتساوي!',
+    audioText: 'القسمة على المعداد: نقسم الرقم الأول (العشرات) على المقسوم عليه، نكتب الناتج في الخانة التالية، ثم نطرح. نكرر نفس العملية مع الرقم الثاني (الآحاد).',
+    rule: 'Divide tens, subtract, then divide units', ruleAr: 'اقسم العشرات، اطرح، ثم اقسم الآحاد',
+    story: 'كنز القراصنة: نقسم الذهب بين القراصنة بالتساوي. نبدأ بأكياس العشرات، ثم العملات الفردية!',
     examples: [
-      { problemText: '6 ÷ 2 = ؟', answer: 3, ruleCategory: 'direct', steps: [{ stepIndex: 1, instructionText: 'قدّر: كم 2 في 6؟', fingerUsed: 'thumb', direction: 'up', targetColumn: 'units', beadsAffected: [1, 2, 3], expectedValueAfter: 3 }, { stepIndex: 2, instructionText: 'تحقق: 3 × 2 = 6', fingerUsed: 'thumb', direction: 'up', targetColumn: 'units', beadsAffected: [1, 2, 3], expectedValueAfter: 3 }], explanation: '6 ÷ 2 = 3' },
-      { problemText: '8 ÷ 2 = ؟', answer: 4, ruleCategory: 'direct', steps: [{ stepIndex: 1, instructionText: 'قدّر: كم 2 في 8؟', fingerUsed: 'thumb', direction: 'up', targetColumn: 'units', beadsAffected: [1, 2, 3, 4], expectedValueAfter: 4 }, { stepIndex: 2, instructionText: 'تحقق: 4 × 2 = 8', fingerUsed: 'thumb', direction: 'up', targetColumn: 'units', beadsAffected: [1, 2, 3, 4], expectedValueAfter: 4 }], explanation: '8 ÷ 2 = 4' },
-      { problemText: '9 ÷ 3 = ؟', answer: 3, ruleCategory: 'direct', steps: [{ stepIndex: 1, instructionText: 'قدّر: كم 3 في 9؟', fingerUsed: 'thumb', direction: 'up', targetColumn: 'units', beadsAffected: [1, 2, 3], expectedValueAfter: 3 }, { stepIndex: 2, instructionText: 'تحقق: 3 × 3 = 9', fingerUsed: 'thumb', direction: 'up', targetColumn: 'units', beadsAffected: [1, 2, 3], expectedValueAfter: 3 }], explanation: '9 ÷ 3 = 3' },
-      { problemText: '15 ÷ 5 = ؟', answer: 3, ruleCategory: 'direct', steps: [{ stepIndex: 1, instructionText: 'قدّر: كم 5 في 15؟', fingerUsed: 'thumb', direction: 'up', targetColumn: 'units', beadsAffected: [1, 2, 3], expectedValueAfter: 3 }, { stepIndex: 2, instructionText: 'تحقق: 3 × 5 = 15', fingerUsed: 'thumb', direction: 'up', targetColumn: 'units', beadsAffected: [1, 2, 3], expectedValueAfter: 3 }], explanation: '15 ÷ 5 = 3' },
-      { problemText: '12 ÷ 4 = ؟', answer: 3, ruleCategory: 'direct', steps: [{ stepIndex: 1, instructionText: 'قدّر: كم 4 في 12؟', fingerUsed: 'thumb', direction: 'up', targetColumn: 'units', beadsAffected: [1, 2, 3], expectedValueAfter: 3 }, { stepIndex: 2, instructionText: 'تحقق: 3 × 4 = 12', fingerUsed: 'thumb', direction: 'up', targetColumn: 'units', beadsAffected: [1, 2, 3], expectedValueAfter: 3 }], explanation: '12 ÷ 4 = 3' },
-      { problemText: '20 ÷ 5 = ؟', answer: 4, ruleCategory: 'direct', steps: [{ stepIndex: 1, instructionText: 'قدّر: 4', fingerUsed: 'thumb', direction: 'up', targetColumn: 'units', beadsAffected: [1, 2, 3, 4], expectedValueAfter: 4 }, { stepIndex: 2, instructionText: 'تحقق: 4 × 5 = 20', fingerUsed: 'thumb', direction: 'up', targetColumn: 'units', beadsAffected: [1, 2, 3, 4], expectedValueAfter: 4 }], explanation: '20 ÷ 5 = 4' },
-      { problemText: '21 ÷ 7 = ؟', answer: 3, ruleCategory: 'direct', steps: [{ stepIndex: 1, instructionText: 'قدّر: 3', fingerUsed: 'thumb', direction: 'up', targetColumn: 'units', beadsAffected: [1, 2, 3], expectedValueAfter: 3 }, { stepIndex: 2, instructionText: 'تحقق: 3 × 7 = 21', fingerUsed: 'thumb', direction: 'up', targetColumn: 'units', beadsAffected: [1, 2, 3], expectedValueAfter: 3 }], explanation: '21 ÷ 7 = 3' },
-      { problemText: '18 ÷ 6 = ؟', answer: 3, ruleCategory: 'direct', steps: [{ stepIndex: 1, instructionText: 'قدّر: 3', fingerUsed: 'thumb', direction: 'up', targetColumn: 'units', beadsAffected: [1, 2, 3], expectedValueAfter: 3 }, { stepIndex: 2, instructionText: 'تحقق: 3 × 6 = 18', fingerUsed: 'thumb', direction: 'up', targetColumn: 'units', beadsAffected: [1, 2, 3], expectedValueAfter: 3 }], explanation: '18 ÷ 6 = 3' },
+      {
+        problemText: '8 ÷ 2 = ؟',
+        answer: 4,
+        ruleCategory: 'direct',
+        steps: [
+          { stepIndex: 1, instructionText: 'مثّل المقسوم (8) على المعداد: خرزة علوية + 3 سفلية', fingerUsed: 'both_pinch', direction: 'pinch_in', targetColumn: 'units', beadsAffected: [5, 1, 2, 3], expectedAbacusState: [8, 0, 0] },
+          { stepIndex: 2, instructionText: 'اقسم 8 ÷ 2 = 4. اكتب الناتج (4) في العشرات', fingerUsed: 'thumb', direction: 'up', targetColumn: 'tens', beadsAffected: [1, 2, 3, 4], expectedAbacusState: [8, 4, 0] },
+          { stepIndex: 3, instructionText: 'تحقق: 4 × 2 = 8. اطرح 8 من الآحاد', fingerUsed: 'both_pinch', direction: 'pinch_out', targetColumn: 'units', beadsAffected: [5, 1, 2, 3], expectedAbacusState: [0, 4, 0] }
+        ],
+        explanation: '8 ÷ 2 = 4. الباقي: 0'
+      },
+      {
+        problemText: '6 ÷ 2 = ؟',
+        answer: 3,
+        ruleCategory: 'direct',
+        steps: [
+          { stepIndex: 1, instructionText: 'مثّل 6 (علوية + 1)', fingerUsed: 'both_pinch', direction: 'pinch_in', targetColumn: 'units', beadsAffected: [5, 1], expectedAbacusState: [6, 0, 0] },
+          { stepIndex: 2, instructionText: 'اقسم 6 ÷ 2 = 3. اكتب 3 في العشرات', fingerUsed: 'thumb', direction: 'up', targetColumn: 'tens', beadsAffected: [1, 2, 3], expectedAbacusState: [6, 3, 0] },
+          { stepIndex: 3, instructionText: 'تحقق: 3 × 2 = 6. اطرح 6', fingerUsed: 'both_pinch', direction: 'pinch_out', targetColumn: 'units', beadsAffected: [5, 1], expectedAbacusState: [0, 3, 0] }
+        ],
+        explanation: '6 ÷ 2 = 3. الباقي: 0'
+      },
+      {
+        problemText: '9 ÷ 3 = ؟',
+        answer: 3,
+        ruleCategory: 'direct',
+        steps: [
+          { stepIndex: 1, instructionText: 'مثّل 9 (علوية + 4)', fingerUsed: 'both_pinch', direction: 'pinch_in', targetColumn: 'units', beadsAffected: [5, 1, 2, 3, 4], expectedAbacusState: [9, 0, 0] },
+          { stepIndex: 2, instructionText: 'اقسم 9 ÷ 3 = 3. اكتب 3 في العشرات', fingerUsed: 'thumb', direction: 'up', targetColumn: 'tens', beadsAffected: [1, 2, 3], expectedAbacusState: [9, 3, 0] },
+          { stepIndex: 3, instructionText: 'تحقق: 3 × 3 = 9. اطرح 9', fingerUsed: 'both_pinch', direction: 'pinch_out', targetColumn: 'units', beadsAffected: [5, 1, 2, 3, 4], expectedAbacusState: [0, 3, 0] }
+        ],
+        explanation: '9 ÷ 3 = 3. الباقي: 0'
+      },
+      {
+        problemText: '84 ÷ 4 = ؟',
+        answer: 21,
+        ruleCategory: 'direct',
+        steps: [
+          { stepIndex: 1, instructionText: 'مثّل 84: 8 في العشرات، 4 في الآحاد', fingerUsed: 'both_pinch', direction: 'pinch_in', targetColumn: 'tens', beadsAffected: [5, 1, 2, 3], expectedAbacusState: [4, 8, 0] },
+          { stepIndex: 2, instructionText: 'اقسم 8 ÷ 4 = 2. اكتب 2 في المئات', fingerUsed: 'thumb', direction: 'up', targetColumn: 'hundreds', beadsAffected: [1, 2], expectedAbacusState: [4, 8, 2] },
+          { stepIndex: 3, instructionText: 'اطرح 2 × 4 = 8 من العشرات', fingerUsed: 'both_pinch', direction: 'pinch_out', targetColumn: 'tens', beadsAffected: [5, 1, 2, 3], expectedAbacusState: [4, 0, 2] },
+          { stepIndex: 4, instructionText: 'اقسم 4 ÷ 4 = 1. اكتب 1 في العشرات', fingerUsed: 'thumb', direction: 'up', targetColumn: 'tens', beadsAffected: [1], expectedAbacusState: [4, 1, 2] },
+          { stepIndex: 5, instructionText: 'تحقق: 1 × 4 = 4. اطرح 4 من الآحاد', fingerUsed: 'thumb', direction: 'down', targetColumn: 'units', beadsAffected: [1, 2, 3, 4], expectedAbacusState: [0, 1, 2] }
+        ],
+        explanation: '84 ÷ 4 = 21. الباقي: 0'
+      },
+      {
+        problemText: '15 ÷ 5 = ؟',
+        answer: 3,
+        ruleCategory: 'direct',
+        steps: [
+          { stepIndex: 1, instructionText: 'مثّل 15: 1 في العشرات، 5 في الآحاد', fingerUsed: 'both_pinch', direction: 'pinch_in', targetColumn: 'tens', beadsAffected: [1], expectedAbacusState: [5, 1, 0] },
+          { stepIndex: 2, instructionText: 'اقسم 15 ÷ 5 = 3. اكتب 3 في المئات', fingerUsed: 'thumb', direction: 'up', targetColumn: 'hundreds', beadsAffected: [1, 2, 3], expectedAbacusState: [5, 1, 3] },
+          { stepIndex: 3, instructionText: 'تحقق: 3 × 5 = 15. اطرح 15 بالكامل', fingerUsed: 'both_pinch', direction: 'pinch_out', targetColumn: 'tens', beadsAffected: [1, 5], expectedAbacusState: [0, 0, 3] }
+        ],
+        explanation: '15 ÷ 5 = 3. الباقي: 0'
+      },
+      {
+        problemText: '12 ÷ 4 = ؟',
+        answer: 3,
+        ruleCategory: 'direct',
+        steps: [
+          { stepIndex: 1, instructionText: 'مثّل 12: 1 في العشرات، 2 في الآحاد', fingerUsed: 'both_pinch', direction: 'pinch_in', targetColumn: 'tens', beadsAffected: [1], expectedAbacusState: [2, 1, 0] },
+          { stepIndex: 2, instructionText: 'اقسم 12 ÷ 4 = 3. اكتب 3 في المئات', fingerUsed: 'thumb', direction: 'up', targetColumn: 'hundreds', beadsAffected: [1, 2, 3], expectedAbacusState: [2, 1, 3] },
+          { stepIndex: 3, instructionText: 'تحقق: 3 × 4 = 12. اطرح 12 بالكامل', fingerUsed: 'both_pinch', direction: 'pinch_out', targetColumn: 'tens', beadsAffected: [1, 2], expectedAbacusState: [0, 0, 3] }
+        ],
+        explanation: '12 ÷ 4 = 3. الباقي: 0'
+      },
+      {
+        problemText: '20 ÷ 5 = ؟',
+        answer: 4,
+        ruleCategory: 'direct',
+        steps: [
+          { stepIndex: 1, instructionText: 'مثّل 20: 2 في العشرات', fingerUsed: 'thumb', direction: 'up', targetColumn: 'tens', beadsAffected: [1, 2], expectedAbacusState: [0, 2, 0] },
+          { stepIndex: 2, instructionText: 'اقسم 20 ÷ 5 = 4. اكتب 4 في المئات', fingerUsed: 'thumb', direction: 'up', targetColumn: 'hundreds', beadsAffected: [1, 2, 3, 4], expectedAbacusState: [0, 2, 4] },
+          { stepIndex: 3, instructionText: 'تحقق: 4 × 5 = 20. اطرح 20 بالكامل', fingerUsed: 'thumb', direction: 'down', targetColumn: 'tens', beadsAffected: [1, 2], expectedAbacusState: [0, 0, 4] }
+        ],
+        explanation: '20 ÷ 5 = 4. الباقي: 0'
+      },
+      {
+        problemText: '21 ÷ 7 = ؟',
+        answer: 3,
+        ruleCategory: 'direct',
+        steps: [
+          { stepIndex: 1, instructionText: 'مثّل 21: 2 في العشرات، 1 في الآحاد', fingerUsed: 'thumb', direction: 'up', targetColumn: 'tens', beadsAffected: [1, 2], expectedAbacusState: [1, 2, 0] },
+          { stepIndex: 2, instructionText: 'اقسم 21 ÷ 7 = 3. اكتب 3 في المئات', fingerUsed: 'thumb', direction: 'up', targetColumn: 'hundreds', beadsAffected: [1, 2, 3], expectedAbacusState: [1, 2, 3] },
+          { stepIndex: 3, instructionText: 'تحقق: 3 × 7 = 21. اطرح 21 بالكامل', fingerUsed: 'both_pinch', direction: 'pinch_out', targetColumn: 'tens', beadsAffected: [1, 2], expectedAbacusState: [0, 0, 3] }
+        ],
+        explanation: '21 ÷ 7 = 3. الباقي: 0'
+      },
     ],
   },
 ];
+
+// ============================================================
+// باقي الملف (المغامرات، الأسئلة، الشارات) كما هي
+// ============================================================
 
 export const QUESTS: Quest[] = [
   { id: 1, title: 'Daily Practice', titleAr: 'التدريب اليومي', description: 'Complete 10', descriptionAr: 'أكمل ١٠ مسائل', xpReward: 50, progress: 0, target: 10, icon: 'Swords', color: 'from-purple-500 to-electric-500', type: 'practice' },
