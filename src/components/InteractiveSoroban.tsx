@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowRight, RotateCcw, Calculator } from 'lucide-react';
+import { ArrowRight, RotateCcw } from 'lucide-react';
 import { cn } from '@/utils/cn';
 
 interface InteractiveSorobanProps {
@@ -21,13 +21,11 @@ function Column({
   index,
   onUpperClick,
   onLowerClick,
-  playSound,
 }: {
   digit: number;
   index: number;
   onUpperClick: () => void;
   onLowerClick: (i: number) => void;
-  playSound: (type: 'click' | 'success' | 'error' | 'bead' | 'whoosh' | 'levelup') => void;
 }) {
   const upperActive = digit >= 5;
   const lowerActiveCount = digit % 5;
@@ -54,7 +52,6 @@ function Column({
             beadSize,
             upperActive ? upperActiveStyle : upperInactiveStyle
           )}
-          aria-label="الخرزة العلوية"
         />
       </div>
 
@@ -70,11 +67,7 @@ function Column({
             <motion.button
               key={`a-${index}-${i}`}
               onClick={() => onLowerClick(i + 1)}
-              initial={{ scale: 0.85, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ duration: 0.2, delay: i * 0.03 }}
               className={cn("rounded-full cursor-pointer", beadSize, lowerActiveStyle)}
-              aria-label={`خرزة سفلية ${i + 1}`}
             />
           ))}
         </div>
@@ -87,11 +80,7 @@ function Column({
               <motion.button
                 key={`i-${index}-${i}`}
                 onClick={() => onLowerClick(beadNumber)}
-                initial={{ scale: 0.85, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ duration: 0.2, delay: i * 0.03 }}
                 className={cn("rounded-full cursor-pointer", beadSize, lowerInactiveStyle)}
-                aria-label={`خرزة سفلية ${beadNumber}`}
               />
             );
           })}
@@ -108,7 +97,6 @@ function Column({
 
 export function InteractiveSoroban({ onBack, playSound, onXP }: InteractiveSorobanProps) {
   const [digits, setDigits] = useState<number[]>(() => Array(COLUMNS).fill(0));
-
   const totalValue = parseInt(digits.join(''), 10) || 0;
 
   const handleUpperClick = (col: number) => {
@@ -125,8 +113,6 @@ export function InteractiveSoroban({ onBack, playSound, onXP }: InteractiveSorob
     setDigits((prev) => {
       const next = [...prev];
       const current = next[col] % 5;
-      // If clicked bead is already active, deactivate it and those above
-      // Otherwise activate up to that bead
       next[col] = beadNumber <= current ? (next[col] - current) + (beadNumber - 1) : (next[col] - current) + beadNumber;
       return next;
     });
@@ -149,7 +135,6 @@ export function InteractiveSoroban({ onBack, playSound, onXP }: InteractiveSorob
         </div>
       </div>
 
-      {/* Value display */}
       <div className="glass-card p-5 sm:p-6 mb-4 text-center">
         <p className="text-white/50 text-sm mb-1">القيمة الإجمالية</p>
         <p className="text-5xl sm:text-6xl font-extrabold font-display text-electric-300 tabular-nums">
@@ -157,7 +142,6 @@ export function InteractiveSoroban({ onBack, playSound, onXP }: InteractiveSorob
         </p>
       </div>
 
-      {/* Soroban */}
       <div className="glass-card p-4 sm:p-6 mb-4 overflow-x-auto">
         <div className="flex items-center justify-center gap-1 sm:gap-2 min-w-max">
           {digits.map((digit, i) => (
@@ -165,7 +149,6 @@ export function InteractiveSoroban({ onBack, playSound, onXP }: InteractiveSorob
               key={i}
               index={i}
               digit={digit}
-              playSound={playSound}
               onUpperClick={() => handleUpperClick(i)}
               onLowerClick={(bead) => handleLowerClick(i, bead)}
             />
@@ -173,7 +156,6 @@ export function InteractiveSoroban({ onBack, playSound, onXP }: InteractiveSorob
         </div>
       </div>
 
-      {/* Controls */}
       <div className="flex gap-3">
         <button onClick={handleReset} className="btn-primary flex-1">
           <RotateCcw className="w-5 h-5" /> تصفير
