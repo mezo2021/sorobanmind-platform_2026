@@ -6,9 +6,9 @@ export const LEVELS: LevelNode[] = [
   { id: 3, name: 'Tens & Ones', nameAr: 'العشرات والآحاد', status: 'completed', icon: 'Sigma', xpRequired: 150 },
   { id: 4, name: 'Addition Magic', nameAr: 'سحر الجمع', status: 'available', icon: 'Plus', xpRequired: 300 },
   { id: 5, name: 'Subtraction Quest', nameAr: 'رحلة الطرح', status: 'locked', icon: 'Minus', xpRequired: 500 },
-  { id: 6, name: 'Anzan Beginner', nameAr: 'الأنزان للمبتدئين', status: 'locked', icon: 'Eye', xpRequired: 800 },
-  { id: 7, name: 'Mental Master', nameAr: 'خبير الذهني', status: 'locked', icon: 'Brain', xpRequired: 1200 },
-  { id: 8, name: 'Speed Champion', nameAr: 'بطل السرعة', status: 'locked', icon: 'Zap', xpRequired: 1800 },
+  { id: 6, name: 'Multiplication', nameAr: 'الضرب', status: 'locked', icon: 'X', xpRequired: 800 },
+  { id: 7, name: 'Division', nameAr: 'القسمة', status: 'locked', icon: 'Divide', xpRequired: 1200 },
+  { id: 8, name: 'Anzan Beginner', nameAr: 'الأنزان للمبتدئين', status: 'locked', icon: 'Eye', xpRequired: 1800 },
 ];
 
 export const LEARN_MODULES: LearnModule[] = [
@@ -168,6 +168,58 @@ export const LEARN_MODULES: LearnModule[] = [
     conceptAr: 'عند طرح رقم أكبر من المتوفر، استلف 10 من العمود التالي. مثال: ١٢ - ٥ = ٧',
     icon: 'Minus',
   },
+  {
+    id: 13,
+    title: 'Simple Multiplication',
+    titleAr: 'الضرب البسيط',
+    description: 'Multiply using repeated addition',
+    descriptionAr: 'اضرب باستخدام الجمع المتكرر',
+    status: 'locked',
+    beads: { upper: 0, lower: 6 },
+    value: 6,
+    concept: 'Multiplication is repeated addition. Example: 2 × 3 = 2 + 2 + 2 = 6',
+    conceptAr: 'الضرب هو جمع متكرر. مثال: ٢ × ٣ = ٢ + ٢ + ٢ = ٦',
+    icon: 'X',
+  },
+  {
+    id: 14,
+    title: 'Multiplication Table 5',
+    titleAr: 'جدول ضرب 5',
+    description: 'Learn the 5 times table',
+    descriptionAr: 'تعلم جدول ضرب ٥',
+    status: 'locked',
+    beads: { upper: 1, lower: 0 },
+    value: 15,
+    concept: 'The 5 times table: 5 × 1 = 5, 5 × 2 = 10, 5 × 3 = 15',
+    conceptAr: 'جدول ضرب ٥: ٥ × ١ = ٥، ٥ × ٢ = ١٠، ٥ × ٣ = ١٥',
+    icon: 'X',
+  },
+  {
+    id: 15,
+    title: 'Simple Division',
+    titleAr: 'القسمة البسيطة',
+    description: 'Divide into equal groups',
+    descriptionAr: 'اقسم إلى مجموعات متساوية',
+    status: 'locked',
+    beads: { upper: 0, lower: 3 },
+    value: 3,
+    concept: 'Division splits into equal groups. Example: 6 ÷ 2 = 3',
+    conceptAr: 'القسمة تقسم إلى مجموعات متساوية. مثال: ٦ ÷ ٢ = ٣',
+    icon: 'Divide',
+  },
+  {
+    id: 16,
+    title: 'Division by 5',
+    titleAr: 'القسمة على 5',
+    description: 'Dividing by 5',
+    descriptionAr: 'القسمة على العدد ٥',
+    status: 'locked',
+    beads: { upper: 0, lower: 2 },
+    value: 2,
+    concept: 'Division by 5: 10 ÷ 5 = 2, 15 ÷ 5 = 3, 20 ÷ 5 = 4',
+    conceptAr: 'القسمة على ٥: ١٠ ÷ ٥ = ٢، ١٥ ÷ ٥ = ٣، ٢٠ ÷ ٥ = ٤',
+    icon: 'Divide',
+  },
 ];
 
 export const QUESTS: Quest[] = [
@@ -238,6 +290,45 @@ export const QUESTS: Quest[] = [
   },
   {
     id: 6,
+    title: 'Subtraction Hero',
+    titleAr: 'بطل الطرح',
+    description: 'Complete 5 subtraction problems',
+    descriptionAr: 'أكمل ٥ مسائل طرح',
+    xpReward: 70,
+    progress: 0,
+    target: 5,
+    icon: 'Minus',
+    color: 'from-electric-400 to-electric-600',
+    type: 'subtraction',
+  },
+  {
+    id: 7,
+    title: 'Multiplication Pro',
+    titleAr: 'محترف الضرب',
+    description: 'Complete 5 multiplication problems',
+    descriptionAr: 'أكمل ٥ مسائل ضرب',
+    xpReward: 100,
+    progress: 0,
+    target: 5,
+    icon: 'X',
+    color: 'from-pink-400 to-pink-600',
+    type: 'multiplication',
+  },
+  {
+    id: 8,
+    title: 'Division Expert',
+    titleAr: 'خبير القسمة',
+    description: 'Complete 5 division problems',
+    descriptionAr: 'أكمل ٥ مسائل قسمة',
+    xpReward: 100,
+    progress: 0,
+    target: 5,
+    icon: 'Divide',
+    color: 'from-gold-400 to-gold-600',
+    type: 'division',
+  },
+  {
+    id: 9,
     title: 'Anzan Expert',
     titleAr: 'خبير الأنزان',
     description: 'Score 50 points in Anzan',
@@ -297,9 +388,67 @@ export const SUBTRACTION_QUESTIONS: PracticeQuestion[] = [
   { question: '١٥ - ٧', answer: 8, choices: [7, 8, 9, 10] },
 ];
 
+export const MULTIPLICATION_QUESTIONS: PracticeQuestion[] = [
+  // جدول ضرب 1 و 2
+  { question: '١ × ٢', answer: 2, choices: [1, 2, 3, 4] },
+  { question: '٢ × ٢', answer: 4, choices: [3, 4, 5, 6] },
+  { question: '٣ × ٢', answer: 6, choices: [5, 6, 7, 8] },
+  { question: '٤ × ٢', answer: 8, choices: [7, 8, 9, 10] },
+  { question: '٥ × ٢', answer: 10, choices: [9, 10, 11, 12] },
+  // جدول ضرب 3
+  { question: '٢ × ٣', answer: 6, choices: [5, 6, 7, 8] },
+  { question: '٣ × ٣', answer: 9, choices: [8, 9, 10, 11] },
+  { question: '٤ × ٣', answer: 12, choices: [11, 12, 13, 14] },
+  // جدول ضرب 4
+  { question: '٢ × ٤', answer: 8, choices: [7, 8, 9, 10] },
+  { question: '٣ × ٤', answer: 12, choices: [11, 12, 13, 14] },
+  // جدول ضرب 5
+  { question: '٢ × ٥', answer: 10, choices: [9, 10, 11, 12] },
+  { question: '٣ × ٥', answer: 15, choices: [14, 15, 16, 17] },
+  { question: '٤ × ٥', answer: 20, choices: [19, 20, 21, 22] },
+  // جدول ضرب 6-9
+  { question: '٢ × ٦', answer: 12, choices: [11, 12, 13, 14] },
+  { question: '٣ × ٦', answer: 18, choices: [17, 18, 19, 20] },
+  { question: '٢ × ٧', answer: 14, choices: [13, 14, 15, 16] },
+  { question: '٢ × ٨', answer: 16, choices: [15, 16, 17, 18] },
+  { question: '٢ × ٩', answer: 18, choices: [17, 18, 19, 20] },
+  { question: '٣ × ٧', answer: 21, choices: [20, 21, 22, 23] },
+  { question: '٣ × ٨', answer: 24, choices: [23, 24, 25, 26] },
+];
+
+export const DIVISION_QUESTIONS: PracticeQuestion[] = [
+  // القسمة على 2
+  { question: '٤ ÷ ٢', answer: 2, choices: [1, 2, 3, 4] },
+  { question: '٦ ÷ ٢', answer: 3, choices: [2, 3, 4, 5] },
+  { question: '٨ ÷ ٢', answer: 4, choices: [3, 4, 5, 6] },
+  { question: '١٠ ÷ ٢', answer: 5, choices: [4, 5, 6, 7] },
+  { question: '١٢ ÷ ٢', answer: 6, choices: [5, 6, 7, 8] },
+  // القسمة على 3
+  { question: '٦ ÷ ٣', answer: 2, choices: [1, 2, 3, 4] },
+  { question: '٩ ÷ ٣', answer: 3, choices: [2, 3, 4, 5] },
+  { question: '١٢ ÷ ٣', answer: 4, choices: [3, 4, 5, 6] },
+  { question: '١٥ ÷ ٣', answer: 5, choices: [4, 5, 6, 7] },
+  // القسمة على 4
+  { question: '٨ ÷ ٤', answer: 2, choices: [1, 2, 3, 4] },
+  { question: '١٢ ÷ ٤', answer: 3, choices: [2, 3, 4, 5] },
+  { question: '١٦ ÷ ٤', answer: 4, choices: [3, 4, 5, 6] },
+  { question: '٢٠ ÷ ٤', answer: 5, choices: [4, 5, 6, 7] },
+  // القسمة على 5
+  { question: '١٠ ÷ ٥', answer: 2, choices: [1, 2, 3, 4] },
+  { question: '١٥ ÷ ٥', answer: 3, choices: [2, 3, 4, 5] },
+  { question: '٢٠ ÷ ٥', answer: 4, choices: [3, 4, 5, 6] },
+  { question: '٢٥ ÷ ٥', answer: 5, choices: [4, 5, 6, 7] },
+  // القسمة على 6-9
+  { question: '١٢ ÷ ٦', answer: 2, choices: [1, 2, 3, 4] },
+  { question: '١٨ ÷ ٦', answer: 3, choices: [2, 3, 4, 5] },
+  { question: '٢١ ÷ ٧', answer: 3, choices: [2, 3, 4, 5] },
+];
+
 export const PRACTICE_QUESTIONS: PracticeQuestion[] = [
   ...ADDITION_QUESTIONS,
   ...SUBTRACTION_QUESTIONS,
+  ...MULTIPLICATION_QUESTIONS,
+  ...DIVISION_QUESTIONS,
 ];
 
 export const PROGRESS_DATA: ProgressData = {
