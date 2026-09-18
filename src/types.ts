@@ -42,7 +42,9 @@ export type QuestType =
   | 'streak'
   | 'lessons'
   | 'addition'
-  | 'subtraction';
+  | 'subtraction'
+  | 'multiplication'
+  | 'division';
 
 export interface Quest {
   id: number;
