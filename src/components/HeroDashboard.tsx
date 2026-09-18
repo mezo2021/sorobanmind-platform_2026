@@ -4,6 +4,7 @@ import {
   BookOpen, Dumbbell, Eye, Swords, Calculator,
   Lock, CheckCircle2, Circle, ArrowLeft,
   Star, Award, Crown, Lock as LockBadge, X, Palette, Trash2,
+  Target, Diamond,
   type LucideIcon,
 } from 'lucide-react';
 import { LEVELS, BADGES } from '@/data';
@@ -86,13 +87,19 @@ const BADGE_ICONS: Record<string, LucideIcon> = {
   Eye,
   Award,
   Crown,
+  Target,
+  Diamond,
 };
 
 const BADGE_GRADIENTS: Record<string, string> = {
   beginner: 'from-emerald2-400 to-emerald2-600',
+  trainee: 'from-electric-400 to-electric-600',
   'anzan-master': 'from-electric-400 to-electric-600',
+  skilled: 'from-purple-400 to-purple-600',
   'soroban-expert': 'from-purple-400 to-purple-600',
+  professional: 'from-pink-400 to-pink-600',
   legend: 'from-gold-400 to-gold-600',
+  'eternal-legend': 'from-gold-400 to-gold-600',
 };
 
 function LevelNodeButton({ level, index, onClick, playSound }: {
@@ -157,7 +164,6 @@ export function HeroDashboard({ onNavigate, playSound, xp, streak, earnedBadges 
   const [childName, setChildName] = useState<string>('');
   const [showResetConfirm, setShowResetConfirm] = useState(false);
 
-  // التحديات الديناميكية
   const quests = useQuests();
 
   useEffect(() => {
