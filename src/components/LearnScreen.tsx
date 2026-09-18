@@ -105,8 +105,11 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {LEARN_MODULES.map((mod, i) => {
           const Icon = ICONS[mod.icon] || Info;
-          const isDone = completed.includes(mod.id) || mod.status === 'completed';
-          const isLocked = !isDone && mod.status === 'locked' && !completed.includes(mod.id - 1);
+          // ✅ التعديل: isDone يعتمد فقط على localStorage
+          const isDone = completed.includes(mod.id);
+          const isFirstLesson = mod.id === 1;
+          const previousCompleted = completed.includes(mod.id - 1);
+          const isLocked = !isDone && !isFirstLesson && !previousCompleted;
 
           return (
             <motion.button
@@ -287,3 +290,5 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
     </div>
   );
 }
+
+export default LearnScreen;
