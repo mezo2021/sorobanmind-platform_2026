@@ -2,10 +2,40 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowRight, CheckCircle2, XCircle, Trophy, RotateCcw, BookOpen } from 'lucide-react';
 import { ADDITION_QUESTIONS, SUBTRACTION_QUESTIONS } from '@/data';
-import { AbacusInput } from './AbacusInput';
+import AbacusInput from './AbacusInput';
 import type { PracticeQuestion } from '@/types';
 
 const COMPLETED_STORAGE_KEY = 'soroban-completed-lessons';
+const PRACTICE_STORAGE_KEY = 'soroban_practice_stats';
+
+interface PracticeStats {
+  totalProblems: number;
+  correctAnswers: number;
+}
+
+function loadPracticeStats(): PracticeStats {
+  try {
+    const saved = localStorage.getItem(PRACTICE_STORAGE_KEY);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      return {
+        totalProblems: typeof parsed.totalProblems === 'number' ? parsed.totalProblems : 0,
+        correctAnswers: typeof parsed.correctAnswers === 'number' ? parsed.correctAnswers : 0,
+      };
+    }
+  } catch {
+    /* ignore */
+  }
+  return { totalProblems: 0, correctAnswers: 0 };
+}
+
+function savePracticeStats(stats: PracticeStats) {
+  try {
+    localStorage.setItem(PRACTICE_STORAGE_KEY, JSON.stringify(stats));
+  } catch {
+    /* ignore */
+  }
+}
 
 /** تحويل الأرقام إلى أرقام عربية */
 function toArabicNumber(value: number | string): string {
@@ -62,6 +92,13 @@ export function PracticeScreen({ onBack, playSound, onXP, burst }: PracticeScree
     setStreak((s) => s + 1);
     onXP(15);
     burst(0.5, 0.5);
+
+    // حفظ الإحصائيات
+    const stats = loadPracticeStats();
+    savePracticeStats({
+      totalProblems: stats.totalProblems + 1,
+      correctAnswers: stats.correctAnswers + 1,
+    });
   };
 
   const nextQuestion = () => {
