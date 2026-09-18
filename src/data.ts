@@ -172,6 +172,10 @@ export const LEARN_MODULES: LearnModule[] = [
   },
 ];
 
+// ============================================================
+// التحديات (Quests) — ديناميكية
+// ============================================================
+
 export const QUESTS: Quest[] = [
   {
     id: 1,
@@ -180,10 +184,11 @@ export const QUESTS: Quest[] = [
     description: 'Complete 10 practice problems',
     descriptionAr: 'أكمل ١٠ مسائل تدريبية',
     xpReward: 50,
-    progress: 4,
+    progress: 0,
     target: 10,
     icon: 'Swords',
     color: 'from-purple-500 to-electric-500',
+    type: 'practice',
   },
   {
     id: 2,
@@ -192,22 +197,24 @@ export const QUESTS: Quest[] = [
     description: 'Score 20 points in Anzan Flash',
     descriptionAr: 'احصل على ٢٠ نقطة في الأنزان',
     xpReward: 80,
-    progress: 12,
+    progress: 0,
     target: 20,
     icon: 'Eye',
     color: 'from-electric-500 to-emerald2-500',
+    type: 'anzan',
   },
   {
     id: 3,
     title: 'Perfect Streak',
     titleAr: 'سلسلة مثالية',
-    description: 'Answer 5 in a row correctly',
-    descriptionAr: 'أجب على ٥ أسئلة متتالية بشكل صحيح',
+    description: 'Maintain a 5-day streak',
+    descriptionAr: 'حافظ على سلسلة ٥ أيام',
     xpReward: 100,
-    progress: 2,
+    progress: 0,
     target: 5,
     icon: 'Flame',
     color: 'from-gold-400 to-gold-600',
+    type: 'streak',
   },
   {
     id: 4,
@@ -216,15 +223,42 @@ export const QUESTS: Quest[] = [
     description: 'Complete 3 learning modules',
     descriptionAr: 'أكمل ٣ وحدات تعليمية',
     xpReward: 60,
-    progress: 3,
+    progress: 0,
     target: 3,
     icon: 'BookOpen',
     color: 'from-emerald2-400 to-emerald2-600',
+    type: 'lessons',
+  },
+  {
+    id: 5,
+    title: 'Addition Master',
+    titleAr: 'سيد الجمع',
+    description: 'Complete 5 addition problems',
+    descriptionAr: 'أكمل ٥ مسائل جمع',
+    xpReward: 70,
+    progress: 0,
+    target: 5,
+    icon: 'Plus',
+    color: 'from-purple-400 to-purple-600',
+    type: 'addition',
+  },
+  {
+    id: 6,
+    title: 'Anzan Expert',
+    titleAr: 'خبير الأنزان',
+    description: 'Score 50 points in Anzan',
+    descriptionAr: 'احصل على ٥٠ نقطة في الأنزان',
+    xpReward: 150,
+    progress: 0,
+    target: 50,
+    icon: 'Eye',
+    color: 'from-emerald2-400 to-emerald2-600',
+    type: 'anzanHighScore',
   },
 ];
 
 // ============================================================
-// أسئلة التدريب المنظمة (جمع وطرح منفصلان)
+// أسئلة التدريب المنظمة
 // ============================================================
 
 export const ADDITION_QUESTIONS: PracticeQuestion[] = [
@@ -253,60 +287,31 @@ export const SUBTRACTION_QUESTIONS: PracticeQuestion[] = [
   { question: '١٦ - ٨', answer: 8, choices: [7, 8, 9, 10] },
 ];
 
-// للتوافق مع الكود القديم
 export const PRACTICE_QUESTIONS: PracticeQuestion[] = [
   ...ADDITION_QUESTIONS,
   ...SUBTRACTION_QUESTIONS,
 ];
 
 export const PROGRESS_DATA: ProgressData = {
-  totalProblems: 247,
-  correctAnswers: 198,
-  averageSpeed: 4.2,
-  lessonsCompleted: 3,
-  anzanHighScore: 42,
+  totalProblems: 0,
+  correctAnswers: 0,
+  averageSpeed: 0,
+  lessonsCompleted: 0,
+  anzanHighScore: 0,
   weeklyXP: [
-    { day: 'السبت', xp: 120 },
-    { day: 'الأحد', xp: 85 },
-    { day: 'الاثنين', xp: 150 },
-    { day: 'الثلاثاء', xp: 60 },
-    { day: 'الأربعاء', xp: 200 },
-    { day: 'الخميس', xp: 175 },
-    { day: 'الجمعة', xp: 90 },
+    { day: 'السبت', xp: 0 },
+    { day: 'الأحد', xp: 0 },
+    { day: 'الاثنين', xp: 0 },
+    { day: 'الثلاثاء', xp: 0 },
+    { day: 'الأربعاء', xp: 0 },
+    { day: 'الخميس', xp: 0 },
+    { day: 'الجمعة', xp: 0 },
   ],
 };
 
-// ============================================================
-// الشارات (Badges)
-// ============================================================
-
 export const BADGES = [
-  {
-    id: 'beginner',
-    name: 'Beginner',
-    nameAr: 'مبتدئ',
-    xpRequired: 50,
-    icon: 'Star',
-  },
-  {
-    id: 'anzan-master',
-    name: 'Anzan Master',
-    nameAr: 'سيد الأنزان',
-    xpRequired: 100,
-    icon: 'Eye',
-  },
-  {
-    id: 'soroban-expert',
-    name: 'Soroban Expert',
-    nameAr: 'خبير السوروبان',
-    xpRequired: 200,
-    icon: 'Award',
-  },
-  {
-    id: 'legend',
-    name: 'Legend',
-    nameAr: 'أسطورة',
-    xpRequired: 500,
-    icon: 'Crown',
-  },
+  { id: 'beginner', name: 'Beginner', nameAr: 'مبتدئ', xpRequired: 50, icon: 'Star' },
+  { id: 'anzan-master', name: 'Anzan Master', nameAr: 'سيد الأنزان', xpRequired: 100, icon: 'Eye' },
+  { id: 'soroban-expert', name: 'Soroban Expert', nameAr: 'خبير السوروبان', xpRequired: 200, icon: 'Award' },
+  { id: 'legend', name: 'Legend', nameAr: 'أسطورة', xpRequired: 500, icon: 'Crown' },
 ];
