@@ -21,7 +21,6 @@ interface HeroDashboardProps {
   earnedBadges: string[];
 }
 
-/** تحويل الأرقام إلى أرقام عربية */
 function toArabicNumber(value: number | string): string {
   return String(value).replace(/\d/g, (d) => '٠١٢٣٤٥٦٧٨٩'[Number(d)]);
 }
@@ -198,6 +197,13 @@ export function HeroDashboard({ onNavigate, playSound, xp, streak, earnedBadges 
         localStorage.removeItem(key);
       }
     });
+
+    localStorage.removeItem('soroban-completed-lessons');
+    localStorage.removeItem('sorobanmind-stats');
+    localStorage.removeItem('soroban_anzan_stats');
+    localStorage.removeItem('soroban_practice_stats');
+    localStorage.removeItem('soroban_last_visit');
+
     playSound('whoosh');
     setShowResetConfirm(false);
     window.location.reload();
@@ -214,7 +220,6 @@ export function HeroDashboard({ onNavigate, playSound, xp, streak, earnedBadges 
 
   return (
     <div className="px-3 sm:px-6 py-6 max-w-6xl mx-auto">
-      {/* Welcome banner */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -268,7 +273,6 @@ export function HeroDashboard({ onNavigate, playSound, xp, streak, earnedBadges 
         </div>
       </motion.div>
 
-      {/* Badges Section */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -276,9 +280,7 @@ export function HeroDashboard({ onNavigate, playSound, xp, streak, earnedBadges 
         className="glass-card p-5 sm:p-6 mb-6"
       >
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-xl font-extrabold font-display text-white">
-            الشارات
-          </h3>
+          <h3 className="text-xl font-extrabold font-display text-white">الشارات</h3>
           <span className="badge bg-gold-400/15 border-gold-400/20 text-gold-200 text-xs">
             {toArabicNumber(earnedBadges.length)}/{toArabicNumber(BADGES.length)}
           </span>
@@ -347,7 +349,6 @@ export function HeroDashboard({ onNavigate, playSound, xp, streak, earnedBadges 
         )}
       </motion.div>
 
-      {/* Quick Action Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-5 mb-8">
         {ACTION_CARDS.map((card, i) => {
           const Icon = card.icon;
@@ -365,12 +366,6 @@ export function HeroDashboard({ onNavigate, playSound, xp, streak, earnedBadges 
               <div className={`absolute inset-0 bg-gradient-to-br ${card.gradient} opacity-0 group-hover:opacity-15 transition-opacity duration-500`} />
               <div className={`relative inline-flex w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br ${card.gradient} items-center justify-center shadow-xl ${card.glow} mb-3`}>
                 <Icon className="w-7 h-7 sm:w-8 sm:h-8 text-white" />
-                <motion.div
-                  className="absolute inset-0 rounded-2xl border-2 border-white/30"
-                  initial={{ scale: 1, opacity: 0 }}
-                  whileHover={{ scale: 1.3, opacity: [0, 1, 0] }}
-                  transition={{ duration: 0.6 }}
-                />
               </div>
               <h3 className="text-base sm:text-lg font-extrabold font-display text-white mb-0.5">
                 {card.title}
@@ -386,7 +381,6 @@ export function HeroDashboard({ onNavigate, playSound, xp, streak, earnedBadges 
         })}
       </div>
 
-      {/* Level Roadmap */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -394,9 +388,7 @@ export function HeroDashboard({ onNavigate, playSound, xp, streak, earnedBadges 
         className="glass-card p-5 sm:p-6 mb-6"
       >
         <div className="flex items-center justify-between mb-5">
-          <h3 className="text-xl font-extrabold font-display text-white">
-            خارطة المستويات
-          </h3>
+          <h3 className="text-xl font-extrabold font-display text-white">خارطة المستويات</h3>
           <span className="badge bg-purple-500/15 border-purple-400/20 text-purple-300 text-xs">
             {toArabicNumber(LEVELS.filter(l => l.status === 'completed').length)}/{toArabicNumber(LEVELS.length)} مكتمل
           </span>
@@ -418,7 +410,6 @@ export function HeroDashboard({ onNavigate, playSound, xp, streak, earnedBadges 
         </div>
       </motion.div>
 
-      {/* Active Quests Preview */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -426,9 +417,7 @@ export function HeroDashboard({ onNavigate, playSound, xp, streak, earnedBadges 
         className="glass-card p-5 sm:p-6"
       >
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-xl font-extrabold font-display text-white">
-            المغامرات النشطة
-          </h3>
+          <h3 className="text-xl font-extrabold font-display text-white">المغامرات النشطة</h3>
           <button
             onClick={() => handleNav('quests')}
             className="flex items-center gap-1 text-sm text-purple-300 font-body hover:text-purple-200 transition-colors"
@@ -473,10 +462,8 @@ export function HeroDashboard({ onNavigate, playSound, xp, streak, earnedBadges 
         </div>
       </motion.div>
 
-      {/* Companion (fixed corner) */}
       <Companion character={companion} />
 
-      {/* Character Selector Modal */}
       <AnimatePresence>
         {showSelector && (
           <motion.div
@@ -509,7 +496,6 @@ export function HeroDashboard({ onNavigate, playSound, xp, streak, earnedBadges 
         )}
       </AnimatePresence>
 
-      {/* Reset Confirm Modal */}
       <AnimatePresence>
         {showResetConfirm && (
           <motion.div
