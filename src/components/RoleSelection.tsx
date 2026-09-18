@@ -1,16 +1,48 @@
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useState } from 'react';
 import { Swords, Shield, Star, TrendingUp, Brain, ArrowRight } from 'lucide-react';
 import type { Role } from '@/types';
+import { CharacterSelector, type CharacterType } from './CharacterSelector';
 
 interface RoleSelectionProps {
   onSelect: (role: Role) => void;
   playSound: (type: 'click' | 'whoosh') => void;
 }
 
+const COMPANION_STORAGE_KEY = 'soroban_companion';
+
 export function RoleSelection({ onSelect, playSound }: RoleSelectionProps) {
+  const [showCompanionSelector, setShowCompanionSelector] = useState(false);
+  const [pendingRole, setPendingRole] = useState<Role>(null);
+
   const handleSelect = (role: Role) => {
-    playSound('whoosh');
-    onSelect(role);
+    if (role === 'hero') {
+      // تحقق من وجود رفيق محفوظ
+      const savedCompanion = localStorage.getItem(COMPANION_STORAGE_KEY);
+      if (savedCompanion) {
+        // رفيق محفوظ → انتقل مباشرة
+        playSound('whoosh');
+        onSelect(role);
+      } else {
+        // أول مرة → اعرض اختيار الرفيق
+        playSound('click');
+        setPendingRole(role);
+        setShowCompanionSelector(true);
+      }
+    } else {
+      // ولي الأمر
+      playSound('whoosh');
+      onSelect(role);
+    }
+  };
+
+  const handleCompanionSelected = (companion: CharacterType) => {
+    localStorage.setItem(COMPANION_STORAGE_KEY, companion);
+    setShowCompanionSelector(false);
+    if (pendingRole) {
+      playSound('whoosh');
+      onSelect(pendingRole);
+    }
   };
 
   return (
@@ -58,10 +90,8 @@ export function RoleSelection({ onSelect, playSound }: RoleSelectionProps) {
           onClick={() => handleSelect('hero')}
           className="group relative glass-card p-6 sm:p-8 overflow-hidden text-right"
         >
-          {/* Glow */}
           <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 via-transparent to-electric-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
-          {/* Floating icon */}
           <motion.div
             animate={{ y: [0, -10, 0] }}
             transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
@@ -152,6 +182,28 @@ export function RoleSelection({ onSelect, playSound }: RoleSelectionProps) {
         <TrendingUp className="w-4 h-4" />
         <span>منصة تعليمية تفاعلية للحساب الذهني بالعداد الياباني</span>
       </motion.div>
+
+      {/* Companion Selector Modal */}
+      <AnimatePresence>
+        {showCompanionSelector && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.85, opacity: 0, y: 30 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.85, opacity: 0, y: 30 }}
+              transition={{ type: 'spring', stiffness: 250, damping: 25 }}
+              className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-3xl p-5 sm:p-7 max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-white/10"
+            >
+              <CharacterSelector onSelectCharacter={handleCompanionSelected} />
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
