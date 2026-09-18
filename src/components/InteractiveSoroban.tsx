@@ -150,4 +150,5 @@ const InteractiveSoroban: React.FC<InteractiveSorobanProps> = ({
   );
 };
 
+export { InteractiveSoroban };
 export default InteractiveSoroban;
