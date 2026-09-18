@@ -15,63 +15,63 @@ function toDigits(value: number, columns: number): number[] {
 }
 
 function ColumnBeads({ digit, index, animate }: { digit: number; index: number; animate: boolean }) {
-  const lowerActiveCount = digit % 5;
   const upperActive = digit >= 5;
+  const lowerActiveCount = digit % 5;
+  const lowerInactiveCount = 4 - lowerActiveCount;
 
   const beadSize = "w-6 h-6 sm:w-7 sm:h-7";
-  const activeColor = "bg-electric-400 ring-2 ring-white/70";
-  const inactiveColor = "bg-electric-700/50 ring-1 ring-white/30";
+  const lowerActiveStyle = "bg-gradient-to-b from-sky-300 to-sky-500 border border-sky-100 shadow-[0_0_6px_rgba(56,189,248,0.6)]";
+  const lowerInactiveStyle = "bg-gradient-to-b from-blue-800 to-blue-950 border border-blue-600/80";
+  const upperActiveStyle = "bg-gradient-to-b from-yellow-300 to-amber-500 border border-yellow-100 shadow-[0_0_6px_rgba(251,191,36,0.6)]";
+  const upperInactiveStyle = "bg-gradient-to-b from-amber-700 to-amber-900 border border-amber-500/80";
 
   return (
     <div className="flex flex-col items-center">
       {/* Upper deck (heaven) */}
-      <div className="relative flex flex-col items-center w-10 sm:w-12 h-14 sm:h-16">
-        <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-purple-400/40 via-electric-400/60 to-purple-400/40" />
-        <div className="absolute top-1 bottom-0 w-[3px] bg-gradient-to-b from-white/20 via-electric-300/50 to-white/20" />
-        
+      <div className="relative w-9 sm:w-11 h-[56px] sm:h-[64px]">
+        <div className="absolute left-1/2 top-0 bottom-0 w-[2px] -translate-x-1/2 bg-amber-800/70" />
+        <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-gradient-to-r from-purple-500 via-indigo-400 to-purple-500 rounded-full" />
         <motion.div
-          animate={{ y: upperActive ? 14 : 0 }}
-          transition={{ duration: 0.3, ease: "easeOut" }}
+          animate={{ y: upperActive ? 24 : 0 }}
+          transition={{ type: "spring", stiffness: 260, damping: 22 }}
           className={cn(
-            "absolute top-1.5 z-10 rounded-full",
+            "absolute top-1 left-1/2 -translate-x-1/2 rounded-full z-10",
             beadSize,
-            upperActive ? activeColor : inactiveColor
+            upperActive ? upperActiveStyle : upperInactiveStyle
           )}
         />
       </div>
 
       {/* Lower deck (earth) */}
-      <div className="relative flex flex-col items-center w-10 sm:w-12 h-32 sm:h-36">
-        <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-purple-400/40 via-electric-400/60 to-purple-400/40" />
-        <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-purple-400/40 via-electric-400/60 to-purple-400/40" />
-        <div className="absolute top-1 bottom-1 w-[3px] bg-gradient-to-b from-white/20 via-electric-300/50 to-white/20" />
+      <div className="relative w-9 sm:w-11 h-[124px] sm:h-[136px] flex flex-col justify-between py-1">
+        <div className="absolute left-1/2 top-0 bottom-0 w-[2px] -translate-x-1/2 bg-amber-800/70" />
+        <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-purple-500 via-indigo-400 to-purple-500 rounded-full" />
+        <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-gradient-to-r from-purple-500 via-indigo-400 to-purple-500 rounded-full" />
 
-        <div className="relative z-10 flex flex-col justify-between h-full py-1.5">
-          {/* Active beads - touching the beam */}
-          <div className="flex flex-col gap-2 items-center">
-            {Array.from({ length: lowerActiveCount }).map((_, i) => (
-              <motion.div
-                key={`active-${index}-${i}`}
-                initial={animate ? { scale: 0.85, opacity: 0 } : false}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ duration: 0.25, delay: i * 0.05 }}
-                className={cn("rounded-full", beadSize, activeColor)}
-              />
-            ))}
-          </div>
-          
-          {/* Inactive beads - at the bottom */}
-          <div className="flex flex-col gap-2 items-center">
-            {Array.from({ length: 4 - lowerActiveCount }).map((_, i) => (
-              <motion.div
-                key={`inactive-${index}-${i}`}
-                initial={animate ? { scale: 0.85, opacity: 0 } : false}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ duration: 0.25, delay: i * 0.05 }}
-                className={cn("rounded-full", beadSize, inactiveColor)}
-              />
-            ))}
-          </div>
+        {/* Active beads (touch beam) */}
+        <div className="relative z-10 flex flex-col gap-[3px] items-center mt-1.5">
+          {Array.from({ length: lowerActiveCount }).map((_, i) => (
+            <motion.div
+              key={`a-${index}-${i}`}
+              initial={animate ? { scale: 0.85, opacity: 0 } : false}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 0.2, delay: i * 0.04 }}
+              className={cn("rounded-full", beadSize, lowerActiveStyle)}
+            />
+          ))}
+        </div>
+
+        {/* Inactive beads (at bottom) */}
+        <div className="relative z-10 flex flex-col gap-[3px] items-center mb-1.5">
+          {Array.from({ length: lowerInactiveCount }).map((_, i) => (
+            <motion.div
+              key={`i-${index}-${i}`}
+              initial={animate ? { scale: 0.85, opacity: 0 } : false}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 0.2, delay: i * 0.04 }}
+              className={cn("rounded-full", beadSize, lowerInactiveStyle)}
+            />
+          ))}
         </div>
       </div>
     </div>
@@ -80,9 +80,8 @@ function ColumnBeads({ digit, index, animate }: { digit: number; index: number; 
 
 export function Soroban({ value, columns = 5, showLabels, animate = true, className }: SorobanProps) {
   const digits = toDigits(value, columns);
-
   return (
-    <div className={cn('flex items-center justify-center gap-1 p-4', className)}>
+    <div className={cn('flex items-center justify-center gap-1 p-4', className)} dir="rtl">
       {digits.map((digit, index) => (
         <ColumnBeads key={index} digit={digit} index={index} animate={animate} />
       ))}
