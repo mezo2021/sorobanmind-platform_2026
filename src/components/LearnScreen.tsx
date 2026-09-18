@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   ArrowRight, Lock, CheckCircle2, Info, Star, CircleDot,
   Combine, Hash, Sigma, Minus, Plus, Lightbulb, Eye, Hand,
-  X, Divide,
+  X, Divide, RotateCcw, ThumbsUp, Fingerprint,
   type LucideIcon,
 } from 'lucide-react';
 import { LEARN_MODULES } from '@/data';
@@ -11,7 +11,7 @@ import { Soroban } from './Soroban';
 import { InteractiveSoroban } from './InteractiveSoroban';
 import { SpeechButton } from './SpeechButton';
 import { useSpeech } from '@/hooks/useSpeech';
-import type { LearnModule } from '@/types';
+import type { LearnModule, MovementStep } from '@/types';
 
 function toArabicNumber(value: number | string): string {
   return String(value).replace(/\d/g, (d) => '٠١٢٣٤٥٦٧٨٩'[Number(d)]);
@@ -38,6 +38,12 @@ function getColumnsForValue(value: number): number {
   return 4;
 }
 
+function getFingerLabel(finger: string): string {
+  if (finger === 'thumb') return 'الإبهام 👍';
+  if (finger === 'index') return 'السبابة ☝️';
+  return 'الإبهام + السبابة ✋';
+}
+
 export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
   const [selected, setSelected] = useState<LearnModule | null>(null);
   const [completed, setCompleted] = useState<number[]>(() => {
@@ -50,7 +56,9 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
   });
   const [mode, setMode] = useState<LessonMode>('watch');
   const [currentExample, setCurrentExample] = useState(0);
+  const [currentStep, setCurrentStep] = useState(0);
   const [solvedExamples, setSolvedExamples] = useState<number[]>([]);
+  const [showSteps, setShowSteps] = useState(false);
 
   const { speak, stop, isSpeaking, isSupported } = useSpeech();
 
@@ -74,7 +82,9 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
     setSelected(mod);
     setMode('watch');
     setCurrentExample(0);
+    setCurrentStep(0);
     setSolvedExamples([]);
+    setShowSteps(false);
     setTimeout(() => speak(mod.audioText), 300);
   };
 
@@ -98,7 +108,9 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
     playSound('click');
     setMode(m);
     setCurrentExample(0);
+    setCurrentStep(0);
     setSolvedExamples([]);
+    setShowSteps(false);
   };
 
   const handleExampleSolved = () => {
@@ -112,6 +124,8 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
     if (!selected) return;
     if (currentExample + 1 < selected.examples.length) {
       setCurrentExample(currentExample + 1);
+      setCurrentStep(0);
+      setShowSteps(false);
       playSound('click');
     }
   };
@@ -119,7 +133,19 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
   const prevExample = () => {
     if (currentExample > 0) {
       setCurrentExample(currentExample - 1);
+      setCurrentStep(0);
+      setShowSteps(false);
       playSound('click');
+    }
+  };
+
+  const nextStep = () => {
+    if (!currentEx) return;
+    if (currentStep + 1 < currentEx.steps.length) {
+      setCurrentStep(currentStep + 1);
+      playSound('bead');
+    } else {
+      setShowSteps(false);
     }
   };
 
@@ -218,7 +244,8 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
               onClick={(e) => e.stopPropagation()}
               className="glass-strong p-5 sm:p-7 max-w-lg w-full max-h-[90vh] overflow-y-auto scrollbar-hide"
             >
-              <div className="flex items-center justify-between mb-4 gap-3">
+              {/* Header */}
+              <div className="flex items-center justify-between mb-4 gap-2">
                 <h3 className="text-xl sm:text-2xl font-extrabold font-display text-white flex-1">
                   {selected.titleAr}
                 </h3>
@@ -235,6 +262,19 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
                 >
                   <span className="text-white/70 text-xl">×</span>
                 </button>
+              </div>
+
+              {/* Rule Card */}
+              <div className="mb-4 p-3 rounded-2xl bg-gradient-to-br from-gold-400/10 to-gold-600/10 border border-gold-400/30">
+                <div className="flex items-start gap-2">
+                  <Fingerprint className="w-5 h-5 text-gold-400 shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-xs font-bold text-gold-300 mb-1">القاعدة:</p>
+                    <p className="text-sm text-white/80 font-body leading-relaxed">
+                      {selected.ruleAr}
+                    </p>
+                  </div>
+                </div>
               </div>
 
               <p className="text-white/60 font-body text-sm mb-4">{selected.descriptionAr}</p>
@@ -330,6 +370,70 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
                 </div>
               )}
 
+              {/* Steps Button (Watch Mode) */}
+              {mode === 'watch' && currentEx && currentEx.steps.length > 0 && (
+                <div className="mb-4">
+                  {!showSteps ? (
+                    <button
+                      onClick={() => {
+                        setShowSteps(true);
+                        setCurrentStep(0);
+                      }}
+                      className="w-full btn-primary !py-3"
+                    >
+                      <ThumbsUp className="w-5 h-5" />
+                      اشرح لي الخطوات 👆
+                    </button>
+                  ) : (
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between mb-2">
+                        <p className="text-xs text-white/50 font-body">
+                          الخطوة {toArabicNumber(currentStep + 1)} من {toArabicNumber(currentEx.steps.length)}
+                        </p>
+                      </div>
+
+                      {currentEx.steps.slice(0, currentStep + 1).map((step, i) => (
+                        <motion.div
+                          key={i}
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          className={`p-3 rounded-2xl border ${
+                            i === currentStep
+                              ? 'bg-electric-500/20 border-electric-400/40'
+                              : 'bg-white/5 border-white/10'
+                          }`}
+                        >
+                          <div className="flex items-start gap-3">
+                            <div className="w-8 h-8 rounded-full bg-electric-500/30 flex items-center justify-center shrink-0 text-sm font-bold text-electric-200">
+                              {toArabicNumber(i + 1)}
+                            </div>
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-1">
+                                <span className="text-xs font-bold text-gold-300">
+                                  {getFingerLabel(step.finger)}
+                                </span>
+                              </div>
+                              <p className="text-sm text-white/80 font-body leading-relaxed">
+                                {step.explanation}
+                              </p>
+                            </div>
+                          </div>
+                        </motion.div>
+                      ))}
+
+                      {currentStep + 1 < currentEx.steps.length && (
+                        <button
+                          onClick={nextStep}
+                          className="w-full btn-primary !py-2 !text-sm mt-2"
+                        >
+                          الخطوة التالية ←
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+
               {/* Explanation */}
               {currentEx && (
                 <div className="flex gap-3 p-3 rounded-2xl bg-purple-500/10 border border-purple-400/20 mb-4">
@@ -340,7 +444,7 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
                 </div>
               )}
 
-              {/* Navigation — يظهر في الوضعين */}
+              {/* Navigation */}
               <div className="flex gap-2 mb-4">
                 <button
                   onClick={prevExample}
@@ -360,7 +464,7 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
                 </button>
               </div>
 
-              {/* Status message */}
+              {/* Try mode feedback */}
               {mode === 'try' && (
                 <div className="text-center mb-4">
                   {isSolved ? (
