@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   ArrowRight, Lock, CheckCircle2, Info, Star, CircleDot,
-  Combine, Hash, Sigma, Lightbulb, Eye, Hand,
+  Combine, Hash, Sigma, Minus, Lightbulb, Eye, Hand,
   type LucideIcon,
 } from 'lucide-react';
 import { LEARN_MODULES } from '@/data';
@@ -11,7 +11,7 @@ import { InteractiveSoroban } from './InteractiveSoroban';
 import type { LearnModule } from '@/types';
 
 const ICONS: Record<string, LucideIcon> = {
-  Info, Star, CircleDot, Combine, Hash, Sigma,
+  Info, Star, CircleDot, Combine, Hash, Sigma, Minus,
 };
 
 interface LearnScreenProps {
