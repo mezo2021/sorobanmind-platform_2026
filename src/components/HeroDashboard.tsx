@@ -1,12 +1,15 @@
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useState, useEffect } from 'react';
 import {
   BookOpen, Dumbbell, Eye, Swords, Calculator,
   Lock, CheckCircle2, Circle, ArrowLeft,
-  Star, Award, Crown, Lock as LockBadge,
+  Star, Award, Crown, Lock as LockBadge, X, Palette,
   type LucideIcon,
 } from 'lucide-react';
 import { LEVELS, QUESTS, BADGES } from '@/data';
 import type { Screen, LevelNode } from '@/types';
+import { Companion, type CharacterType } from './Companion';
+import { CharacterSelector } from './CharacterSelector';
 
 interface HeroDashboardProps {
   onNavigate: (screen: Screen) => void;
@@ -141,6 +144,25 @@ function LevelNodeButton({ level, index, onClick, playSound }: {
 }
 
 export function HeroDashboard({ onNavigate, playSound, xp, streak, earnedBadges }: HeroDashboardProps) {
+  const [companion, setCompanion] = useState<CharacterType>('fox');
+  const [showSelector, setShowSelector] = useState(false);
+
+  // Load saved companion + auto-show selector on first visit
+  useEffect(() => {
+    const saved = localStorage.getItem('soroban_companion') as CharacterType | null;
+    if (saved && ['fox', 'owl', 'panda', 'rabbit'].includes(saved)) {
+      setCompanion(saved);
+    } else {
+      // First visit: show selector
+      setShowSelector(true);
+    }
+  }, []);
+
+  const handleCompanionChange = (c: CharacterType) => {
+    setCompanion(c);
+    setShowSelector(false);
+  };
+
   const handleNav = (screen: Screen) => {
     playSound('click');
     onNavigate(screen);
@@ -185,6 +207,25 @@ export function HeroDashboard({ onNavigate, playSound, xp, streak, earnedBadges 
             </div>
           </div>
         </div>
+      </motion.div>
+
+      {/* Companion button */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.05 }}
+        className="mb-6 flex justify-end"
+      >
+        <button
+          onClick={() => {
+            playSound('click');
+            setShowSelector(true);
+          }}
+          className="flex items-center gap-2 px-4 py-2 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 text-white/70 hover:text-white font-body text-sm transition-all"
+        >
+          <Palette className="w-4 h-4" />
+          غيّر رفيقك
+        </button>
       </motion.div>
 
       {/* Badges Section */}
@@ -320,10 +361,8 @@ export function HeroDashboard({ onNavigate, playSound, xp, streak, earnedBadges 
           </span>
         </div>
 
-        {/* Path */}
         <div className="relative overflow-x-auto scrollbar-hide pb-4">
           <div className="flex items-start gap-3 sm:gap-5 min-w-max pr-2 pl-8">
-            {/* Dotted path */}
             <div className="absolute top-8 right-0 left-0 h-1 bg-gradient-to-r from-purple-500/30 via-electric-500/30 to-white/5 rounded-full" />
             {LEVELS.map((level, i) => (
               <LevelNodeButton
@@ -390,6 +429,42 @@ export function HeroDashboard({ onNavigate, playSound, xp, streak, earnedBadges 
           })}
         </div>
       </motion.div>
+
+      {/* Companion (fixed corner) */}
+      <Companion character={companion} />
+
+      {/* Character Selector Modal */}
+      <AnimatePresence>
+        {showSelector && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.85, opacity: 0, y: 30 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.85, opacity: 0, y: 30 }}
+              transition={{ type: 'spring', stiffness: 250, damping: 25 }}
+              className="relative bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-3xl p-5 sm:p-7 max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-white/10"
+            >
+              <button
+                onClick={() => {
+                  playSound('click');
+                  setShowSelector(false);
+                }}
+                className="absolute top-4 left-4 w-9 h-9 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors z-10"
+                aria-label="إغلاق"
+              >
+                <X className="w-5 h-5 text-white/70" />
+              </button>
+
+              <CharacterSelector onSelectCharacter={handleCompanionChange} />
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
