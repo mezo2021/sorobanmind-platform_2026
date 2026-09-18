@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   ArrowRight, Lock, CheckCircle2, Info, Star, CircleDot,
-  Combine, Hash, Sigma, Minus, Lightbulb, Eye, Hand,
+  Combine, Hash, Sigma, Minus, Plus, Lightbulb, Eye, Hand,
+  X, Divide,
   type LucideIcon,
 } from 'lucide-react';
 import { LEARN_MODULES } from '@/data';
@@ -10,13 +11,13 @@ import { Soroban } from './Soroban';
 import { InteractiveSoroban } from './InteractiveSoroban';
 import type { LearnModule } from '@/types';
 
-/** تحويل الأرقام إلى أرقام عربية */
 function toArabicNumber(value: number | string): string {
   return String(value).replace(/\d/g, (d) => '٠١٢٣٤٥٦٧٨٩'[Number(d)]);
 }
 
 const ICONS: Record<string, LucideIcon> = {
-  Info, Star, CircleDot, Combine, Hash, Sigma, Minus,
+  Info, Star, CircleDot, Combine, Hash, Sigma, Minus, Plus,
+  X, Divide,
 };
 
 interface LearnScreenProps {
@@ -29,7 +30,6 @@ type LessonMode = 'watch' | 'try';
 
 const COMPLETED_STORAGE_KEY = 'soroban-completed-lessons';
 
-/** حساب عدد الأعمدة المطلوبة لعرض قيمة معينة */
 function getColumnsForValue(value: number): number {
   if (value < 10) return 1;
   if (value < 100) return 2;
@@ -105,7 +105,6 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {LEARN_MODULES.map((mod, i) => {
           const Icon = ICONS[mod.icon] || Info;
-          // ✅ التعديل: isDone يعتمد فقط على localStorage
           const isDone = completed.includes(mod.id);
           const isFirstLesson = mod.id === 1;
           const previousCompleted = completed.includes(mod.id - 1);
@@ -152,7 +151,6 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
         })}
       </div>
 
-      {/* Lesson Modal */}
       <AnimatePresence>
         {selected && (
           <motion.div
@@ -184,7 +182,6 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
 
               <p className="text-white/60 font-body text-sm mb-4">{selected.descriptionAr}</p>
 
-              {/* Mode toggle */}
               <div className="flex gap-2 mb-5 p-1 rounded-2xl bg-white/5 border border-white/10">
                 <button
                   onClick={() => switchMode('watch')}
@@ -208,7 +205,6 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
                 </button>
               </div>
 
-              {/* Soroban Visual */}
               <div className="flex justify-center mb-5">
                 <AnimatePresence mode="wait">
                   {mode === 'watch' ? (
@@ -257,7 +253,6 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
                 </p>
               )}
 
-              {/* Value display */}
               {mode === 'watch' && (
                 <div className="text-center mb-5">
                   <p className="text-white/40 font-body text-xs mb-1">القيمة</p>
@@ -271,7 +266,6 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
                 </div>
               )}
 
-              {/* Concept */}
               <div className="flex gap-3 p-4 rounded-2xl bg-purple-500/10 border border-purple-400/20 mb-5">
                 <Lightbulb className="w-5 h-5 text-gold-400 shrink-0 mt-0.5" />
                 <p className="text-sm text-white/80 font-body leading-relaxed">
