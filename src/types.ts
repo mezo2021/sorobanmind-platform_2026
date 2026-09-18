@@ -12,14 +12,38 @@ export type Screen =
 
 export type LearnModuleStatus = 'locked' | 'available' | 'completed';
 
-export type LessonOperation = 'set' | 'add' | 'subtract';
+export type FingerType = 'thumb' | 'index' | 'both';
+
+export type MovementType =
+  | 'raise-lower'
+  | 'pinch'
+  | 'open'
+  | 'small-friend'
+  | 'big-friend';
+
+export interface MovementStep {
+  /** نوع الحركة: رفع، إنزال، قبض، فتح */
+  movement: MovementType;
+  /** عدد الخرزات السفلية */
+  lowerBeads?: number;
+  /** هل الخرزة العلوية تُفعّل؟ */
+  upperBead?: boolean;
+  /** الإصبع المستخدم */
+  finger: FingerType;
+  /** نص شرح الحركة */
+  explanation: string;
+}
 
 export interface LessonExample {
-  /** السؤال المعروض للطفل */
+  /** السؤال المعروض */
   question: string;
-  /** القيمة المطلوبة (الإجابة) */
+  /** القيمة المطلوبة */
   targetValue: number;
-  /** الشرح النصي */
+  /** نوع العملية: مباشرة، صديق صغير، صديق كبير */
+  type: 'direct' | 'small-friend' | 'big-friend';
+  /** خطوات الحل */
+  steps: MovementStep[];
+  /** الشرح العام */
   explanation: string;
 }
 
@@ -37,7 +61,10 @@ export interface LearnModule {
   icon: string;
   /** النص الصوتي للدرس */
   audioText: string;
-  /** أمثلة الدرس: شاهد + جرّب */
+  /** القاعدة التعليمية في هذا الدرس */
+  rule: string;
+  ruleAr: string;
+  /** أمثلة الدرس */
   examples: LessonExample[];
 }
 
@@ -79,6 +106,10 @@ export interface PracticeQuestion {
   question: string;
   answer: number;
   choices: number[];
+  /** نوع السؤال */
+  type?: 'direct' | 'small-friend' | 'big-friend';
+  /** الخطوات الصحيحة */
+  steps?: MovementStep[];
 }
 
 export interface Badge {
