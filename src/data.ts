@@ -258,33 +258,43 @@ export const QUESTS: Quest[] = [
 ];
 
 // ============================================================
-// أسئلة التدريب المنظمة
+// أسئلة التدريب المنظمة (جمع وطرح منفصلان ومتنوعان)
 // ============================================================
 
 export const ADDITION_QUESTIONS: PracticeQuestion[] = [
+  // جمع بسيط (نتيجة ≤ 9)
   { question: '٣ + ٢', answer: 5, choices: [4, 5, 6, 7] },
-  { question: '٧ + ١', answer: 8, choices: [6, 7, 8, 9] },
+  { question: '٤ + ٢', answer: 6, choices: [5, 6, 7, 8] },
+  { question: '٥ + ٢', answer: 7, choices: [6, 7, 8, 9] },
   { question: '٤ + ٤', answer: 8, choices: [7, 8, 9, 10] },
+  { question: '٥ + ٤', answer: 9, choices: [8, 9, 10, 11] },
+  // جمع مع أصدقاء 5
+  { question: '٥ + ١', answer: 6, choices: [5, 6, 7, 8] },
+  { question: '٦ + ١', answer: 7, choices: [6, 7, 8, 9] },
+  { question: '٧ + ١', answer: 8, choices: [7, 8, 9, 10] },
+  // جمع مع أصدقاء 10 (حمل)
   { question: '٦ + ٥', answer: 11, choices: [10, 11, 12, 13] },
-  { question: '٣ + ٦', answer: 9, choices: [8, 9, 10, 11] },
-  { question: '٥ + ٥', answer: 10, choices: [9, 10, 11, 12] },
-  { question: '٢ + ٧', answer: 9, choices: [8, 9, 10, 11] },
-  { question: '١ + ٨', answer: 9, choices: [8, 9, 10, 11] },
-  { question: '٦ + ٣', answer: 9, choices: [8, 9, 10, 11] },
-  { question: '٤ + ٥', answer: 9, choices: [8, 9, 10, 11] },
+  { question: '٧ + ٥', answer: 12, choices: [11, 12, 13, 14] },
+  { question: '٨ + ٥', answer: 13, choices: [12, 13, 14, 15] },
+  { question: '٩ + ٤', answer: 13, choices: [12, 13, 14, 15] },
 ];
 
 export const SUBTRACTION_QUESTIONS: PracticeQuestion[] = [
+  // طرح بسيط
   { question: '٩ - ٣', answer: 6, choices: [5, 6, 7, 8] },
-  { question: '٨ - ٢', answer: 6, choices: [4, 5, 6, 7] },
-  { question: '١٢ - ٤', answer: 8, choices: [7, 8, 9, 10] },
-  { question: '١٥ - ٧', answer: 8, choices: [6, 7, 8, 9] },
-  { question: '١٠ - ٥', answer: 5, choices: [4, 5, 6, 7] },
+  { question: '٨ - ٢', answer: 6, choices: [5, 6, 7, 8] },
   { question: '٧ - ٣', answer: 4, choices: [3, 4, 5, 6] },
+  { question: '٦ - ٢', answer: 4, choices: [3, 4, 5, 6] },
+  { question: '٥ - ١', answer: 4, choices: [3, 4, 5, 6] },
+  // طرح مع أصدقاء 5
+  { question: '٩ - ٥', answer: 4, choices: [3, 4, 5, 6] },
+  { question: '٨ - ٥', answer: 3, choices: [2, 3, 4, 5] },
+  { question: '٧ - ٥', answer: 2, choices: [1, 2, 3, 4] },
+  // طرح مع أصدقاء 10 (استلاف)
+  { question: '١٢ - ٤', answer: 8, choices: [7, 8, 9, 10] },
+  { question: '١٥ - ٧', answer: 8, choices: [7, 8, 9, 10] },
   { question: '١٤ - ٦', answer: 8, choices: [7, 8, 9, 10] },
-  { question: '١١ - ٥', answer: 6, choices: [5, 6, 7, 8] },
-  { question: '١٣ - ٤', answer: 9, choices: [8, 9, 10, 11] },
-  { question: '١٦ - ٨', answer: 8, choices: [7, 8, 9, 10] },
+  { question: '١٣ - ٥', answer: 8, choices: [7, 8, 9, 10] },
 ];
 
 export const PRACTICE_QUESTIONS: PracticeQuestion[] = [
@@ -309,9 +319,13 @@ export const PROGRESS_DATA: ProgressData = {
   ],
 };
 
+// ============================================================
+// الشارات — صعبة تدريجياً
+// ============================================================
+
 export const BADGES = [
-  { id: 'beginner', name: 'Beginner', nameAr: 'مبتدئ', xpRequired: 50, icon: 'Star' },
-  { id: 'anzan-master', name: 'Anzan Master', nameAr: 'سيد الأنزان', xpRequired: 100, icon: 'Eye' },
-  { id: 'soroban-expert', name: 'Soroban Expert', nameAr: 'خبير السوروبان', xpRequired: 200, icon: 'Award' },
-  { id: 'legend', name: 'Legend', nameAr: 'أسطورة', xpRequired: 500, icon: 'Crown' },
+  { id: 'beginner', name: 'Beginner', nameAr: 'مبتدئ', xpRequired: 200, icon: 'Star' },
+  { id: 'anzan-master', name: 'Anzan Master', nameAr: 'سيد الأنزان', xpRequired: 750, icon: 'Eye' },
+  { id: 'soroban-expert', name: 'Soroban Expert', nameAr: 'خبير السوروبان', xpRequired: 2000, icon: 'Award' },
+  { id: 'legend', name: 'Legend', nameAr: 'أسطورة', xpRequired: 5000, icon: 'Crown' },
 ];
