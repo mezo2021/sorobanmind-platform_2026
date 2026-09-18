@@ -21,11 +21,9 @@ interface LearnScreenProps {
 
 type LessonMode = 'watch' | 'try';
 
-/**
- * عمود سوروبان تفاعلي واحد لوضع "جرّب".
- * تم إعادة كتابته بالكامل ليعتمد على مبدأ المجموعتين المنفصلتين،
- * تماماً كما في مكوّن Soroban.tsx الصحيح.
- */
+const COMPLETED_STORAGE_KEY = 'soroban-completed-lessons';
+
+/** عمود سوروبان تفاعلي واحد لوضع "جرّب" */
 function TryColumn({
   target,
   playSound,
@@ -75,7 +73,6 @@ function TryColumn({
     playSound('whoosh');
   };
 
-  // --- أنماط الألوان والقياسات (موحدة مع Soroban.tsx) ---
   const upperBeadStyle = upper
     ? 'bg-gradient-to-b from-yellow-300 to-amber-500 border-yellow-100 shadow-[0_0_8px_rgba(251,191,36,0.7)]'
     : 'bg-gradient-to-b from-amber-700 to-amber-900 border-amber-500/80';
@@ -84,12 +81,11 @@ function TryColumn({
   const inactiveBeadStyle =
     'bg-gradient-to-b from-blue-800 to-blue-950 border-blue-600/80';
   const beadBase = 'w-7 h-7 sm:w-8 sm:h-8 rounded-full border-2';
-  // ----------------------------------------------------
 
   return (
     <div className="inline-flex flex-col items-center gap-3 p-5 glass rounded-3xl">
       <div className="flex flex-col items-center">
-        {/* Upper Deck (Heaven) */}
+        {/* Upper Deck */}
         <div className="relative flex flex-col w-9 sm:w-12 h-[60px] sm:h-[68px]">
           <div className="absolute left-1/2 top-0 bottom-0 w-[3px] -translate-x-1/2 bg-amber-800/70" />
           <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-gradient-to-r from-purple-500 via-electric-500 to-purple-500 rounded-full" />
@@ -105,16 +101,16 @@ function TryColumn({
           </motion.button>
         </div>
 
-        {/* Beam (العازل) */}
+        {/* Beam */}
         <div className="w-full h-[3px] rounded-full bg-gradient-to-r from-purple-500 via-electric-500 to-purple-500" />
 
-        {/* Lower Deck (Earth) - مجموعتان منفصلتان */}
+        {/* Lower Deck */}
         <div className="relative flex flex-col justify-between w-9 sm:w-12 h-[132px] sm:h-[148px] py-1.5">
           <div className="absolute left-1/2 top-0 bottom-0 w-[3px] -translate-x-1/2 bg-amber-800/70" />
           <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-purple-500 via-electric-500 to-purple-500 rounded-full" />
           <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-gradient-to-r from-purple-500 via-electric-500 to-purple-500 rounded-full" />
 
-          {/* المجموعة الأولى: الخرزات المفعّلة (ملتصقة بالعارضة) */}
+          {/* Active beads */}
           <div className="relative z-10 flex flex-col items-center gap-[3px]">
             {Array.from({ length: lower }).map((_, i) => (
               <motion.button
@@ -132,7 +128,7 @@ function TryColumn({
             ))}
           </div>
 
-          {/* المجموعة الثانية: الخرزات غير المفعّلة (بعيدة عند الأسفل) */}
+          {/* Inactive beads */}
           <div className="relative z-10 flex flex-col items-center gap-[3px]">
             {Array.from({ length: lowerInactive }).map((_, i) => (
               <motion.button
@@ -180,12 +176,28 @@ function TryColumn({
 
 export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
   const [selected, setSelected] = useState<LearnModule | null>(null);
-  const [completed, setCompleted] = useState<number[]>([]);
+  const [completed, setCompleted] = useState<number[]>(() => {
+    try {
+      const saved = localStorage.getItem(COMPLETED_STORAGE_KEY);
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
   const [mode, setMode] = useState<LessonMode>('watch');
   const [triedSolved, setTriedSolved] = useState(false);
 
-  const handleOpen = (mod: LearnModule) => {
-    if (mod.status === 'locked') return;
+  // حفظ الدروس المكتملة في localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem(COMPLETED_STORAGE_KEY, JSON.stringify(completed));
+    } catch {
+      /* ignore */
+    }
+  }, [completed]);
+
+  const handleOpen = (mod: LearnModule, isLocked: boolean) => {
+    if (isLocked) return;
     playSound('click');
     setSelected(mod);
     setMode('watch');
@@ -232,7 +244,7 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
         {LEARN_MODULES.map((mod, i) => {
           const Icon = ICONS[mod.icon] || Info;
           const isDone = completed.includes(mod.id) || mod.status === 'completed';
-          const isLocked = mod.status === 'locked' && !completed.includes(mod.id - 1);
+          const isLocked = !isDone && mod.status === 'locked' && !completed.includes(mod.id - 1);
 
           return (
             <motion.button
@@ -242,7 +254,7 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
               transition={{ delay: i * 0.06, type: 'spring', stiffness: 200, damping: 20 }}
               whileHover={!isLocked ? { scale: 1.03, y: -4 } : {}}
               whileTap={!isLocked ? { scale: 0.97 } : {}}
-              onClick={() => handleOpen(mod)}
+              onClick={() => handleOpen(mod, isLocked)}
               disabled={isLocked}
               className="group relative glass-card p-5 text-right overflow-hidden disabled:opacity-50"
             >
@@ -366,7 +378,7 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
                 </p>
               )}
 
-              {/* Value display (only in watch mode) */}
+              {/* Value display */}
               {mode === 'watch' && (
                 <div className="text-center mb-5">
                   <p className="text-white/40 font-body text-xs mb-1">القيمة</p>
