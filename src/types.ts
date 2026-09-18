@@ -19,10 +19,14 @@ export type MovementType =
   | 'pinch'
   | 'open'
   | 'small-friend'
-  | 'big-friend';
+  | 'big-friend'
+  | 'multiply-digit'
+  | 'shift-position'
+  | 'divide-estimate'
+  | 'divide-subtract';
 
 export interface MovementStep {
-  /** نوع الحركة: رفع، إنزال، قبض، فتح */
+  /** نوع الحركة */
   movement: MovementType;
   /** عدد الخرزات السفلية */
   lowerBeads?: number;
@@ -32,6 +36,8 @@ export interface MovementStep {
   finger: FingerType;
   /** نص شرح الحركة */
   explanation: string;
+  /** رقم الخانة (للضرب والقسمة) */
+  column?: number;
 }
 
 export interface LessonExample {
@@ -39,8 +45,8 @@ export interface LessonExample {
   question: string;
   /** القيمة المطلوبة */
   targetValue: number;
-  /** نوع العملية: مباشرة، صديق صغير، صديق كبير */
-  type: 'direct' | 'small-friend' | 'big-friend';
+  /** نوع العملية */
+  type: 'direct' | 'small-friend' | 'big-friend' | 'multiply' | 'divide';
   /** خطوات الحل */
   steps: MovementStep[];
   /** الشرح العام */
@@ -61,7 +67,7 @@ export interface LearnModule {
   icon: string;
   /** النص الصوتي للدرس */
   audioText: string;
-  /** القاعدة التعليمية في هذا الدرس */
+  /** القاعدة التعليمية */
   rule: string;
   ruleAr: string;
   /** أمثلة الدرس */
@@ -106,9 +112,7 @@ export interface PracticeQuestion {
   question: string;
   answer: number;
   choices: number[];
-  /** نوع السؤال */
-  type?: 'direct' | 'small-friend' | 'big-friend';
-  /** الخطوات الصحيحة */
+  type?: 'direct' | 'small-friend' | 'big-friend' | 'multiply' | 'divide';
   steps?: MovementStep[];
 }
 
