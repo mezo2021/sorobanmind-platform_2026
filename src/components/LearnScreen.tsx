@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   ArrowRight, Lock, CheckCircle2, Info, Star, CircleDot,
   Combine, Hash, Sigma, Minus, Plus, Lightbulb, Eye, Hand,
-  X, Divide, ThumbsUp, Fingerprint, MoveRight, Calculator, Target,
+  X, Divide, Fingerprint, MoveRight, Target,
   BookOpen, Sparkles,
   type LucideIcon,
 } from 'lucide-react';
@@ -24,7 +24,7 @@ const ICONS: Record<string, LucideIcon> = {
 
 interface LearnScreenProps {
   onBack: () => void;
-  playSound: (type: 'click' | 'success' | 'bead' | 'whoosh') => void;
+  playSound: (type: 'click' | 'success' | 'error' | 'bead' | 'whoosh' | 'levelup') => void;
   onXP: (amount: number) => void;
 }
 
@@ -81,12 +81,10 @@ function getRuleColor(category: string): string {
   return 'from-white/20 to-white/10';
 }
 
-// التحقق مما إذا كان المثال من نوع قسمة
 function isDivisionExample(ex: LessonExample | DivisionExample): ex is DivisionExample {
   return ex.steps.length > 0 && 'expectedAbacusState' in ex.steps[0];
 }
 
-// عرض حالة المعداد المتوقعة (لأمثلة القسمة)
 function AbacusStatePreview({ state, label }: { state: number[]; label: string }) {
   const columnLabels = ['آحاد', 'عشرات', 'مئات'];
   return (
@@ -121,6 +119,7 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
   const [currentStep, setCurrentStep] = useState(0);
   const [solvedExamples, setSolvedExamples] = useState<number[]>([]);
   const [showSteps, setShowSteps] = useState(false);
+  const [wrongMessage, setWrongMessage] = useState('');
 
   const { speak, stop, isSpeaking, isSupported } = useSpeech();
 
@@ -141,6 +140,7 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
     setCurrentStep(0);
     setSolvedExamples([]);
     setShowSteps(false);
+    setWrongMessage('');
     setTimeout(() => speak(mod.audioText), 300);
   };
 
@@ -164,6 +164,7 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
     setCurrentStep(0);
     setSolvedExamples([]);
     setShowSteps(false);
+    setWrongMessage('');
   };
 
   const handleExampleSolved = () => {
@@ -179,6 +180,7 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
       setCurrentExample(currentExample + 1);
       setCurrentStep(0);
       setShowSteps(false);
+      setWrongMessage('');
       playSound('click');
     }
   };
@@ -188,6 +190,7 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
       setCurrentExample(currentExample - 1);
       setCurrentStep(0);
       setShowSteps(false);
+      setWrongMessage('');
       playSound('click');
     }
   };
@@ -295,7 +298,6 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
                 </button>
               </div>
 
-              {/* Rule Card */}
               <div className="mb-4 p-3 rounded-2xl bg-gradient-to-br from-gold-400/10 to-gold-600/10 border border-gold-400/30">
                 <div className="flex items-start gap-2">
                   <Fingerprint className="w-5 h-5 text-gold-400 shrink-0 mt-0.5" />
@@ -306,7 +308,6 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
                 </div>
               </div>
 
-              {/* Story Card */}
               {selected.story && (
                 <div className="mb-4 p-3 rounded-2xl bg-gradient-to-br from-pink-500/10 to-purple-500/10 border border-pink-400/30">
                   <div className="flex items-start gap-2">
@@ -321,7 +322,6 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
 
               <p className="text-white/60 font-body text-sm mb-4">{selected.descriptionAr}</p>
 
-              {/* Mode toggle */}
               <div className="flex gap-2 mb-4 p-1 rounded-2xl bg-white/5 border border-white/10">
                 <button
                   onClick={() => switchMode('watch')}
@@ -341,7 +341,6 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
                 </button>
               </div>
 
-              {/* Example progress */}
               {currentEx && (
                 <div className="mb-4">
                   <div className="flex items-center justify-between mb-2">
@@ -365,7 +364,6 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
                 </div>
               )}
 
-              {/* Soroban Visual */}
               {currentEx && (
                 <div className="flex justify-center mb-4">
                   <AnimatePresence mode="wait">
@@ -374,19 +372,71 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
                         <Soroban value={currentEx.answer} columns={getColumnsForValue(currentEx.answer)} />
                       </motion.div>
                     ) : (
-                      <motion.div key={`try-${currentExample}`} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                      <motion.div key={`try-${currentExample}-${currentStep}`} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col items-center gap-3">
+                        {currentEx.steps.length > 0 && currentStep < currentEx.steps.length && (
+                          <div className="w-full p-3 rounded-2xl bg-electric-500/10 border border-electric-400/30">
+                            <p className="text-xs text-electric-200 font-bold mb-1">
+                              الخطوة {toArabicNumber(currentStep + 1)} من {toArabicNumber(currentEx.steps.length)}:
+                            </p>
+                            <p className="text-sm text-white/80 font-body">
+                              {currentEx.steps[currentStep].instructionText}
+                            </p>
+                            <div className="flex items-center gap-2 mt-2 flex-wrap">
+                              <span className="text-xs font-bold text-gold-300">
+                                {getFingerLabel(currentEx.steps[currentStep].fingerUsed)}
+                              </span>
+                              <span className="text-xs font-bold text-electric-300">
+                                {getDirectionLabel(currentEx.steps[currentStep].direction)}
+                              </span>
+                              <span className="text-xs text-purple-300">
+                                ({getColumnLabel(currentEx.steps[currentStep].targetColumn)})
+                              </span>
+                            </div>
+                          </div>
+                        )}
+
                         <InteractiveSoroban
                           columns={getColumnsForValue(currentEx.answer)}
                           value={0}
-                          onValueChange={(v) => { if (v === currentEx.answer && !isSolved) handleExampleSolved(); }}
+                          strictMode={currentEx.steps.length > 0}
+                          expectedStep={currentEx.steps.length > 0 ? currentEx.steps[currentStep] : undefined}
+                          onStepCorrect={() => {
+                            setWrongMessage('');
+                            if (currentStep + 1 < currentEx.steps.length) {
+                              playSound('success');
+                              setTimeout(() => setCurrentStep(currentStep + 1), 400);
+                            } else {
+                              handleExampleSolved();
+                            }
+                          }}
+                          onStepWrong={(msg) => {
+                            playSound('error');
+                            setWrongMessage(msg);
+                          }}
+                          onValueChange={(v) => {
+                            if (v === currentEx.answer && currentEx.steps.length === 0 && !isSolved) {
+                              handleExampleSolved();
+                            }
+                          }}
                         />
+
+                        {wrongMessage && (
+                          <motion.p initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} className="text-xs text-red-300 font-body text-center bg-red-500/10 border border-red-400/20 rounded-xl p-2">
+                            ⚠️ {wrongMessage}
+                          </motion.p>
+                        )}
+
+                        {currentStep >= currentEx.steps.length && (
+                          <p className="text-sm text-emerald2-300 font-bold font-body">
+                            ✅ أحسنت! أكملت جميع الخطوات
+                          </p>
+                        )}
                       </motion.div>
                     )}
                   </AnimatePresence>
                 </div>
               )}
 
-              {/* Steps Section */}
               {mode === 'watch' && currentEx && currentEx.steps.length > 0 && (
                 <div className="mb-4">
                   {!showSteps ? (
@@ -406,7 +456,7 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
                       </div>
 
                       {currentEx.steps.slice(0, currentStep + 1).map((step: LessonStep | DivisionStep, i: number) => {
-                        const isDivision = 'expectedAbacusState' in step;
+                        const isDiv = 'expectedAbacusState' in step;
                         return (
                           <motion.div
                             key={i}
@@ -429,12 +479,12 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
                                   )}
                                 </div>
                                 <p className="text-sm text-white/80 font-body leading-relaxed">{step.instructionText}</p>
-                                {!isDivision && (
+                                {!isDiv && (
                                   <p className="text-xs text-emerald2-300 font-body mt-1">
                                     القيمة بعد هذه الخطوة: {toArabicNumber((step as LessonStep).expectedValueAfter)}
                                   </p>
                                 )}
-                                {isDivision && (
+                                {isDiv && (
                                   <AbacusStatePreview
                                     state={(step as DivisionStep).expectedAbacusState}
                                     label="حالة المعداد المتوقعة بعد الخطوة:"
@@ -456,7 +506,6 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
                 </div>
               )}
 
-              {/* Explanation */}
               {currentEx && (
                 <div className="flex gap-3 p-3 rounded-2xl bg-purple-500/10 border border-purple-400/20 mb-4">
                   <Lightbulb className="w-5 h-5 text-gold-400 shrink-0 mt-0.5" />
@@ -464,20 +513,18 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
                 </div>
               )}
 
-              {/* Navigation */}
               <div className="flex gap-2 mb-4">
                 <button onClick={prevExample} disabled={isFirstExample} className="btn-ghost flex-1 !py-2 !text-sm disabled:opacity-30">السابق</button>
                 <button onClick={nextExample} disabled={isLastExample} className={`flex-1 !py-2 !text-sm ${!isLastExample ? 'btn-primary' : 'btn-ghost opacity-30'}`}>التالي</button>
               </div>
 
-              {/* Try mode feedback */}
               {mode === 'try' && (
                 <div className="text-center mb-4">
                   {isSolved ? (
                     <p className="text-sm text-emerald2-300 font-bold font-body">✅ أحسنت! وصلت للقيمة الصحيحة</p>
-                  ) : (
+                  ) : currentEx && currentEx.steps.length === 0 ? (
                     <p className="text-xs text-white/40 font-body">حرّك الخرزات لتصل إلى القيمة {toArabicNumber(currentEx?.answer || 0)}</p>
-                  )}
+                  ) : null}
                 </div>
               )}
 
