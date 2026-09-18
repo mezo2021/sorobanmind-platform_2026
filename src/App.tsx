@@ -13,7 +13,7 @@ import { PracticeScreen } from './components/PracticeScreen';
 import { AnzanScreen } from './components/AnzanScreen';
 import { QuestsScreen } from './components/QuestsScreen';
 import { GuardianDashboard } from './components/GuardianDashboard';
-import { InteractiveSoroban } from './components/InteractiveSoroban';
+import { InteractiveSorobanScreen } from './components/InteractiveSorobanScreen';
 import { BadgeModal } from './components/BadgeModal';
 
 function App() {
@@ -107,6 +107,65 @@ function App() {
 
           {screen === 'learn' && (
             <LearnScreen
+              onBack={() => handleNavigate('hero-dashboard')}
+              playSound={playSound}
+              onXP={addXP}
+            />
+          )}
+
+          {screen === 'practice' && (
+            <PracticeScreen
+              onBack={() => handleNavigate('hero-dashboard')}
+              playSound={playSound}
+              onXP={addXP}
+              burst={burst}
+            />
+          )}
+
+          {screen === 'anzan' && (
+            <AnzanScreen
+              onBack={() => handleNavigate('hero-dashboard')}
+              playSound={playSound}
+              onXP={addXP}
+              burst={burst}
+            />
+          )}
+
+          {screen === 'quests' && (
+            <QuestsScreen
+              onBack={() => handleNavigate('hero-dashboard')}
+              playSound={playSound}
+              onXP={addXP}
+              burst={burst}
+            />
+          )}
+
+          {screen === 'soroban' && (
+            <InteractiveSorobanScreen
+              onBack={() => handleNavigate('hero-dashboard')}
+              playSound={playSound}
+              onXP={addXP}
+            />
+          )}
+
+          {screen === 'guardian-dashboard' && (
+            <GuardianDashboard
+              onBack={handleHome}
+              playSound={playSound}
+              childXP={stats.xp}
+              childStreak={stats.streak}
+              childLevel={stats.level}
+            />
+          )}
+        </motion.main>
+      </AnimatePresence>
+
+      <BadgeModal badge={activeBadge} onClose={clearNewBadge} />
+    </div>
+  );
+}
+
+export default App;            <LearnScreen
               onBack={() => handleNavigate('hero-dashboard')}
               playSound={playSound}
               onXP={addXP}
