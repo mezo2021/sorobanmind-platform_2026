@@ -16,8 +16,10 @@ interface AnzanStats {
 interface PracticeStats {
   totalProblems: number;
   correctAnswers: number;
-  additionProblems?: number;
-  subtractionProblems?: number;
+  additionProblems: number;
+  subtractionProblems: number;
+  multiplicationProblems: number;
+  divisionProblems: number;
 }
 
 interface StoredStats {
@@ -28,7 +30,6 @@ interface StoredStats {
   earnedBadges: string[];
 }
 
-/** قراءة آمنة من localStorage */
 function safeRead<T>(key: string, fallback: T): T {
   try {
     const raw = localStorage.getItem(key);
@@ -40,7 +41,6 @@ function safeRead<T>(key: string, fallback: T): T {
   }
 }
 
-/** حساب قيمة التقدم لتحدٍّ معيّن */
 function calculateProgress(
   type: string,
   completed: number[],
@@ -63,6 +63,10 @@ function calculateProgress(
       return practiceStats.additionProblems || 0;
     case 'subtraction':
       return practiceStats.subtractionProblems || 0;
+    case 'multiplication':
+      return practiceStats.multiplicationProblems || 0;
+    case 'division':
+      return practiceStats.divisionProblems || 0;
     default:
       return 0;
   }
@@ -72,7 +76,6 @@ export function useQuests() {
   const [quests, setQuests] = useState<Quest[]>(() => QUESTS.map((q) => ({ ...q, progress: 0 })));
 
   useEffect(() => {
-    // قراءة جميع الإحصائيات
     const completed: number[] = (() => {
       try {
         const raw = localStorage.getItem(COMPLETED_STORAGE_KEY);
@@ -93,6 +96,8 @@ export function useQuests() {
       correctAnswers: 0,
       additionProblems: 0,
       subtractionProblems: 0,
+      multiplicationProblems: 0,
+      divisionProblems: 0,
     });
 
     const stats = safeRead<StoredStats>(STATS_STORAGE_KEY, {
@@ -103,7 +108,6 @@ export function useQuests() {
       earnedBadges: [],
     });
 
-    // حساب التقدم لكل تحدٍّ
     const updatedQuests = QUESTS.map((quest) => ({
       ...quest,
       progress: calculateProgress(
