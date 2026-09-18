@@ -81,7 +81,7 @@ function getColumnsForValue(value: number): number {
   return 3;
 }
 
-export function AbacusInput({ target, columns, onCorrect, onValueChange, hint }: AbacusInputProps) {
+function AbacusInput({ target, columns, onCorrect, onValueChange, hint }: AbacusInputProps) {
   const cols = columns ?? getColumnsForValue(target);
   const [digits, setDigits] = useState<number[]>(() => Array(cols).fill(0));
   const [solved, setSolved] = useState(false);
@@ -145,5 +145,4 @@ export function AbacusInput({ target, columns, onCorrect, onValueChange, hint }:
   );
 }
 
-export { AbacusInput };
 export default AbacusInput;
