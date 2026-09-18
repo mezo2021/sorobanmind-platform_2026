@@ -11,6 +11,8 @@ const PRACTICE_STORAGE_KEY = 'soroban_practice_stats';
 interface PracticeStats {
   totalProblems: number;
   correctAnswers: number;
+  additionProblems: number;
+  subtractionProblems: number;
 }
 
 function loadPracticeStats(): PracticeStats {
@@ -21,12 +23,14 @@ function loadPracticeStats(): PracticeStats {
       return {
         totalProblems: typeof parsed.totalProblems === 'number' ? parsed.totalProblems : 0,
         correctAnswers: typeof parsed.correctAnswers === 'number' ? parsed.correctAnswers : 0,
+        additionProblems: typeof parsed.additionProblems === 'number' ? parsed.additionProblems : 0,
+        subtractionProblems: typeof parsed.subtractionProblems === 'number' ? parsed.subtractionProblems : 0,
       };
     }
   } catch {
     /* ignore */
   }
-  return { totalProblems: 0, correctAnswers: 0 };
+  return { totalProblems: 0, correctAnswers: 0, additionProblems: 0, subtractionProblems: 0 };
 }
 
 function savePracticeStats(stats: PracticeStats) {
@@ -84,6 +88,9 @@ export function PracticeScreen({ onBack, playSound, onXP, burst }: PracticeScree
 
   const question = questions[index];
 
+  // تحديد نوع السؤال (جمع أو طرح)
+  const isSubtraction = question?.question.includes('-');
+
   const handleCorrect = () => {
     if (currentSolved) return;
     setCurrentSolved(true);
@@ -98,6 +105,8 @@ export function PracticeScreen({ onBack, playSound, onXP, burst }: PracticeScree
     savePracticeStats({
       totalProblems: stats.totalProblems + 1,
       correctAnswers: stats.correctAnswers + 1,
+      additionProblems: isSubtraction ? stats.additionProblems : stats.additionProblems + 1,
+      subtractionProblems: isSubtraction ? stats.subtractionProblems + 1 : stats.subtractionProblems,
     });
   };
 
@@ -120,7 +129,6 @@ export function PracticeScreen({ onBack, playSound, onXP, burst }: PracticeScree
     playSound('click');
   };
 
-  // حالة عدم وجود أسئلة
   if (!question && !finished) {
     return (
       <div className="px-6 py-6 max-w-2xl mx-auto flex flex-col items-center justify-center min-h-[70vh]">
@@ -146,7 +154,6 @@ export function PracticeScreen({ onBack, playSound, onXP, burst }: PracticeScree
     );
   }
 
-  // حالة الانتهاء
   if (finished) {
     return (
       <div className="px-6 py-6 max-w-2xl mx-auto flex flex-col items-center justify-center min-h-[70vh]">
@@ -261,14 +268,12 @@ export function PracticeScreen({ onBack, playSound, onXP, burst }: PracticeScree
             {question.question}
           </p>
 
-          {/* Abacus Input */}
           <AbacusInput
             target={question.answer}
             onCorrect={handleCorrect}
             hint="استخدم الخرزات لتمثيل الإجابة الصحيحة"
           />
 
-          {/* Next button (after solving) */}
           {currentSolved && (
             <motion.button
               initial={{ opacity: 0, y: 10 }}
@@ -284,3 +289,5 @@ export function PracticeScreen({ onBack, playSound, onXP, burst }: PracticeScree
     </div>
   );
 }
+
+export default PracticeScreen;
