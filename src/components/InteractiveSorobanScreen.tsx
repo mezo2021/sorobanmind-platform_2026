@@ -9,6 +9,7 @@ function toArabicNumber(value: number | string): string {
 }
 
 const COLUMNS = 5;
+const COLUMN_LABELS = ['آحاد', 'عشرات', 'مئات', 'آلاف', 'عشرات الآلاف'];
 
 function InteractiveColumn({
   digit,
@@ -116,8 +117,6 @@ export function InteractiveSorobanScreen({
     setDigits(Array(COLUMNS).fill(0));
   };
 
-  const columnLabels = ['آحاد', 'عشرات', 'مئات', 'آلاف', 'عشرات الآلاف'];
-
   return (
     <div className="px-3 sm:px-6 py-6 max-w-2xl mx-auto">
       <div className="flex items-center gap-3 mb-6">
@@ -151,7 +150,10 @@ export function InteractiveSorobanScreen({
       </div>
 
       <div className="glass-card p-4 sm:p-6 mb-4 overflow-x-auto">
-        <div className="flex flex-row-reverse items-start justify-center gap-2 sm:gap-3 min-w-max" dir="ltr">
+        <div
+          className="flex flex-row-reverse items-start justify-center gap-2 sm:gap-3 min-w-max"
+          dir="ltr"
+        >
           {digits.map((digit, idx) => (
             <div key={idx} className="flex flex-col items-center">
               <InteractiveColumn
@@ -159,7 +161,7 @@ export function InteractiveSorobanScreen({
                 onChange={(newDigit) => updateDigit(idx, newDigit)}
               />
               <div className="mt-2 text-[10px] text-white/40 font-body">
-                {columnLabels[idx]}
+                {COLUMN_LABELS[4 - idx]}
               </div>
             </div>
           ))}
@@ -184,3 +186,6 @@ export function InteractiveSorobanScreen({
     </div>
   );
 }
+
+export { InteractiveSorobanScreen };
+export default InteractiveSorobanScreen;
