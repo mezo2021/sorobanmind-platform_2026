@@ -5,6 +5,11 @@ import {
 } from 'lucide-react';
 import { PROGRESS_DATA, LEVELS } from '@/data';
 
+/** تحويل الأرقام إلى أرقام عربية */
+function toArabicNumber(value: number | string): string {
+  return String(value).replace(/\d/g, (d) => '٠١٢٣٤٥٦٧٨٩'[Number(d)]);
+}
+
 interface GuardianDashboardProps {
   onBack: () => void;
   playSound: (type: 'click' | 'whoosh') => void;
@@ -30,7 +35,7 @@ export function GuardianDashboard({
     {
       label: 'نقاط الخبرة',
       labelEn: 'XP Points',
-      value: childXP.toLocaleString(),
+      value: toArabicNumber(childXP),
       icon: Zap,
       gradient: 'from-gold-400 to-gold-600',
       glow: 'shadow-gold-500/30',
@@ -38,7 +43,7 @@ export function GuardianDashboard({
     {
       label: 'المستوى',
       labelEn: 'Level',
-      value: childLevel,
+      value: toArabicNumber(childLevel),
       icon: Award,
       gradient: 'from-purple-500 to-purple-700',
       glow: 'shadow-purple-500/30',
@@ -46,7 +51,7 @@ export function GuardianDashboard({
     {
       label: 'الأيام المتتالية',
       labelEn: 'Day Streak',
-      value: childStreak,
+      value: toArabicNumber(childStreak),
       icon: TrendingUp,
       gradient: 'from-orange-500 to-red-500',
       glow: 'shadow-orange-500/30',
@@ -54,7 +59,7 @@ export function GuardianDashboard({
     {
       label: 'دقة الإجابات',
       labelEn: 'Accuracy',
-      value: `${accuracy}%`,
+      value: `${toArabicNumber(accuracy)}٪`,
       icon: Target,
       gradient: 'from-emerald2-500 to-emerald2-700',
       glow: 'shadow-emerald2-500/30',
@@ -91,7 +96,7 @@ export function GuardianDashboard({
             <p className="text-sm text-white/50 font-body">تقدم الطفل</p>
             <h2 className="text-2xl sm:text-3xl font-extrabold font-display text-white">{childName}</h2>
             <p className="text-sm text-emerald2-300 font-body mt-0.5">
-              مستوى {childLevel} · {completedLevels}/{LEVELS.length} دروس مكتملة
+              مستوى {toArabicNumber(childLevel)} · {toArabicNumber(completedLevels)}/{toArabicNumber(LEVELS.length)} دروس مكتملة
             </p>
           </div>
         </div>
@@ -143,7 +148,7 @@ export function GuardianDashboard({
                   className="w-full rounded-t-xl bg-gradient-to-t from-purple-600 to-electric-400 min-h-[4px] relative group"
                 >
                   <span className="absolute -top-6 left-1/2 -translate-x-1/2 text-xs font-bold text-white/0 group-hover:text-white/80 transition-colors whitespace-nowrap">
-                    {day.xp}
+                    {toArabicNumber(day.xp)}
                   </span>
                 </motion.div>
                 <span className="text-[10px] sm:text-xs text-white/50 font-body">{day.day}</span>
@@ -166,10 +171,10 @@ export function GuardianDashboard({
             <p className="text-sm text-white/60 font-body">مسائل محلولة</p>
           </div>
           <p className="text-3xl font-extrabold font-display text-white">
-            {PROGRESS_DATA.totalProblems}
+            {toArabicNumber(PROGRESS_DATA.totalProblems)}
           </p>
           <p className="text-xs text-emerald2-300 font-body mt-1">
-            {PROGRESS_DATA.correctAnswers} إجابة صحيحة
+            {toArabicNumber(PROGRESS_DATA.correctAnswers)} إجابة صحيحة
           </p>
         </motion.div>
 
@@ -184,7 +189,7 @@ export function GuardianDashboard({
             <p className="text-sm text-white/60 font-body">متوسط السرعة</p>
           </div>
           <p className="text-3xl font-extrabold font-display text-white">
-            {PROGRESS_DATA.averageSpeed}<span className="text-lg text-white/40"> ثانية</span>
+            {toArabicNumber(PROGRESS_DATA.averageSpeed)}<span className="text-lg text-white/40"> ثانية</span>
           </p>
           <p className="text-xs text-electric-300 font-body mt-1">لكل مسألة</p>
         </motion.div>
@@ -200,7 +205,7 @@ export function GuardianDashboard({
             <p className="text-sm text-white/60 font-body">رقم قياسي أنزان</p>
           </div>
           <p className="text-3xl font-extrabold font-display text-white">
-            {PROGRESS_DATA.anzanHighScore}
+            {toArabicNumber(PROGRESS_DATA.anzanHighScore)}
           </p>
           <p className="text-xs text-gold-300 font-body mt-1">أعلى نتيجة</p>
         </motion.div>
@@ -240,7 +245,9 @@ export function GuardianDashboard({
                     transition={{ delay: 0.7 + i * 0.04, duration: 0.6 }}
                   />
                 </div>
-                <span className="text-xs text-white/40 font-body w-8 text-left shrink-0">{level.xpRequired}</span>
+                <span className="text-xs text-white/40 font-body w-8 text-left shrink-0">
+                  {toArabicNumber(level.xpRequired)}
+                </span>
               </motion.div>
             );
           })}
