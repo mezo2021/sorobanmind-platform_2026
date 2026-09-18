@@ -35,6 +35,15 @@ export interface LevelNode {
   xpRequired: number;
 }
 
+export type QuestType =
+  | 'practice'
+  | 'anzan'
+  | 'anzanHighScore'
+  | 'streak'
+  | 'lessons'
+  | 'addition'
+  | 'subtraction';
+
 export interface Quest {
   id: number;
   title: string;
@@ -46,6 +55,7 @@ export interface Quest {
   target: number;
   icon: string;
   color: string;
+  type: QuestType;
 }
 
 export interface PracticeQuestion {
