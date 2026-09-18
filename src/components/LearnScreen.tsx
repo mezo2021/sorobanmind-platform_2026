@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   ArrowRight, Lock, CheckCircle2, Info, Star, CircleDot,
   Combine, Hash, Sigma, Minus, Plus, Lightbulb, Eye, Hand,
-  X, Divide, RotateCcw,
+  X, Divide,
   type LucideIcon,
 } from 'lucide-react';
 import { LEARN_MODULES } from '@/data';
@@ -62,7 +62,6 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
     }
   }, [completed]);
 
-  // إيقاف الصوت عند إغلاق الدرس
   useEffect(() => {
     return () => {
       stop();
@@ -76,7 +75,6 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
     setMode('watch');
     setCurrentExample(0);
     setSolvedExamples([]);
-    // شغّل الصوت تلقائياً (بعد تفاعل المستخدم)
     setTimeout(() => speak(mod.audioText), 300);
   };
 
@@ -114,12 +112,14 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
     if (!selected) return;
     if (currentExample + 1 < selected.examples.length) {
       setCurrentExample(currentExample + 1);
+      playSound('click');
     }
   };
 
   const prevExample = () => {
     if (currentExample > 0) {
       setCurrentExample(currentExample - 1);
+      playSound('click');
     }
   };
 
@@ -128,6 +128,8 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
 
   const currentEx = selected?.examples[currentExample];
   const isSolved = solvedExamples.includes(currentExample);
+  const isLastExample = selected ? currentExample + 1 === selected.examples.length : false;
+  const isFirstExample = currentExample === 0;
 
   return (
     <div className="px-3 sm:px-6 py-6 max-w-5xl mx-auto">
@@ -338,33 +340,37 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
                 </div>
               )}
 
-              {/* Navigation */}
+              {/* Navigation — يظهر في الوضعين */}
+              <div className="flex gap-2 mb-4">
+                <button
+                  onClick={prevExample}
+                  disabled={isFirstExample}
+                  className="btn-ghost flex-1 !py-2 !text-sm disabled:opacity-30"
+                >
+                  السابق
+                </button>
+                <button
+                  onClick={nextExample}
+                  disabled={isLastExample}
+                  className={`flex-1 !py-2 !text-sm ${
+                    !isLastExample ? 'btn-primary' : 'btn-ghost opacity-30'
+                  }`}
+                >
+                  التالي
+                </button>
+              </div>
+
+              {/* Status message */}
               {mode === 'try' && (
-                <div className="flex gap-2 mb-4">
-                  <button
-                    onClick={prevExample}
-                    disabled={currentExample === 0}
-                    className="btn-ghost flex-1 !py-2 !text-sm disabled:opacity-30"
-                  >
-                    السابق
-                  </button>
-                  {isSolved && currentExample + 1 < selected.examples.length && (
-                    <button
-                      onClick={nextExample}
-                      className="btn-primary flex-1 !py-2 !text-sm"
-                    >
-                      التالي
-                    </button>
-                  )}
-                  {isSolved && currentExample + 1 === selected.examples.length && (
-                    <div className="flex-1 flex items-center justify-center text-emerald2-300 font-bold text-sm">
-                      ✅ أكملت كل الأمثلة!
-                    </div>
-                  )}
-                  {!isSolved && (
-                    <div className="flex-1 flex items-center justify-center text-white/40 text-sm font-body">
-                      جارٍ الحل...
-                    </div>
+                <div className="text-center mb-4">
+                  {isSolved ? (
+                    <p className="text-sm text-emerald2-300 font-bold font-body">
+                      ✅ أحسنت! وصلت للقيمة الصحيحة
+                    </p>
+                  ) : (
+                    <p className="text-xs text-white/40 font-body">
+                      حرّك الخرزات لتصل إلى القيمة {toArabicNumber(currentEx?.targetValue || 0)}
+                    </p>
                   )}
                 </div>
               )}
@@ -376,7 +382,7 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
                 className="btn-primary w-full disabled:opacity-40"
               >
                 <CheckCircle2 className="w-5 h-5" />
-                {allExamplesSolved || mode === 'watch'
+                {mode === 'watch' || allExamplesSolved
                   ? `أكملت الدرس +${toArabicNumber(30)} XP`
                   : `حل ${toArabicNumber(selected.examples.length - solvedExamples.length)} أمثلة إضافية`}
               </button>
