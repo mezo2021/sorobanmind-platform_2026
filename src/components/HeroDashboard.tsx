@@ -153,13 +153,21 @@ function LevelNodeButton({ level, index, onClick, playSound }: {
 export function HeroDashboard({ onNavigate, playSound, xp, streak, earnedBadges }: HeroDashboardProps) {
   const [companion, setCompanion] = useState<CharacterType>('fox');
   const [showSelector, setShowSelector] = useState(false);
+  const [childName, setChildName] = useState<string>('');
 
   useEffect(() => {
+    // قراءة الرفيق
     const saved = localStorage.getItem('soroban_companion') as CharacterType | null;
     if (saved && ['fox', 'owl', 'panda', 'rabbit'].includes(saved)) {
       setCompanion(saved);
     } else {
       setShowSelector(true);
+    }
+
+    // قراءة اسم الطفل
+    const savedName = localStorage.getItem('soroban_child_name');
+    if (savedName) {
+      setChildName(savedName);
     }
   }, []);
 
@@ -195,7 +203,7 @@ export function HeroDashboard({ onNavigate, playSound, xp, streak, earnedBadges 
         <div className="relative flex items-center justify-between flex-wrap gap-3">
           <div>
             <h2 className="text-2xl sm:text-3xl font-extrabold font-display text-white mb-1">
-              مرحباً أيها البطل!
+              مرحباً يا {childName || 'أيها البطل'}!
             </h2>
             <p className="text-white/60 font-body text-sm">
               واصل رحلتك في إتقان الحساب الذهني بالسوروبان
