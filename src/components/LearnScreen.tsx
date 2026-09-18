@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   ArrowRight, Lock, CheckCircle2, Info, Star, CircleDot,
   Combine, Hash, Sigma, Minus, Plus, Lightbulb, Eye, Hand,
-  X, Divide, RotateCcw, ThumbsUp, Fingerprint,
+  X, Divide, ThumbsUp, Fingerprint, MoveRight, Calculator, Target,
   type LucideIcon,
 } from 'lucide-react';
 import { LEARN_MODULES } from '@/data';
@@ -39,9 +39,21 @@ function getColumnsForValue(value: number): number {
 }
 
 function getFingerLabel(finger: string): string {
-  if (finger === 'thumb') return 'الإبهام 👍';
-  if (finger === 'index') return 'السبابة ☝️';
-  return 'الإبهام + السبابة ✋';
+  if (finger === 'thumb') return '👍 الإبهام';
+  if (finger === 'index') return '☝️ السبابة';
+  return '✋ الإبهام + السبابة';
+}
+
+function getMovementIcon(movement: string): string {
+  if (movement === 'multiply-digit') return '✖️';
+  if (movement === 'shift-position') return '➡️';
+  if (movement === 'divide-estimate') return '🎯';
+  if (movement === 'divide-subtract') return '➖';
+  if (movement === 'pinch') return '🤏';
+  if (movement === 'open') return '🖐️';
+  if (movement === 'small-friend') return '👥';
+  if (movement === 'big-friend') return '👫';
+  return '👆';
 }
 
 export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
@@ -157,6 +169,10 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
   const isLastExample = selected ? currentExample + 1 === selected.examples.length : false;
   const isFirstExample = currentExample === 0;
 
+  // تحديد نوع العملية لعرض شرح مناسب
+  const isMultiplication = currentEx?.type === 'multiply';
+  const isDivision = currentEx?.type === 'divide';
+
   return (
     <div className="px-3 sm:px-6 py-6 max-w-5xl mx-auto">
       <div className="flex items-center gap-3 mb-6">
@@ -244,7 +260,6 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
               onClick={(e) => e.stopPropagation()}
               className="glass-strong p-5 sm:p-7 max-w-lg w-full max-h-[90vh] overflow-y-auto scrollbar-hide"
             >
-              {/* Header */}
               <div className="flex items-center justify-between mb-4 gap-2">
                 <h3 className="text-xl sm:text-2xl font-extrabold font-display text-white flex-1">
                   {selected.titleAr}
@@ -370,7 +385,7 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
                 </div>
               )}
 
-              {/* Steps Button (Watch Mode) */}
+              {/* Steps Section */}
               {mode === 'watch' && currentEx && currentEx.steps.length > 0 && (
                 <div className="mb-4">
                   {!showSteps ? (
@@ -381,8 +396,14 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
                       }}
                       className="w-full btn-primary !py-3"
                     >
-                      <ThumbsUp className="w-5 h-5" />
-                      اشرح لي الخطوات 👆
+                      {isMultiplication && <Calculator className="w-5 h-5" />}
+                      {isDivision && <Target className="w-5 h-5" />}
+                      {!isMultiplication && !isDivision && <ThumbsUp className="w-5 h-5" />}
+                      {isMultiplication
+                        ? 'اشرح لي طريقة الضرب'
+                        : isDivision
+                        ? 'اشرح لي طريقة القسمة'
+                        : 'اشرح لي الخطوات'}
                     </button>
                   ) : (
                     <div className="space-y-2">
@@ -405,13 +426,18 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
                         >
                           <div className="flex items-start gap-3">
                             <div className="w-8 h-8 rounded-full bg-electric-500/30 flex items-center justify-center shrink-0 text-sm font-bold text-electric-200">
-                              {toArabicNumber(i + 1)}
+                              {getMovementIcon(step.movement)}
                             </div>
                             <div className="flex-1">
-                              <div className="flex items-center gap-2 mb-1">
+                              <div className="flex items-center gap-2 mb-1 flex-wrap">
                                 <span className="text-xs font-bold text-gold-300">
                                   {getFingerLabel(step.finger)}
                                 </span>
+                                {step.column !== undefined && (
+                                  <span className="text-xs text-purple-300 font-body">
+                                    (الخانة {toArabicNumber(step.column)})
+                                  </span>
+                                )}
                               </div>
                               <p className="text-sm text-white/80 font-body leading-relaxed">
                                 {step.explanation}
@@ -426,7 +452,7 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
                           onClick={nextStep}
                           className="w-full btn-primary !py-2 !text-sm mt-2"
                         >
-                          الخطوة التالية ←
+                          <MoveRight className="w-4 h-4" /> الخطوة التالية
                         </button>
                       )}
                     </div>
