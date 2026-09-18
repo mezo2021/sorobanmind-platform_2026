@@ -4,13 +4,13 @@ import { BADGES } from '@/data';
 
 const STORAGE_KEY = 'sorobanmind-stats';
 
+// القيم الافتراضية: ابدأ من الصفر للمستخدم الجديد
 const DEFAULT_STATS: GameStats = {
-  xp: 340,
-  streak: 5,
-  level: 4,
+  xp: 0,
+  streak: 0,
+  level: 1,
   soundEnabled: true,
-  // بيانات افتراضية منطقية: الشارات التي كان يفترض أن يكون المستخدم حصل عليها بالفعل بـ 340 XP
-  earnedBadges: ['beginner', 'anzan-master', 'soroban-expert'],
+  earnedBadges: [],
 };
 
 export function useGameStats() {
@@ -19,26 +19,30 @@ export function useGameStats() {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
         const parsed = JSON.parse(stored);
+        // دمج آمن: القيم المحفوظة تأخذ الأولوية
         return {
-          ...DEFAULT_STATS,
-          ...parsed,
+          xp: typeof parsed.xp === 'number' ? parsed.xp : DEFAULT_STATS.xp,
+          streak: typeof parsed.streak === 'number' ? parsed.streak : DEFAULT_STATS.streak,
+          level: typeof parsed.level === 'number' ? parsed.level : DEFAULT_STATS.level,
+          soundEnabled: typeof parsed.soundEnabled === 'boolean' ? parsed.soundEnabled : DEFAULT_STATS.soundEnabled,
           earnedBadges: Array.isArray(parsed.earnedBadges) ? parsed.earnedBadges : DEFAULT_STATS.earnedBadges,
         };
       }
-    } catch {
-      /* ignore */
+    } catch (e) {
+      console.warn('Failed to load stats:', e);
     }
     return DEFAULT_STATS;
   });
 
-  // الشارة التي حصل عليها المستخدم للتو (لعرض نافذة الاحتفال). null = لا يوجد شيء جديد.
   const [newBadge, setNewBadge] = useState<string | null>(null);
 
+  // حفظ تلقائي عند كل تغيير
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(stats));
-    } catch {
-      /* ignore */
+      console.log('✅ Stats saved:', stats);
+    } catch (e) {
+      console.warn('❌ Failed to save stats:', e);
     }
   }, [stats]);
 
@@ -53,7 +57,7 @@ export function useGameStats() {
       for (const badge of BADGES) {
         if (newXp >= badge.xpRequired && !earned.includes(badge.id)) {
           earned.push(badge.id);
-          justEarnedId = badge.id; // BADGES مرتّبة تصاعدياً، فآخر شارة جديدة هي الأعلى
+          justEarnedId = badge.id;
         }
       }
 
@@ -82,5 +86,10 @@ export function useGameStats() {
     setStats((prev) => ({ ...prev, streak: prev.streak + 1 }));
   }, []);
 
-  return { stats, addXP, toggleSound, incrementStreak, newBadge, clearNewBadge };
+  const resetStats = useCallback(() => {
+    setStats(DEFAULT_STATS);
+    localStorage.removeItem(STORAGE_KEY);
+  }, []);
+
+  return { stats, addXP, toggleSound, incrementStreak, newBadge, clearNewBadge, resetStats };
 }
