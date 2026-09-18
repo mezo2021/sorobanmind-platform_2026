@@ -2,6 +2,11 @@ import { motion } from 'framer-motion';
 import { ArrowRight, Swords, Eye, Flame, BookOpen, Gift, CheckCircle2 } from 'lucide-react';
 import { QUESTS } from '@/data';
 
+/** تحويل الأرقام إلى أرقام عربية */
+function toArabicNumber(value: number | string): string {
+  return String(value).replace(/\d/g, (d) => '٠١٢٣٤٥٦٧٨٩'[Number(d)]);
+}
+
 const ICONS: Record<string, typeof Swords> = {
   Swords, Eye, Flame, BookOpen,
 };
@@ -59,7 +64,9 @@ export function QuestsScreen({ onBack, playSound, onXP, burst }: QuestsScreenPro
                   <p className="text-sm text-white/60 font-body leading-snug">{quest.descriptionAr}</p>
                 </div>
                 <div className="shrink-0 text-center">
-                  <p className="text-xl font-extrabold text-gold-300 font-display">+{quest.xpReward}</p>
+                  <p className="text-xl font-extrabold text-gold-300 font-display">
+                    +{toArabicNumber(quest.xpReward)}
+                  </p>
                   <p className="text-[10px] text-white/40">XP</p>
                 </div>
               </div>
@@ -75,7 +82,7 @@ export function QuestsScreen({ onBack, playSound, onXP, burst }: QuestsScreenPro
                   />
                 </div>
                 <span className="text-xs text-white/50 font-body whitespace-nowrap">
-                  {quest.progress}/{quest.target}
+                  {toArabicNumber(quest.progress)}/{toArabicNumber(quest.target)}
                 </span>
               </div>
 
