@@ -2,11 +2,12 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   ArrowRight, Lock, CheckCircle2, Info, Star, CircleDot,
-  Combine, Hash, Sigma, Lightbulb, Eye, Hand, RotateCcw,
+  Combine, Hash, Sigma, Lightbulb, Eye, Hand,
   type LucideIcon,
 } from 'lucide-react';
 import { LEARN_MODULES } from '@/data';
 import { Soroban } from './Soroban';
+import { InteractiveSoroban } from './InteractiveSoroban';
 import type { LearnModule } from '@/types';
 
 const ICONS: Record<string, LucideIcon> = {
@@ -23,155 +24,12 @@ type LessonMode = 'watch' | 'try';
 
 const COMPLETED_STORAGE_KEY = 'soroban-completed-lessons';
 
-/** عمود سوروبان تفاعلي واحد لوضع "جرّب" */
-function TryColumn({
-  target,
-  playSound,
-  onSolved,
-}: {
-  target: number;
-  playSound: (type: 'click' | 'success' | 'bead' | 'whoosh') => void;
-  onSolved: () => void;
-}) {
-  const [upper, setUpper] = useState(false);
-  const [lower, setLower] = useState(0);
-  const [solved, setSolved] = useState(false);
-
-  const currentValue = (upper ? 5 : 0) + lower;
-  const lowerInactive = 4 - lower;
-
-  useEffect(() => {
-    setUpper(false);
-    setLower(0);
-    setSolved(false);
-  }, [target]);
-
-  useEffect(() => {
-    if (currentValue === target && !solved) {
-      setSolved(true);
-      playSound('success');
-      onSolved();
-    }
-  }, [currentValue, target, solved, playSound, onSolved]);
-
-  const toggleUpper = () => {
-    if (solved) return;
-    setUpper((u) => !u);
-    playSound('bead');
-  };
-
-  const incrementLower = () => {
-    if (solved) return;
-    setLower((l) => (l >= 4 ? 0 : l + 1));
-    playSound('bead');
-  };
-
-  const reset = () => {
-    setUpper(false);
-    setLower(0);
-    setSolved(false);
-    playSound('whoosh');
-  };
-
-  const upperBeadStyle = upper
-    ? 'bg-gradient-to-b from-yellow-300 to-amber-500 border-yellow-100 shadow-[0_0_8px_rgba(251,191,36,0.7)]'
-    : 'bg-gradient-to-b from-amber-700 to-amber-900 border-amber-500/80';
-  const activeBeadStyle =
-    'bg-gradient-to-b from-sky-300 to-sky-500 border-sky-100 shadow-[0_0_8px_rgba(56,189,248,0.7)]';
-  const inactiveBeadStyle =
-    'bg-gradient-to-b from-blue-800 to-blue-950 border-blue-600/80';
-  const beadBase = 'w-7 h-7 sm:w-8 sm:h-8 rounded-full border-2';
-
-  return (
-    <div className="inline-flex flex-col items-center gap-3 p-5 glass rounded-3xl">
-      <div className="flex flex-col items-center">
-        {/* Upper Deck */}
-        <div className="relative flex flex-col w-9 sm:w-12 h-[60px] sm:h-[68px]">
-          <div className="absolute left-1/2 top-0 bottom-0 w-[3px] -translate-x-1/2 bg-amber-800/70" />
-          <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-gradient-to-r from-purple-500 via-electric-500 to-purple-500 rounded-full" />
-          <motion.button
-            onClick={toggleUpper}
-            whileTap={{ scale: 0.88 }}
-            animate={{ y: upper ? 24 : 0 }}
-            transition={{ type: 'spring', stiffness: 300, damping: 22 }}
-            className={`absolute top-1 left-1/2 -translate-x-1/2 z-10 ${beadBase} ${upperBeadStyle} cursor-pointer touch-manipulation`}
-            aria-label="خرزة علوية"
-          >
-            <div className="absolute inset-1 rounded-full bg-gradient-to-tr from-white/40 to-transparent" />
-          </motion.button>
-        </div>
-
-        {/* Beam */}
-        <div className="w-full h-[3px] rounded-full bg-gradient-to-r from-purple-500 via-electric-500 to-purple-500" />
-
-        {/* Lower Deck */}
-        <div className="relative flex flex-col justify-between w-9 sm:w-12 h-[132px] sm:h-[148px] py-1.5">
-          <div className="absolute left-1/2 top-0 bottom-0 w-[3px] -translate-x-1/2 bg-amber-800/70" />
-          <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-purple-500 via-electric-500 to-purple-500 rounded-full" />
-          <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-gradient-to-r from-purple-500 via-electric-500 to-purple-500 rounded-full" />
-
-          {/* Active beads */}
-          <div className="relative z-10 flex flex-col items-center gap-[3px]">
-            {Array.from({ length: lower }).map((_, i) => (
-              <motion.button
-                key={`active-${i}`}
-                onClick={incrementLower}
-                whileTap={{ scale: 0.88 }}
-                initial={{ scale: 0.85, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ duration: 0.18, delay: i * 0.04 }}
-                className={`${beadBase} ${activeBeadStyle} cursor-pointer touch-manipulation`}
-                aria-label={`خرزة سفلية مفعّلة ${i + 1}`}
-              >
-                <div className="absolute inset-1 rounded-full bg-gradient-to-tr from-white/40 to-transparent" />
-              </motion.button>
-            ))}
-          </div>
-
-          {/* Inactive beads */}
-          <div className="relative z-10 flex flex-col items-center gap-[3px]">
-            {Array.from({ length: lowerInactive }).map((_, i) => (
-              <motion.button
-                key={`inactive-${i}`}
-                onClick={incrementLower}
-                whileTap={{ scale: 0.88 }}
-                initial={{ scale: 0.85, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ duration: 0.18, delay: i * 0.04 }}
-                className={`${beadBase} ${inactiveBeadStyle} cursor-pointer touch-manipulation`}
-                aria-label={`خرزة سفلية غير مفعّلة ${i + 1}`}
-              >
-                <div className="absolute inset-1 rounded-full bg-gradient-to-tr from-white/40 to-transparent" />
-              </motion.button>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      <div className="flex items-center gap-3 mt-1">
-        <p
-          className={`text-2xl font-extrabold font-display ${
-            solved ? 'text-emerald2-300' : 'text-white/70'
-          }`}
-        >
-          {currentValue}
-        </p>
-        <button onClick={reset} className="btn-ghost !p-2" aria-label="تصفير">
-          <RotateCcw className="w-4 h-4" />
-        </button>
-      </div>
-
-      {solved && (
-        <motion.p
-          initial={{ opacity: 0, y: -8 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-emerald2-300 font-bold font-body text-sm flex items-center gap-1.5"
-        >
-          <CheckCircle2 className="w-4 h-4" /> أحسنت! وصلت للقيمة الصحيحة
-        </motion.p>
-      )}
-    </div>
-  );
+/** حساب عدد الأعمدة المطلوبة لعرض قيمة معينة */
+function getColumnsForValue(value: number): number {
+  if (value < 10) return 1;
+  if (value < 100) return 2;
+  if (value < 1000) return 3;
+  return 4;
 }
 
 export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
@@ -353,7 +211,10 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
                     >
-                      <Soroban value={selected.value} columns={1} />
+                      <Soroban
+                        value={selected.value}
+                        columns={getColumnsForValue(selected.value)}
+                      />
                     </motion.div>
                   ) : (
                     <motion.div
@@ -362,10 +223,15 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
                     >
-                      <TryColumn
-                        target={selected.value}
-                        playSound={playSound}
-                        onSolved={() => setTriedSolved(true)}
+                      <InteractiveSoroban
+                        columns={getColumnsForValue(selected.value)}
+                        value={selected.value}
+                        onValueChange={(v) => {
+                          if (v === selected.value) {
+                            setTriedSolved(true);
+                            playSound('success');
+                          }
+                        }}
                       />
                     </motion.div>
                   )}
@@ -375,6 +241,12 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
               {mode === 'try' && !triedSolved && (
                 <p className="text-center text-xs text-white/40 font-body mb-5">
                   حرّك الخرزات حتى تصل إلى القيمة {selected.value}
+                </p>
+              )}
+
+              {mode === 'try' && triedSolved && (
+                <p className="text-center text-sm text-emerald2-300 font-bold font-body mb-5">
+                  ✅ أحسنت! وصلت للقيمة الصحيحة
                 </p>
               )}
 
