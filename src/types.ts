@@ -12,24 +12,12 @@ export type Screen =
 
 export type LearnModuleStatus = 'locked' | 'available' | 'completed';
 
-// الأصابع
-export type FingerType =
-  | 'thumb'
-  | 'index'
-  | 'both_pinch'
-  | 'left_index';
+export type FingerType = 'thumb' | 'index' | 'both_pinch' | 'left_index';
 
-// اتجاه الحركة
-export type MovementDirection =
-  | 'up'
-  | 'down'
-  | 'pinch_in'
-  | 'pinch_out';
+export type MovementDirection = 'up' | 'down' | 'pinch_in' | 'pinch_out';
 
-// الخانات
 export type ColumnType = 'units' | 'tens' | 'hundreds' | 'thousands';
 
-// خطوات الدروس العادية
 export interface LessonStep {
   stepIndex: number;
   instructionText: string;
@@ -40,7 +28,6 @@ export interface LessonStep {
   expectedValueAfter: number;
 }
 
-// خطوات القسمة
 export interface DivisionStep {
   stepIndex: number;
   instructionText: string;
@@ -48,18 +35,11 @@ export interface DivisionStep {
   direction: MovementDirection;
   targetColumn: ColumnType;
   beadsAffected: number[];
-  expectedAbacusState: number[]; // [units, tens, hundreds, thousands]
+  expectedAbacusState: number[];
 }
 
-// نوع القاعدة
-export type RuleCategory =
-  | 'direct'
-  | 'small_friends'
-  | 'big_friends'
-  | 'combined'
-  | 'anzan';
+export type RuleCategory = 'direct' | 'small_friends' | 'big_friends' | 'combined' | 'anzan';
 
-// مثال عادي
 export interface LessonExample {
   problemText: string;
   answer: number;
@@ -69,7 +49,6 @@ export interface LessonExample {
   story?: string;
 }
 
-// مثال قسمة
 export interface DivisionExample {
   problemText: string;
   answer: number;
@@ -78,7 +57,6 @@ export interface DivisionExample {
   explanation: string;
 }
 
-// وحدة تعليمية
 export interface LearnModule {
   id: number;
   title: string;
@@ -98,7 +76,6 @@ export interface LearnModule {
   examples: (LessonExample | DivisionExample)[];
 }
 
-// باقي الأنواع
 export interface LevelNode {
   id: number;
   name: string;
@@ -109,15 +86,8 @@ export interface LevelNode {
 }
 
 export type QuestType =
-  | 'practice'
-  | 'anzan'
-  | 'anzanHighScore'
-  | 'streak'
-  | 'lessons'
-  | 'addition'
-  | 'subtraction'
-  | 'multiplication'
-  | 'division';
+  | 'practice' | 'anzan' | 'anzanHighScore' | 'streak' | 'lessons'
+  | 'addition' | 'subtraction' | 'multiplication' | 'division';
 
 export interface Quest {
   id: number;
