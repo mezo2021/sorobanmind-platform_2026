@@ -1,15 +1,15 @@
 import { AnimatePresence, motion } from 'framer-motion';
-import { Star, Eye, Award, Crown, X, type LucideIcon } from 'lucide-react';
+import { Star, Eye, Award, Crown, Target, Diamond, X, type LucideIcon } from 'lucide-react';
 import type { Badge } from '@/types';
-
-interface BadgeModalProps {
-  badge: Badge | null;
-  onClose: () => void;
-}
 
 /** تحويل الأرقام إلى أرقام عربية */
 function toArabicNumber(value: number | string): string {
   return String(value).replace(/\d/g, (d) => '٠١٢٣٤٥٦٧٨٩'[Number(d)]);
+}
+
+interface BadgeModalProps {
+  badge: Badge | null;
+  onClose: () => void;
 }
 
 const BADGE_ICONS: Record<string, LucideIcon> = {
@@ -17,13 +17,19 @@ const BADGE_ICONS: Record<string, LucideIcon> = {
   Eye,
   Award,
   Crown,
+  Target,
+  Diamond,
 };
 
 const BADGE_GRADIENTS: Record<string, string> = {
   beginner: 'from-emerald2-400 to-emerald2-600',
+  trainee: 'from-electric-400 to-electric-600',
   'anzan-master': 'from-electric-400 to-electric-600',
+  skilled: 'from-purple-400 to-purple-600',
   'soroban-expert': 'from-purple-400 to-purple-600',
+  professional: 'from-pink-400 to-pink-600',
   legend: 'from-gold-400 to-gold-600',
+  'eternal-legend': 'from-gold-400 to-gold-600',
 };
 
 export function BadgeModal({ badge, onClose }: BadgeModalProps) {
@@ -90,3 +96,5 @@ export function BadgeModal({ badge, onClose }: BadgeModalProps) {
     </AnimatePresence>
   );
 }
+
+export default BadgeModal;
