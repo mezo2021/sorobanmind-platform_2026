@@ -202,6 +202,4 @@ export function InteractiveSorobanScreen({
       </div>
     </div>
   );
-}
-
-export default InteractiveSorobanScreen;.tsx
+export default InteractiveSorobanScreen;
