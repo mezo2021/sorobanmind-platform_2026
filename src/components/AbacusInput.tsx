@@ -189,5 +189,4 @@ export function AbacusInput({
   );
 }
 
-export { AbacusInput };
 export default AbacusInput;
