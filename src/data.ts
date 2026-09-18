@@ -171,6 +171,58 @@ export const LEARN_MODULES: LearnModule[] = [
     icon: 'Minus',
   },
 ];
+
+export const QUESTS: Quest[] = [
+  {
+    id: 1,
+    title: 'Daily Practice',
+    titleAr: 'التدريب اليومي',
+    description: 'Complete 10 practice problems',
+    descriptionAr: 'أكمل ١٠ مسائل تدريبية',
+    xpReward: 50,
+    progress: 4,
+    target: 10,
+    icon: 'Swords',
+    color: 'from-purple-500 to-electric-500',
+  },
+  {
+    id: 2,
+    title: 'Anzan Apprentice',
+    titleAr: 'متدرب الأنزان',
+    description: 'Score 20 points in Anzan Flash',
+    descriptionAr: 'احصل على ٢٠ نقطة في الأنزان',
+    xpReward: 80,
+    progress: 12,
+    target: 20,
+    icon: 'Eye',
+    color: 'from-electric-500 to-emerald2-500',
+  },
+  {
+    id: 3,
+    title: 'Perfect Streak',
+    titleAr: 'سلسلة مثالية',
+    description: 'Answer 5 in a row correctly',
+    descriptionAr: 'أجب على ٥ أسئلة متتالية بشكل صحيح',
+    xpReward: 100,
+    progress: 2,
+    target: 5,
+    icon: 'Flame',
+    color: 'from-gold-400 to-gold-600',
+  },
+  {
+    id: 4,
+    title: 'Lesson Explorer',
+    titleAr: 'مستكشف الدروس',
+    description: 'Complete 3 learning modules',
+    descriptionAr: 'أكمل ٣ وحدات تعليمية',
+    xpReward: 60,
+    progress: 3,
+    target: 3,
+    icon: 'BookOpen',
+    color: 'from-emerald2-400 to-emerald2-600',
+  },
+];
+
 // ============================================================
 // أسئلة التدريب المنظمة (جمع وطرح منفصلان)
 // ============================================================
