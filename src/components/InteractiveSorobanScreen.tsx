@@ -187,5 +187,4 @@ export function InteractiveSorobanScreen({
   );
 }
 
-export { InteractiveSorobanScreen };
 export default InteractiveSorobanScreen;
