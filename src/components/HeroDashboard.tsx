@@ -19,6 +19,11 @@ interface HeroDashboardProps {
   earnedBadges: string[];
 }
 
+/** تحويل الأرقام إلى أرقام عربية */
+function toArabicNumber(value: number | string): string {
+  return String(value).replace(/\d/g, (d) => '٠١٢٣٤٥٦٧٨٩'[Number(d)]);
+}
+
 const ACTION_CARDS: {
   screen: Screen;
   title: string;
@@ -128,7 +133,7 @@ function LevelNodeButton({ level, index, onClick, playSound }: {
       <div className={`relative w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br ${statusColor} flex items-center justify-center shadow-xl ${level.status === 'available' ? 'shadow-purple-500/50' : ''}`}>
         <Icon className="w-7 h-7 sm:w-8 sm:h-8 text-white" />
         <span className="absolute -top-1.5 -right-1.5 w-6 h-6 rounded-full bg-gold-400 text-gold-900 text-xs font-extrabold flex items-center justify-center shadow-lg">
-          {level.id}
+          {toArabicNumber(level.id)}
         </span>
       </div>
       <div className="text-center max-w-[90px]">
@@ -136,7 +141,9 @@ function LevelNodeButton({ level, index, onClick, playSound }: {
           {level.nameAr}
         </p>
         {level.status === 'available' && (
-          <p className="text-[10px] text-purple-300 font-body mt-0.5">{level.xpRequired} XP</p>
+          <p className="text-[10px] text-purple-300 font-body mt-0.5">
+            {toArabicNumber(level.xpRequired)} XP
+          </p>
         )}
       </div>
     </motion.button>
@@ -147,13 +154,11 @@ export function HeroDashboard({ onNavigate, playSound, xp, streak, earnedBadges 
   const [companion, setCompanion] = useState<CharacterType>('fox');
   const [showSelector, setShowSelector] = useState(false);
 
-  // Load saved companion + auto-show selector on first visit
   useEffect(() => {
     const saved = localStorage.getItem('soroban_companion') as CharacterType | null;
     if (saved && ['fox', 'owl', 'panda', 'rabbit'].includes(saved)) {
       setCompanion(saved);
     } else {
-      // First visit: show selector
       setShowSelector(true);
     }
   }, []);
@@ -198,11 +203,15 @@ export function HeroDashboard({ onNavigate, playSound, xp, streak, earnedBadges 
           </div>
           <div className="flex gap-3">
             <div className="text-center px-4 py-2 rounded-2xl bg-purple-500/15 border border-purple-400/20">
-              <p className="text-2xl font-extrabold text-purple-300 font-display">{xp}</p>
+              <p className="text-2xl font-extrabold text-purple-300 font-display">
+                {toArabicNumber(xp)}
+              </p>
               <p className="text-[10px] text-white/50 font-body">نقطة خبرة</p>
             </div>
             <div className="text-center px-4 py-2 rounded-2xl bg-orange-500/15 border border-orange-400/20">
-              <p className="text-2xl font-extrabold text-orange-300 font-display">{streak}</p>
+              <p className="text-2xl font-extrabold text-orange-300 font-display">
+                {toArabicNumber(streak)}
+              </p>
               <p className="text-[10px] text-white/50 font-body">أيام متتالية</p>
             </div>
           </div>
@@ -240,7 +249,7 @@ export function HeroDashboard({ onNavigate, playSound, xp, streak, earnedBadges 
             الشارات
           </h3>
           <span className="badge bg-gold-400/15 border-gold-400/20 text-gold-200 text-xs">
-            {earnedBadges.length}/{BADGES.length}
+            {toArabicNumber(earnedBadges.length)}/{toArabicNumber(BADGES.length)}
           </span>
         </div>
 
@@ -273,13 +282,14 @@ export function HeroDashboard({ onNavigate, playSound, xp, streak, earnedBadges 
                 <p className={`text-xs font-bold font-body text-center ${isEarned ? 'text-white/80' : 'text-white/30'}`}>
                   {badge.nameAr}
                 </p>
-                <p className="text-[10px] text-white/40 font-body">{badge.xpRequired} XP</p>
+                <p className="text-[10px] text-white/40 font-body">
+                  {toArabicNumber(badge.xpRequired)} XP
+                </p>
               </motion.div>
             );
           })}
         </div>
 
-        {/* Progress to next badge */}
         {nextBadge ? (
           <div>
             <div className="flex items-center justify-between mb-1.5">
@@ -287,7 +297,7 @@ export function HeroDashboard({ onNavigate, playSound, xp, streak, earnedBadges 
                 المسافة نحو شارة "{nextBadge.nameAr}"
               </p>
               <p className="text-xs text-white/50 font-body">
-                {xp}/{nextBadge.xpRequired} XP
+                {toArabicNumber(xp)}/{toArabicNumber(nextBadge.xpRequired)} XP
               </p>
             </div>
             <div className="h-3 rounded-full bg-white/10 overflow-hidden">
@@ -357,7 +367,7 @@ export function HeroDashboard({ onNavigate, playSound, xp, streak, earnedBadges 
             خارطة المستويات
           </h3>
           <span className="badge bg-purple-500/15 border-purple-400/20 text-purple-300 text-xs">
-            {LEVELS.filter(l => l.status === 'completed').length}/{LEVELS.length} مكتمل
+            {toArabicNumber(LEVELS.filter(l => l.status === 'completed').length)}/{toArabicNumber(LEVELS.length)} مكتمل
           </span>
         </div>
 
@@ -409,7 +419,9 @@ export function HeroDashboard({ onNavigate, playSound, xp, streak, earnedBadges 
               >
                 <div className="flex items-center justify-between mb-2">
                   <p className="font-bold text-white font-body text-sm">{quest.titleAr}</p>
-                  <span className="text-xs font-bold text-gold-300">+{quest.xpReward} XP</span>
+                  <span className="text-xs font-bold text-gold-300">
+                    +{toArabicNumber(quest.xpReward)} XP
+                  </span>
                 </div>
                 <div className="flex items-center gap-3">
                   <div className="flex-1 h-2.5 rounded-full bg-white/10 overflow-hidden">
@@ -421,7 +433,7 @@ export function HeroDashboard({ onNavigate, playSound, xp, streak, earnedBadges 
                     />
                   </div>
                   <span className="text-xs text-white/50 font-body whitespace-nowrap">
-                    {quest.progress}/{quest.target}
+                    {toArabicNumber(quest.progress)}/{toArabicNumber(quest.target)}
                   </span>
                 </div>
               </motion.div>
