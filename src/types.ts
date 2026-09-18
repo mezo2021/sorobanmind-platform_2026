@@ -12,28 +12,24 @@ export type Screen =
 
 export type LearnModuleStatus = 'locked' | 'available' | 'completed';
 
-// ============================================================
-// الأصابع والحركات (للسوروبان)
-// ============================================================
-
+// الأصابع
 export type FingerType =
-  | 'thumb'           // الإبهام
-  | 'index'           // السبابة
-  | 'both_pinch'      // الإبهام والسبابة معاً (حركة القبض)
-  | 'left_index';     // سبابة اليد اليسرى
+  | 'thumb'
+  | 'index'
+  | 'both_pinch'
+  | 'left_index';
 
+// اتجاه الحركة
 export type MovementDirection =
-  | 'up'              // رفع الخرزات
-  | 'down'            // إنزال الخرزات
-  | 'pinch_in'        // حركة القبض (ضم للعارضة)
-  | 'pinch_out';      // فتح القبض (إبعاد عن العارضة)
+  | 'up'
+  | 'down'
+  | 'pinch_in'
+  | 'pinch_out';
 
+// الخانات
 export type ColumnType = 'units' | 'tens' | 'hundreds' | 'thousands';
 
-// ============================================================
-// خطوات الدروس العادية (جمع، طرح، أصدقاء 5، أصدقاء 10...)
-// ============================================================
-
+// خطوات الدروس العادية
 export interface LessonStep {
   stepIndex: number;
   instructionText: string;
@@ -44,10 +40,7 @@ export interface LessonStep {
   expectedValueAfter: number;
 }
 
-// ============================================================
-// خطوات القسمة (مع حالة المعداد المتوقعة)
-// ============================================================
-
+// خطوات القسمة
 export interface DivisionStep {
   stepIndex: number;
   instructionText: string;
@@ -55,14 +48,10 @@ export interface DivisionStep {
   direction: MovementDirection;
   targetColumn: ColumnType;
   beadsAffected: number[];
-  /** حالة المعداد المتوقعة بعد هذه الخطوة: [وحدات، عشرات، مئات، آلاف] */
-  expectedAbacusState: number[];
+  expectedAbacusState: number[]; // [units, tens, hundreds, thousands]
 }
 
-// ============================================================
-// أنواع القواعد
-// ============================================================
-
+// نوع القاعدة
 export type RuleCategory =
   | 'direct'
   | 'small_friends'
@@ -70,10 +59,7 @@ export type RuleCategory =
   | 'combined'
   | 'anzan';
 
-// ============================================================
-// مثال تعليمي عادي
-// ============================================================
-
+// مثال عادي
 export interface LessonExample {
   problemText: string;
   answer: number;
@@ -83,22 +69,16 @@ export interface LessonExample {
   story?: string;
 }
 
-// ============================================================
 // مثال قسمة
-// ============================================================
-
 export interface DivisionExample {
-  id: string;
   problemText: string;
+  answer: number;
   ruleCategory: RuleCategory;
   steps: DivisionStep[];
   explanation: string;
 }
 
-// ============================================================
 // وحدة تعليمية
-// ============================================================
-
 export interface LearnModule {
   id: number;
   title: string;
@@ -118,10 +98,7 @@ export interface LearnModule {
   examples: (LessonExample | DivisionExample)[];
 }
 
-// ============================================================
-// باقي الأنواع كما هي
-// ============================================================
-
+// باقي الأنواع
 export interface LevelNode {
   id: number;
   name: string;
