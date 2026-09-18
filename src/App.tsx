@@ -24,7 +24,6 @@ function App() {
   const playSound = useSound(stats.soundEnabled);
   const { burst, celebrate } = useConfetti();
 
-  // عند ظهور شارة جديدة: صوت + confetti تلقائياً من أي شاشة كانت
   useEffect(() => {
     if (newBadge) {
       playSound('levelup');
@@ -53,7 +52,6 @@ function App() {
 
   return (
     <div className="min-h-screen relative">
-      {/* Animated background orbs */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
         <motion.div
           className="absolute top-[-10%] right-[-5%] w-72 h-72 rounded-full bg-purple-600/15 blur-3xl"
@@ -142,65 +140,6 @@ function App() {
 
           {screen === 'soroban' && (
             <InteractiveSorobanScreen
-              onBack={() => handleNavigate('hero-dashboard')}
-              playSound={playSound}
-              onXP={addXP}
-            />
-          )}
-
-          {screen === 'guardian-dashboard' && (
-            <GuardianDashboard
-              onBack={handleHome}
-              playSound={playSound}
-              childXP={stats.xp}
-              childStreak={stats.streak}
-              childLevel={stats.level}
-            />
-          )}
-        </motion.main>
-      </AnimatePresence>
-
-      <BadgeModal badge={activeBadge} onClose={clearNewBadge} />
-    </div>
-  );
-}
-
-export default App;            <LearnScreen
-              onBack={() => handleNavigate('hero-dashboard')}
-              playSound={playSound}
-              onXP={addXP}
-            />
-          )}
-
-          {screen === 'practice' && (
-            <PracticeScreen
-              onBack={() => handleNavigate('hero-dashboard')}
-              playSound={playSound}
-              onXP={addXP}
-              burst={burst}
-            />
-          )}
-
-          {screen === 'anzan' && (
-            <AnzanScreen
-              onBack={() => handleNavigate('hero-dashboard')}
-              playSound={playSound}
-              onXP={addXP}
-              burst={burst}
-            />
-          )}
-
-          {screen === 'quests' && (
-            <QuestsScreen
-              onBack={() => handleNavigate('hero-dashboard')}
-              playSound={playSound}
-              onXP={addXP}
-              burst={burst}
-            />
-          )}
-
-          {screen === 'soroban' && (
-            <InteractiveSoroban
               onBack={() => handleNavigate('hero-dashboard')}
               playSound={playSound}
               onXP={addXP}
