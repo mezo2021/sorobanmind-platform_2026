@@ -36,6 +36,7 @@ function TryColumn({
   const [solved, setSolved] = useState(false);
 
   const currentValue = (upper ? 5 : 0) + lower;
+  const lowerInactive = 4 - lower;
 
   useEffect(() => {
     setUpper(false);
@@ -70,54 +71,87 @@ function TryColumn({
     playSound('whoosh');
   };
 
+  const upperBeadStyle = upper
+    ? 'bg-gradient-to-b from-yellow-300 to-amber-500 border-yellow-100 shadow-[0_0_8px_rgba(251,191,36,0.7)]'
+    : 'bg-gradient-to-b from-amber-700 to-amber-900 border-amber-500/80';
+  const activeBeadStyle =
+    'bg-gradient-to-b from-sky-300 to-sky-500 border-sky-100 shadow-[0_0_8px_rgba(56,189,248,0.7)]';
+  const inactiveBeadStyle =
+    'bg-gradient-to-b from-blue-800 to-blue-950 border-blue-600/80';
+  const beadBase = 'w-7 h-7 sm:w-8 sm:h-8 rounded-full border-2';
+
   return (
     <div className="inline-flex flex-col items-center gap-3 p-5 glass rounded-3xl">
-      <div className="flex flex-col items-center gap-1">
+      <div className="flex flex-col items-center">
         {/* Upper deck */}
-        <div className="relative flex flex-col items-center w-9 sm:w-12 h-16 sm:h-20 justify-start">
-          <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-purple-400/40 via-electric-400/60 to-purple-400/40" />
-          <div className="absolute top-1 bottom-0 w-[3px] bg-gradient-to-b from-white/10 to-white/5 rounded-full" style={{ left: '50%', transform: 'translateX(-50%)' }} />
+        <div className="relative flex flex-col w-9 sm:w-12 h-[60px] sm:h-[68px]">
+          <div className="absolute left-1/2 top-0 bottom-0 w-[3px] -translate-x-1/2 bg-amber-800/70" />
+          <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-gradient-to-r from-purple-500 via-electric-500 to-purple-500 rounded-full" />
           <motion.button
             onClick={toggleUpper}
-            whileTap={{ scale: 0.85 }}
-            className="relative z-10 w-7 h-7 sm:w-9 sm:h-9 rounded-full bg-gradient-to-br from-gold-300 to-gold-500 border-[3px] border-white/60 shadow-xl cursor-pointer touch-manipulation"
-            style={{ boxShadow: upper ? '0 4px 14px rgba(251,191,36,0.55)' : '0 2px 6px rgba(251,191,36,0.25)' }}
-            animate={{ y: upper ? 16 : 0 }}
-            transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+            whileTap={{ scale: 0.88 }}
+            animate={{ y: upper ? 24 : 0 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 22 }}
+            className={`absolute top-1 left-1/2 -translate-x-1/2 z-10 ${beadBase} ${upperBeadStyle} cursor-pointer touch-manipulation`}
             aria-label="خرزة علوية"
           >
             <div className="absolute inset-1 rounded-full bg-gradient-to-tr from-white/40 to-transparent" />
           </motion.button>
         </div>
 
-        <div className="w-8 sm:w-11 h-[3px] rounded-full bg-gradient-to-r from-purple-500 via-electric-500 to-purple-500 shadow-md shadow-purple-500/50" />
+        {/* Beam */}
+        <div className="w-full h-[3px] rounded-full bg-gradient-to-r from-purple-500 via-electric-500 to-purple-500" />
 
-        {/* Lower deck */}
-        <div className="relative flex flex-col-reverse items-center w-9 sm:w-12 h-32 sm:h-40 justify-start gap-1.5 sm:gap-2 pb-1">
-          <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-purple-400/40 via-electric-400/60 to-purple-400/40" />
-          <div className="absolute top-1 bottom-0 w-[3px] bg-gradient-to-b from-white/5 to-white/10 rounded-full" style={{ left: '50%', transform: 'translateX(-50%)' }} />
-          {[0, 1, 2, 3].map((i) => {
-            const isActive = i < lower;
-            return (
+        {/* Lower deck - TWO SEPARATE GROUPS */}
+        <div className="relative flex flex-col justify-between w-9 sm:w-12 h-[132px] sm:h-[148px] py-1.5">
+          <div className="absolute left-1/2 top-0 bottom-0 w-[3px] -translate-x-1/2 bg-amber-800/70" />
+          <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-purple-500 via-electric-500 to-purple-500 rounded-full" />
+          <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-gradient-to-r from-purple-500 via-electric-500 to-purple-500 rounded-full" />
+
+          {/* Active beads - top group, touching beam */}
+          <div className="relative z-10 flex flex-col items-center gap-[3px]">
+            {Array.from({ length: lower }).map((_, i) => (
               <motion.button
-                key={i}
+                key={`a-${i}`}
                 onClick={incrementLower}
-                whileTap={{ scale: 0.85 }}
-                className="relative z-10 w-7 h-7 sm:w-9 sm:h-9 rounded-full bg-gradient-to-br from-electric-400 to-electric-600 border-[3px] border-white/60 shadow-xl cursor-pointer touch-manipulation"
-                style={{ boxShadow: isActive ? '0 4px 14px rgba(59,130,246,0.55)' : '0 2px 6px rgba(59,130,246,0.25)' }}
-                animate={{ y: isActive ? -18 : 0 }}
-                transition={{ type: 'spring', stiffness: 300, damping: 22 }}
-                aria-label={`خرزة سفلية ${i + 1}`}
+                whileTap={{ scale: 0.88 }}
+                initial={{ scale: 0.85, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ duration: 0.18, delay: i * 0.04 }}
+                className={`${beadBase} ${activeBeadStyle} cursor-pointer touch-manipulation`}
+                aria-label={`خرزة سفلية مفعّلة ${i + 1}`}
               >
                 <div className="absolute inset-1 rounded-full bg-gradient-to-tr from-white/40 to-transparent" />
               </motion.button>
-            );
-          })}
+            ))}
+          </div>
+
+          {/* Inactive beads - bottom group, at the bottom */}
+          <div className="relative z-10 flex flex-col items-center gap-[3px]">
+            {Array.from({ length: lowerInactive }).map((_, i) => (
+              <motion.button
+                key={`i-${i}`}
+                onClick={incrementLower}
+                whileTap={{ scale: 0.88 }}
+                initial={{ scale: 0.85, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ duration: 0.18, delay: i * 0.04 }}
+                className={`${beadBase} ${inactiveBeadStyle} cursor-pointer touch-manipulation`}
+                aria-label={`خرزة سفلية غير مفعّلة ${i + 1}`}
+              >
+                <div className="absolute inset-1 rounded-full bg-gradient-to-tr from-white/40 to-transparent" />
+              </motion.button>
+            ))}
+          </div>
         </div>
       </div>
 
       <div className="flex items-center gap-3 mt-1">
-        <p className={`text-2xl font-extrabold font-display ${solved ? 'text-emerald2-300' : 'text-white/70'}`}>
+        <p
+          className={`text-2xl font-extrabold font-display ${
+            solved ? 'text-emerald2-300' : 'text-white/70'
+          }`}
+        >
           {currentValue}
         </p>
         <button onClick={reset} className="btn-ghost !p-2" aria-label="تصفير">
@@ -170,12 +204,20 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
   return (
     <div className="px-3 sm:px-6 py-6 max-w-5xl mx-auto">
       <div className="flex items-center gap-3 mb-6">
-        <button onClick={() => { playSound('click'); onBack(); }} className="btn-ghost !px-3 !py-2">
+        <button
+          onClick={() => {
+            playSound('click');
+            onBack();
+          }}
+          className="btn-ghost !px-3 !py-2"
+        >
           <ArrowRight className="w-5 h-5" />
           <span className="hidden sm:inline">رجوع</span>
         </button>
         <div>
-          <h2 className="text-2xl sm:text-3xl font-extrabold font-display text-white">التعلّم</h2>
+          <h2 className="text-2xl sm:text-3xl font-extrabold font-display text-white">
+            التعلّم
+          </h2>
           <p className="text-sm text-white/50 font-body">تعرّف على السوروبان خطوة بخطوة</p>
         </div>
       </div>
@@ -217,7 +259,9 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
                   </span>
                 )}
               </div>
-              <h3 className="text-lg font-extrabold font-display text-white mb-1">{mod.titleAr}</h3>
+              <h3 className="text-lg font-extrabold font-display text-white mb-1">
+                {mod.titleAr}
+              </h3>
               <p className="text-xs text-white/40 font-body mb-2">{mod.title}</p>
               <p className="text-sm text-white/60 font-body leading-snug">{mod.descriptionAr}</p>
             </motion.button>
@@ -244,8 +288,13 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
               className="glass-strong p-6 sm:p-8 max-w-lg w-full max-h-[90vh] overflow-y-auto scrollbar-hide"
             >
               <div className="flex items-center justify-between mb-5">
-                <h3 className="text-2xl font-extrabold font-display text-white">{selected.titleAr}</h3>
-                <button onClick={() => setSelected(null)} className="w-9 h-9 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors">
+                <h3 className="text-2xl font-extrabold font-display text-white">
+                  {selected.titleAr}
+                </h3>
+                <button
+                  onClick={() => setSelected(null)}
+                  className="w-9 h-9 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
+                >
                   <span className="text-white/70 text-xl">×</span>
                 </button>
               </div>
@@ -286,7 +335,7 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
                     >
-                      <Soroban value={selected.value} columns={1} showLabels />
+                      <Soroban value={selected.value} columns={1} />
                     </motion.div>
                   ) : (
                     <motion.div
@@ -311,7 +360,7 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
                 </p>
               )}
 
-              {/* Value display (only in watch mode, since try mode shows its own live value) */}
+              {/* Value display (only in watch mode) */}
               {mode === 'watch' && (
                 <div className="text-center mb-5">
                   <p className="text-white/40 font-body text-xs mb-1">القيمة</p>
@@ -328,7 +377,9 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
               {/* Concept */}
               <div className="flex gap-3 p-4 rounded-2xl bg-purple-500/10 border border-purple-400/20 mb-5">
                 <Lightbulb className="w-5 h-5 text-gold-400 shrink-0 mt-0.5" />
-                <p className="text-sm text-white/80 font-body leading-relaxed">{selected.conceptAr}</p>
+                <p className="text-sm text-white/80 font-body leading-relaxed">
+                  {selected.conceptAr}
+                </p>
               </div>
 
               <button onClick={handleComplete} className="btn-primary w-full">
