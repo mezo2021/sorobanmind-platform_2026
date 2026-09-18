@@ -2,6 +2,11 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowRight, Eye, Play, Zap, Trophy, RotateCcw, Settings2 } from 'lucide-react';
 
+/** تحويل الأرقام إلى أرقام عربية */
+function toArabicNumber(value: number | string): string {
+  return String(value).replace(/\d/g, (d) => '٠١٢٣٤٥٦٧٨٩'[Number(d)]);
+}
+
 interface AnzanScreenProps {
   onBack: () => void;
   playSound: (type: 'click' | 'success' | 'error' | 'bead' | 'whoosh' | 'levelup') => void;
@@ -113,11 +118,15 @@ export function AnzanScreen({ onBack, playSound, onXP, burst }: AnzanScreenProps
       <div className="flex gap-3 mb-5">
         <div className="badge bg-electric-500/15 border-electric-400/20">
           <Zap className="w-4 h-4 text-electric-300" />
-          <span className="text-electric-200 text-sm">الجولة {round + 1}</span>
+          <span className="text-electric-200 text-sm">
+            الجولة {toArabicNumber(round + 1)}
+          </span>
         </div>
         <div className="badge bg-gold-400/15 border-gold-400/20">
           <Trophy className="w-4 h-4 text-gold-300" />
-          <span className="text-gold-200 text-sm">نقاط: {score}</span>
+          <span className="text-gold-200 text-sm">
+            نقاط: {toArabicNumber(score)}
+          </span>
         </div>
       </div>
 
@@ -131,7 +140,9 @@ export function AnzanScreen({ onBack, playSound, onXP, burst }: AnzanScreenProps
             className="glass-card p-4 sm:p-5 mb-4 overflow-hidden"
           >
             <div className="mb-4">
-              <p className="text-sm text-white/60 font-body mb-2">عدد الأرقام: <span className="text-white font-bold">{numCount}</span></p>
+              <p className="text-sm text-white/60 font-body mb-2">
+                عدد الأرقام: <span className="text-white font-bold">{toArabicNumber(numCount)}</span>
+              </p>
               <div className="flex gap-2">
                 {[3, 4, 5].map((n) => (
                   <button
@@ -143,7 +154,7 @@ export function AnzanScreen({ onBack, playSound, onXP, burst }: AnzanScreenProps
                         : 'bg-white/10 text-white/60 hover:bg-white/15'
                     }`}
                   >
-                    {n}
+                    {toArabicNumber(n)}
                   </button>
                 ))}
               </div>
@@ -172,7 +183,6 @@ export function AnzanScreen({ onBack, playSound, onXP, burst }: AnzanScreenProps
 
       {/* Game area */}
       <div className="glass-card p-6 sm:p-10 min-h-[320px] flex flex-col items-center justify-center relative overflow-hidden">
-        {/* Background grid */}
         <div className="absolute inset-0 bg-hero-grid bg-[size:20px_20px] opacity-30" />
 
         <AnimatePresence mode="wait">
@@ -192,7 +202,7 @@ export function AnzanScreen({ onBack, playSound, onXP, burst }: AnzanScreenProps
                 <Eye className="w-10 h-10 text-white" />
               </motion.div>
               <p className="text-white/60 font-body mb-5 max-w-sm mx-auto">
-                ستظهر {numCount} أرقام بسرعة {SPEED_LABELS[speed]}ة على الشاشة. اجمعها بذهنك باستخدام تخيل السوروبان، ثم اكتب الإجابة!
+                ستظهر {toArabicNumber(numCount)} أرقام بسرعة {SPEED_LABELS[speed]}ة على الشاشة. اجمعها بذهنك باستخدام تخيل السوروبان، ثم اكتب الإجابة!
               </p>
               <button onClick={startGame} className="btn-primary">
                 <Play className="w-5 h-5" /> ابدأ التحدي
@@ -214,7 +224,7 @@ export function AnzanScreen({ onBack, playSound, onXP, burst }: AnzanScreenProps
                   transition={{ type: 'spring', stiffness: 300, damping: 15 }}
                   className="text-8xl sm:text-9xl font-extrabold font-display text-glow-blue text-white"
                 >
-                  {currentNumber}
+                  {toArabicNumber(currentNumber)}
                 </motion.div>
               ) : (
                 <motion.p
@@ -279,8 +289,12 @@ export function AnzanScreen({ onBack, playSound, onXP, burst }: AnzanScreenProps
                     <Trophy className="w-20 h-20 text-gold-400 mx-auto" />
                   </motion.div>
                   <p className="text-3xl font-extrabold font-display text-emerald2-300 mb-2">رائع!</p>
-                  <p className="text-white/60 font-body mb-1">الإجابة الصحيحة: {total}</p>
-                  <p className="text-gold-300 font-bold mb-5">+25 XP</p>
+                  <p className="text-white/60 font-body mb-1">
+                    الإجابة الصحيحة: {toArabicNumber(total)}
+                  </p>
+                  <p className="text-gold-300 font-bold mb-5">
+                    +{toArabicNumber(25)} XP
+                  </p>
                 </>
               ) : (
                 <>
@@ -292,8 +306,12 @@ export function AnzanScreen({ onBack, playSound, onXP, burst }: AnzanScreenProps
                     <span className="text-4xl font-extrabold text-red-300">×</span>
                   </motion.div>
                   <p className="text-2xl font-extrabold font-display text-red-300 mb-2">حاول مرة أخرى</p>
-                  <p className="text-white/60 font-body mb-1">الإجابة الصحيحة: {total}</p>
-                  <p className="text-white/40 font-body text-sm mb-5">إجابتك: {userAnswer || '—'}</p>
+                  <p className="text-white/60 font-body mb-1">
+                    الإجابة الصحيحة: {toArabicNumber(total)}
+                  </p>
+                  <p className="text-white/40 font-body text-sm mb-5">
+                    إجابتك: {userAnswer ? toArabicNumber(userAnswer) : '—'}
+                  </p>
                 </>
               )}
               <button onClick={nextRound} className="btn-primary">
