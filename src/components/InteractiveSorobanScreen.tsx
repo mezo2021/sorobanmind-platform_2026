@@ -202,4 +202,4 @@ export function InteractiveSorobanScreen({
       </div>
     </div>
   );
-export default InteractiveSorobanScreen;
+
