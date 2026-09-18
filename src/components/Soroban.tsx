@@ -32,11 +32,12 @@ export const Bead: React.FC<BeadProps> = ({ color, active }) => (
   <div className={getBeadClasses(color, active)} />
 );
 
-// حوّل قيمة رقمية إلى مصفوفة أرقام (خانة لكل عمود)
+// حوّل قيمة رقمية إلى مصفوفة أرقام (الآحاد أولاً، ثم العشرات، ...)
 export function valueToDigits(value: number, columns: number): number[] {
   const safe = Math.max(0, Math.min(Math.pow(10, columns) - 1, Math.floor(Math.abs(value))));
-  const str = String(safe).padStart(columns, '0').slice(-columns);
-  return str.split('').map(Number);
+  const str = String(safe).padStart(columns, '0');
+  // اقلب الترتيب ليصبح digits[0] = الآحاد، digits[1] = العشرات، وهكذا
+  return str.split('').reverse().map(Number);
 }
 
 // ============================================================
@@ -104,10 +105,8 @@ const Soroban: React.FC<SorobanProps> = ({ value, columns = 5, className = '' })
   const digits = valueToDigits(value, columns);
 
   return (
-    <div
-      className={`inline-flex flex-col items-center gap-3 p-5 glass rounded-3xl ${className}`}
-    >
-      <div className="flex items-center justify-center gap-1 sm:gap-2">
+    <div className={`inline-flex flex-col items-center gap-3 p-5 glass rounded-3xl ${className}`}>
+      <div className="flex flex-row-reverse items-center justify-center gap-1 sm:gap-2" dir="ltr">
         {digits.map((digit, idx) => (
           <SorobanColumn key={idx} digit={digit} />
         ))}
