@@ -12,7 +12,7 @@ import { Soroban } from './Soroban';
 import { InteractiveSoroban } from './InteractiveSoroban';
 import { SpeechButton } from './SpeechButton';
 import { useSpeech } from '@/hooks/useSpeech';
-import type { LearnModule, LessonStep } from '@/types';
+import type { LearnModule, LessonStep, DivisionStep, LessonExample, DivisionExample } from '@/types';
 
 function toArabicNumber(value: number | string): string {
   return String(value).replace(/\d/g, (d) => '٠١٢٣٤٥٦٧٨٩'[Number(d)]);
@@ -79,6 +79,31 @@ function getRuleColor(category: string): string {
   if (category === 'combined') return 'from-gold-400 to-gold-600';
   if (category === 'anzan') return 'from-pink-400 to-pink-600';
   return 'from-white/20 to-white/10';
+}
+
+// التحقق مما إذا كان المثال من نوع قسمة
+function isDivisionExample(ex: LessonExample | DivisionExample): ex is DivisionExample {
+  return ex.steps.length > 0 && 'expectedAbacusState' in ex.steps[0];
+}
+
+// عرض حالة المعداد المتوقعة (لأمثلة القسمة)
+function AbacusStatePreview({ state, label }: { state: number[]; label: string }) {
+  const columnLabels = ['آحاد', 'عشرات', 'مئات'];
+  return (
+    <div className="mt-2 p-2 rounded-xl bg-black/20 border border-white/10">
+      <p className="text-[10px] text-white/50 font-body mb-1">{label}</p>
+      <div className="flex flex-row-reverse gap-2 justify-center">
+        {state.map((digit, idx) => (
+          <div key={idx} className="flex flex-col items-center">
+            <span className="text-lg font-bold font-display text-electric-300">
+              {toArabicNumber(digit)}
+            </span>
+            <span className="text-[9px] text-white/40">{columnLabels[idx] || ''}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 }
 
 export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
@@ -167,6 +192,12 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
     }
   };
 
+  const currentEx = selected?.examples[currentExample];
+  const isSolved = solvedExamples.includes(currentExample);
+  const isLastExample = selected ? currentExample + 1 === selected.examples.length : false;
+  const isFirstExample = currentExample === 0;
+  const allExamplesSolved = selected && solvedExamples.length === selected.examples.length;
+
   const nextStep = () => {
     if (!currentEx) return;
     if (currentStep + 1 < currentEx.steps.length) {
@@ -176,12 +207,6 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
       setShowSteps(false);
     }
   };
-
-  const allExamplesSolved = selected && solvedExamples.length === selected.examples.length;
-  const currentEx = selected?.examples[currentExample];
-  const isSolved = solvedExamples.includes(currentExample);
-  const isLastExample = selected ? currentExample + 1 === selected.examples.length : false;
-  const isFirstExample = currentExample === 0;
 
   return (
     <div className="px-3 sm:px-6 py-6 max-w-5xl mx-auto">
@@ -380,35 +405,46 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
                         </p>
                       </div>
 
-                      {currentEx.steps.slice(0, currentStep + 1).map((step: LessonStep, i: number) => (
-                        <motion.div
-                          key={i}
-                          initial={{ opacity: 0, x: -20 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          className={`p-3 rounded-2xl border ${
-                            i === currentStep ? 'bg-electric-500/20 border-electric-400/40' : 'bg-white/5 border-white/10'
-                          }`}
-                        >
-                          <div className="flex items-start gap-3">
-                            <div className="w-8 h-8 rounded-full bg-electric-500/30 flex items-center justify-center shrink-0 text-sm font-bold text-electric-200">
-                              {toArabicNumber(i + 1)}
-                            </div>
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2 mb-1 flex-wrap">
-                                <span className="text-xs font-bold text-gold-300">{getFingerLabel(step.fingerUsed)}</span>
-                                <span className="text-xs font-bold text-electric-300">{getDirectionLabel(step.direction)}</span>
-                                {step.targetColumn && (
-                                  <span className="text-xs text-purple-300 font-body">({getColumnLabel(step.targetColumn)})</span>
+                      {currentEx.steps.slice(0, currentStep + 1).map((step: LessonStep | DivisionStep, i: number) => {
+                        const isDivision = 'expectedAbacusState' in step;
+                        return (
+                          <motion.div
+                            key={i}
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            className={`p-3 rounded-2xl border ${
+                              i === currentStep ? 'bg-electric-500/20 border-electric-400/40' : 'bg-white/5 border-white/10'
+                            }`}
+                          >
+                            <div className="flex items-start gap-3">
+                              <div className="w-8 h-8 rounded-full bg-electric-500/30 flex items-center justify-center shrink-0 text-sm font-bold text-electric-200">
+                                {toArabicNumber(i + 1)}
+                              </div>
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-1 flex-wrap">
+                                  <span className="text-xs font-bold text-gold-300">{getFingerLabel(step.fingerUsed)}</span>
+                                  <span className="text-xs font-bold text-electric-300">{getDirectionLabel(step.direction)}</span>
+                                  {step.targetColumn && (
+                                    <span className="text-xs text-purple-300 font-body">({getColumnLabel(step.targetColumn)})</span>
+                                  )}
+                                </div>
+                                <p className="text-sm text-white/80 font-body leading-relaxed">{step.instructionText}</p>
+                                {!isDivision && (
+                                  <p className="text-xs text-emerald2-300 font-body mt-1">
+                                    القيمة بعد هذه الخطوة: {toArabicNumber((step as LessonStep).expectedValueAfter)}
+                                  </p>
+                                )}
+                                {isDivision && (
+                                  <AbacusStatePreview
+                                    state={(step as DivisionStep).expectedAbacusState}
+                                    label="حالة المعداد المتوقعة بعد الخطوة:"
+                                  />
                                 )}
                               </div>
-                              <p className="text-sm text-white/80 font-body leading-relaxed">{step.instructionText}</p>
-                              <p className="text-xs text-emerald2-300 font-body mt-1">
-                                القيمة بعد هذه الخطوة: {toArabicNumber(step.expectedValueAfter)}
-                              </p>
                             </div>
-                          </div>
-                        </motion.div>
-                      ))}
+                          </motion.div>
+                        );
+                      })}
 
                       {currentStep + 1 < currentEx.steps.length && (
                         <button onClick={nextStep} className="w-full btn-primary !py-2 !text-sm mt-2">
