@@ -25,7 +25,7 @@ export function PracticeScreen({ onBack, playSound, onXP, burst }: PracticeScree
     }
   });
 
-  // تحديث القائمة عند فتح الشاشة (في حالة تغييرها)
+  // تحديث القائمة عند فتح الشاشة
   useEffect(() => {
     const saved = localStorage.getItem(COMPLETED_STORAGE_KEY);
     if (saved) {
@@ -37,8 +37,8 @@ export function PracticeScreen({ onBack, playSound, onXP, burst }: PracticeScree
     }
   }, []);
 
-  // هل أكمل الطفل درس "الطرح البسيط" (id = 7)؟
-  const hasSubtraction = completed.includes(7);
+  // هل أكمل الطفل درس "الطرح البسيط" (id = 10)؟
+  const hasSubtraction = completed.includes(10);
 
   // الأسئلة المتاحة حسب التقدم
   const questions: PracticeQuestion[] = hasSubtraction
