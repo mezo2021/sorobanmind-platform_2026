@@ -161,7 +161,7 @@ export function InteractiveSorobanScreen({
                 onChange={(newDigit) => updateDigit(idx, newDigit)}
               />
               <div className="mt-2 text-[10px] text-white/40 font-body">
-                {COLUMN_LABELS[4 - idx]}
+                {COLUMN_LABELS[idx]}
               </div>
             </div>
           ))}
