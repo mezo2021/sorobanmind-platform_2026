@@ -28,38 +28,10 @@ export const LEARN_MODULES: LearnModule[] = [
     rule: 'Use the thumb for lower beads up, and index finger for upper bead and lower beads down',
     ruleAr: 'قاعدة الإصبعين: الإبهام يرفع الخرزات السفلية، والسبابة تنزل الخرزة العلوية والخرزات السفلية',
     examples: [
-      {
-        question: 'شاهد: كل الخرزات بعيدة عن العارضة → القيمة ٠',
-        targetValue: 0,
-        type: 'direct',
-        steps: [],
-        explanation: 'عندما تكون كل الخرزات بعيدة عن العارضة، القيمة = ٠',
-      },
-      {
-        question: 'مثّل الرقم ٠ على المعداد',
-        targetValue: 0,
-        type: 'direct',
-        steps: [],
-        explanation: 'اترك كل الخرزات بعيدة عن العارضة. أحسنت!',
-      },
-      {
-        question: 'شاهد: نرفع خرزة سفلية واحدة بالإبهام → القيمة ١',
-        targetValue: 1,
-        type: 'direct',
-        steps: [
-          { movement: 'raise-lower', lowerBeads: 1, finger: 'thumb', explanation: 'ارفع خرزة سفلية واحدة بالإبهام' },
-        ],
-        explanation: 'كل خرزة سفلية = ١. نرفعها بالإبهام.',
-      },
-      {
-        question: 'مثّل الرقم ٢ على المعداد',
-        targetValue: 2,
-        type: 'direct',
-        steps: [
-          { movement: 'raise-lower', lowerBeads: 2, finger: 'thumb', explanation: 'ارفع خرزتين سفليتين بالإبهام' },
-        ],
-        explanation: 'ارفع خرزتين سفليتين بالإبهام',
-      },
+      { question: 'شاهد: كل الخرزات بعيدة عن العارضة → القيمة ٠', targetValue: 0, type: 'direct', steps: [], explanation: 'عندما تكون كل الخرزات بعيدة عن العارضة، القيمة = ٠' },
+      { question: 'مثّل الرقم ٠ على المعداد', targetValue: 0, type: 'direct', steps: [], explanation: 'اترك كل الخرزات بعيدة عن العارضة. أحسنت!' },
+      { question: 'شاهد: نرفع خرزة سفلية واحدة بالإبهام → القيمة ١', targetValue: 1, type: 'direct', steps: [{ movement: 'raise-lower', lowerBeads: 1, finger: 'thumb', explanation: 'ارفع خرزة سفلية واحدة بالإبهام' }], explanation: 'كل خرزة سفلية = ١. نرفعها بالإبهام.' },
+      { question: 'مثّل الرقم ٢ على المعداد', targetValue: 2, type: 'direct', steps: [{ movement: 'raise-lower', lowerBeads: 2, finger: 'thumb', explanation: 'ارفع خرزتين سفليتين بالإبهام' }], explanation: 'ارفع خرزتين سفليتين بالإبهام' },
     ],
   },
   {
@@ -78,42 +50,10 @@ export const LEARN_MODULES: LearnModule[] = [
     rule: 'Use index finger ONLY to move upper bead',
     ruleAr: 'الخرزة العلوية تُحرَّك بالسبابة فقط، لا يلمسها الإبهام أبداً',
     examples: [
-      {
-        question: 'شاهد: ننزل الخرزة العلوية بالسبابة → القيمة ٥',
-        targetValue: 5,
-        type: 'direct',
-        steps: [
-          { movement: 'raise-lower', upperBead: true, finger: 'index', explanation: 'نزّل الخرزة العلوية بالسبابة' },
-        ],
-        explanation: 'الخرزة العلوية = ٥، تُحرَّك بالسبابة فقط',
-      },
-      {
-        question: 'مثّل الرقم ٥ على المعداد',
-        targetValue: 5,
-        type: 'direct',
-        steps: [
-          { movement: 'raise-lower', upperBead: true, finger: 'index', explanation: 'نزّل الخرزة العلوية بالسبابة' },
-        ],
-        explanation: 'نزّل الخرزة العلوية بالسبابة',
-      },
-      {
-        question: 'مثّل الرقم ٦ على المعداد',
-        targetValue: 6,
-        type: 'pinch',
-        steps: [
-          { movement: 'pinch', upperBead: true, lowerBeads: 1, finger: 'both', explanation: 'أنزل الخرزة العلوية (٥) بالسبابة، وارفع خرزة سفلية (١) بالإبهام' },
-        ],
-        explanation: '٥ + ١ = ٦، حركة القبض: العلوية بالسبابة، والسفلية بالإبهام',
-      },
-      {
-        question: 'مثّل الرقم ٧ على المعداد',
-        targetValue: 7,
-        type: 'pinch',
-        steps: [
-          { movement: 'pinch', upperBead: true, lowerBeads: 2, finger: 'both', explanation: 'أنزل الخرزة العلوية بالسبابة، وارفع خرزتين سفليتين بالإبهام' },
-        ],
-        explanation: '٥ + ٢ = ٧',
-      },
+      { question: 'شاهد: ننزل الخرزة العلوية بالسبابة → القيمة ٥', targetValue: 5, type: 'direct', steps: [{ movement: 'raise-lower', upperBead: true, finger: 'index', explanation: 'نزّل الخرزة العلوية بالسبابة' }], explanation: 'الخرزة العلوية = ٥، تُحرَّك بالسبابة فقط' },
+      { question: 'مثّل الرقم ٥ على المعداد', targetValue: 5, type: 'direct', steps: [{ movement: 'raise-lower', upperBead: true, finger: 'index', explanation: 'نزّل الخرزة العلوية بالسبابة' }], explanation: 'نزّل الخرزة العلوية بالسبابة' },
+      { question: 'مثّل الرقم ٦ على المعداد', targetValue: 6, type: 'pinch', steps: [{ movement: 'pinch', upperBead: true, lowerBeads: 1, finger: 'both', explanation: 'أنزل الخرزة العلوية (٥) بالسبابة، وارفع خرزة سفلية (١) بالإبهام' }], explanation: '٥ + ١ = ٦، حركة القبض: العلوية بالسبابة، والسفلية بالإبهام' },
+      { question: 'مثّل الرقم ٧ على المعداد', targetValue: 7, type: 'pinch', steps: [{ movement: 'pinch', upperBead: true, lowerBeads: 2, finger: 'both', explanation: 'أنزل الخرزة العلوية بالسبابة، وارفع خرزتين سفليتين بالإبهام' }], explanation: '٥ + ٢ = ٧' },
     ],
   },
   {
@@ -132,42 +72,10 @@ export const LEARN_MODULES: LearnModule[] = [
     rule: 'Use thumb to raise lower beads, index to lower them',
     ruleAr: 'الإبهام يرفع الخرزات السفلية، والسبابة تنزلها',
     examples: [
-      {
-        question: 'شاهد: ارفع خرزة سفلية بالإبهام → القيمة ١',
-        targetValue: 1,
-        type: 'direct',
-        steps: [
-          { movement: 'raise-lower', lowerBeads: 1, finger: 'thumb', explanation: 'ارفع خرزة سفلية بالإبهام' },
-        ],
-        explanation: 'خرزة سفلية واحدة = ١',
-      },
-      {
-        question: 'مثّل الرقم ٢',
-        targetValue: 2,
-        type: 'direct',
-        steps: [
-          { movement: 'raise-lower', lowerBeads: 2, finger: 'thumb', explanation: 'ارفع خرزتين سفليتين بالإبهام' },
-        ],
-        explanation: '٢ = خرزتان سفليتان',
-      },
-      {
-        question: 'مثّل الرقم ٣',
-        targetValue: 3,
-        type: 'direct',
-        steps: [
-          { movement: 'raise-lower', lowerBeads: 3, finger: 'thumb', explanation: 'ارفع ٣ خرزات سفليّة بالإبهام' },
-        ],
-        explanation: '٣ = ٣ خرزات سفلية',
-      },
-      {
-        question: 'مثّل الرقم ٤',
-        targetValue: 4,
-        type: 'direct',
-        steps: [
-          { movement: 'raise-lower', lowerBeads: 4, finger: 'thumb', explanation: 'ارفع ٤ خرزات سفلية بالإبهام' },
-        ],
-        explanation: '٤ = ٤ خرزات سفلية. أحسنت!',
-      },
+      { question: 'شاهد: ارفع خرزة سفلية بالإبهام → القيمة ١', targetValue: 1, type: 'direct', steps: [{ movement: 'raise-lower', lowerBeads: 1, finger: 'thumb', explanation: 'ارفع خرزة سفلية بالإبهام' }], explanation: 'خرزة سفلية واحدة = ١' },
+      { question: 'مثّل الرقم ٢', targetValue: 2, type: 'direct', steps: [{ movement: 'raise-lower', lowerBeads: 2, finger: 'thumb', explanation: 'ارفع خرزتين سفليتين بالإبهام' }], explanation: '٢ = خرزتان سفليتان' },
+      { question: 'مثّل الرقم ٣', targetValue: 3, type: 'direct', steps: [{ movement: 'raise-lower', lowerBeads: 3, finger: 'thumb', explanation: 'ارفع ٣ خرزات سفليّة بالإبهام' }], explanation: '٣ = ٣ خرزات سفلية' },
+      { question: 'مثّل الرقم ٤', targetValue: 4, type: 'direct', steps: [{ movement: 'raise-lower', lowerBeads: 4, finger: 'thumb', explanation: 'ارفع ٤ خرزات سفلية بالإبهام' }], explanation: '٤ = ٤ خرزات سفلية. أحسنت!' },
     ],
   },
   {
@@ -186,33 +94,9 @@ export const LEARN_MODULES: LearnModule[] = [
     rule: 'Pinch movement: index lowers upper bead while thumb raises lower beads',
     ruleAr: 'حركة القبض: السبابة تنزل الخرزة العلوية والإبهام يرفع الخرزات السفلية في نفس الوقت',
     examples: [
-      {
-        question: 'مثّل الرقم ٦',
-        targetValue: 6,
-        type: 'pinch',
-        steps: [
-          { movement: 'pinch', upperBead: true, lowerBeads: 1, finger: 'both', explanation: 'أنزل الخرزة العلوية بالسبابة، وارفع خرزة سفلية بالإبهام' },
-        ],
-        explanation: '٥ + ١ = ٦',
-      },
-      {
-        question: 'مثّل الرقم ٧',
-        targetValue: 7,
-        type: 'pinch',
-        steps: [
-          { movement: 'pinch', upperBead: true, lowerBeads: 2, finger: 'both', explanation: 'أنزل الخرزة العلوية بالسبابة، وارفع خرزتين سفليتين بالإبهام' },
-        ],
-        explanation: '٥ + ٢ = ٧',
-      },
-      {
-        question: 'مثّل الرقم ٨',
-        targetValue: 8,
-        type: 'pinch',
-        steps: [
-          { movement: 'pinch', upperBead: true, lowerBeads: 3, finger: 'both', explanation: 'أنزل الخرزة العلوية بالسبابة، وارفع ٣ خرزات سفلية بالإبهام' },
-        ],
-        explanation: '٥ + ٣ = ٨',
-      },
+      { question: 'مثّل الرقم ٦', targetValue: 6, type: 'pinch', steps: [{ movement: 'pinch', upperBead: true, lowerBeads: 1, finger: 'both', explanation: 'أنزل الخرزة العلوية بالسبابة، وارفع خرزة سفلية بالإبهام' }], explanation: '٥ + ١ = ٦' },
+      { question: 'مثّل الرقم ٧', targetValue: 7, type: 'pinch', steps: [{ movement: 'pinch', upperBead: true, lowerBeads: 2, finger: 'both', explanation: 'أنزل الخرزة العلوية بالسبابة، وارفع خرزتين سفليتين بالإبهام' }], explanation: '٥ + ٢ = ٧' },
+      { question: 'مثّل الرقم ٨', targetValue: 8, type: 'pinch', steps: [{ movement: 'pinch', upperBead: true, lowerBeads: 3, finger: 'both', explanation: 'أنزل الخرزة العلوية بالسبابة، وارفع ٣ خرزات سفلية بالإبهام' }], explanation: '٥ + ٣ = ٨' },
     ],
   },
   {
@@ -231,42 +115,10 @@ export const LEARN_MODULES: LearnModule[] = [
     rule: 'Maximum value on one column is 9 (5 + 4)',
     ruleAr: 'أقصى قيمة في عمود واحد هي ٩ (٥ + ٤)',
     examples: [
-      {
-        question: 'مثّل الرقم ٧',
-        targetValue: 7,
-        type: 'pinch',
-        steps: [
-          { movement: 'pinch', upperBead: true, lowerBeads: 2, finger: 'both', explanation: 'العلوية + خرزتان سفليتان' },
-        ],
-        explanation: '٥ + ٢ = ٧',
-      },
-      {
-        question: 'مثّل الرقم ٨',
-        targetValue: 8,
-        type: 'pinch',
-        steps: [
-          { movement: 'pinch', upperBead: true, lowerBeads: 3, finger: 'both', explanation: 'العلوية + ٣ سفليّة' },
-        ],
-        explanation: '٥ + ٣ = ٨',
-      },
-      {
-        question: 'مثّل الرقم ٩',
-        targetValue: 9,
-        type: 'pinch',
-        steps: [
-          { movement: 'pinch', upperBead: true, lowerBeads: 4, finger: 'both', explanation: 'العلوية + ٤ سفليّة' },
-        ],
-        explanation: '٥ + ٤ = ٩ (القيمة القصوى)',
-      },
-      {
-        question: 'شاهد: ٩ + ١ = ؟ (نحمل إلى العشرات)',
-        targetValue: 10,
-        type: 'big-friend',
-        steps: [
-          { movement: 'small-friend', upperBead: false, lowerBeads: 0, finger: 'both', explanation: 'نضيف ١٠ في عمود العشرات، ونزيل ٩ من الآحاد' },
-        ],
-        explanation: '٩ + ١ = ١٠. نحمل ١٠ إلى عمود العشرات',
-      },
+      { question: 'مثّل الرقم ٧', targetValue: 7, type: 'pinch', steps: [{ movement: 'pinch', upperBead: true, lowerBeads: 2, finger: 'both', explanation: 'العلوية + خرزتان سفليتان' }], explanation: '٥ + ٢ = ٧' },
+      { question: 'مثّل الرقم ٨', targetValue: 8, type: 'pinch', steps: [{ movement: 'pinch', upperBead: true, lowerBeads: 3, finger: 'both', explanation: 'العلوية + ٣ سفليّة' }], explanation: '٥ + ٣ = ٨' },
+      { question: 'مثّل الرقم ٩', targetValue: 9, type: 'pinch', steps: [{ movement: 'pinch', upperBead: true, lowerBeads: 4, finger: 'both', explanation: 'العلوية + ٤ سفليّة' }], explanation: '٥ + ٤ = ٩ (القيمة القصوى)' },
+      { question: 'شاهد: ٩ + ١ = ؟ (نحمل إلى العشرات)', targetValue: 10, type: 'big-friend', steps: [{ movement: 'small-friend', upperBead: false, lowerBeads: 0, finger: 'both', explanation: 'نضيف ١٠ في عمود العشرات، ونزيل ٩ من الآحاد' }], explanation: '٩ + ١ = ١٠. نحمل ١٠ إلى عمود العشرات' },
     ],
   },
   {
@@ -285,34 +137,9 @@ export const LEARN_MODULES: LearnModule[] = [
     rule: 'Start from the LARGEST column (left) to the smallest (right)',
     ruleAr: 'نبدأ الحساب من العمود الأكبر (يسار) إلى الأصغر (يمين)',
     examples: [
-      {
-        question: 'مثّل الرقم ١٠',
-        targetValue: 10,
-        type: 'direct',
-        steps: [
-          { movement: 'raise-lower', lowerBeads: 1, finger: 'thumb', explanation: 'ارفع خرزة واحدة في عمود العشرات بالإبهام' },
-        ],
-        explanation: 'خرزة واحدة في العشرات = ١٠',
-      },
-      {
-        question: 'مثّل الرقم ٢٥',
-        targetValue: 25,
-        type: 'pinch',
-        steps: [
-          { movement: 'raise-lower', lowerBeads: 2, finger: 'thumb', explanation: 'ارفع خرزتين في عمود العشرات' },
-          { movement: 'pinch', upperBead: true, lowerBeads: 0, finger: 'both', explanation: 'في الآحاد: أنزل الخرزة العلوية' },
-        ],
-        explanation: '٢ في العشرات + ٥ في الآحاد = ٢٥',
-      },
-      {
-        question: 'مثّل الرقم ٤٠',
-        targetValue: 40,
-        type: 'direct',
-        steps: [
-          { movement: 'raise-lower', lowerBeads: 4, finger: 'thumb', explanation: 'ارفع ٤ خرزات في عمود العشرات' },
-        ],
-        explanation: '٤ في العشرات = ٤٠',
-      },
+      { question: 'مثّل الرقم ١٠', targetValue: 10, type: 'direct', steps: [{ movement: 'raise-lower', lowerBeads: 1, finger: 'thumb', explanation: 'ارفع خرزة واحدة في عمود العشرات بالإبهام' }], explanation: 'خرزة واحدة في العشرات = ١٠' },
+      { question: 'مثّل الرقم ٢٥', targetValue: 25, type: 'pinch', steps: [{ movement: 'raise-lower', lowerBeads: 2, finger: 'thumb', explanation: 'ارفع خرزتين في عمود العشرات' }, { movement: 'pinch', upperBead: true, lowerBeads: 0, finger: 'both', explanation: 'في الآحاد: أنزل الخرزة العلوية' }], explanation: '٢ في العشرات + ٥ في الآحاد = ٢٥' },
+      { question: 'مثّل الرقم ٤٠', targetValue: 40, type: 'direct', steps: [{ movement: 'raise-lower', lowerBeads: 4, finger: 'thumb', explanation: 'ارفع ٤ خرزات في عمود العشرات' }], explanation: '٤ في العشرات = ٤٠' },
     ],
   },
   {
@@ -331,36 +158,9 @@ export const LEARN_MODULES: LearnModule[] = [
     rule: 'Direct addition: use thumb to raise lower beads',
     ruleAr: 'الجمع المباشر: الإبهام يرفع الخرزات السفلية',
     examples: [
-      {
-        question: '٢ + ٣ = ؟',
-        targetValue: 5,
-        type: 'direct',
-        steps: [
-          { movement: 'raise-lower', lowerBeads: 2, finger: 'thumb', explanation: 'ارفع خرزتين للإشارة إلى ٢' },
-          { movement: 'raise-lower', lowerBeads: 3, finger: 'thumb', explanation: 'ارفع ٣ خرزات أخرى للإضافة' },
-        ],
-        explanation: '٢ + ٣ = ٥',
-      },
-      {
-        question: '١ + ٤ = ؟',
-        targetValue: 5,
-        type: 'direct',
-        steps: [
-          { movement: 'raise-lower', lowerBeads: 1, finger: 'thumb', explanation: 'ارفع خرزة للإشارة إلى ١' },
-          { movement: 'raise-lower', lowerBeads: 4, finger: 'thumb', explanation: 'ارفع ٤ خرزات أخرى' },
-        ],
-        explanation: '١ + ٤ = ٥',
-      },
-      {
-        question: '٣ + ٤ = ؟',
-        targetValue: 7,
-        type: 'small-friend',
-        steps: [
-          { movement: 'raise-lower', lowerBeads: 3, finger: 'thumb', explanation: 'ارفع ٣ خرزات للإشارة إلى ٣' },
-          { movement: 'pinch', upperBead: true, lowerBeads: 2, finger: 'both', explanation: '٤ لا يمكن رفعها. استخدم قاعدة صديق ٤: أنزل العلوية + ارفع ٢ سفليّة (٥ - ٢ = ٣)' },
-        ],
-        explanation: '٣ + ٤ = ٧. صديق ٤ هو ١، لكن لأن الخرزات السفلية لا تكفي، نستخدم العلوية',
-      },
+      { question: '٢ + ٣ = ؟', targetValue: 5, type: 'direct', steps: [{ movement: 'raise-lower', lowerBeads: 2, finger: 'thumb', explanation: 'ارفع خرزتين للإشارة إلى ٢' }, { movement: 'raise-lower', lowerBeads: 3, finger: 'thumb', explanation: 'ارفع ٣ خرزات أخرى للإضافة' }], explanation: '٢ + ٣ = ٥' },
+      { question: '١ + ٤ = ؟', targetValue: 5, type: 'direct', steps: [{ movement: 'raise-lower', lowerBeads: 1, finger: 'thumb', explanation: 'ارفع خرزة للإشارة إلى ١' }, { movement: 'raise-lower', lowerBeads: 4, finger: 'thumb', explanation: 'ارفع ٤ خرزات أخرى' }], explanation: '١ + ٤ = ٥' },
+      { question: '٣ + ٤ = ؟', targetValue: 7, type: 'small-friend', steps: [{ movement: 'raise-lower', lowerBeads: 3, finger: 'thumb', explanation: 'ارفع ٣ خرزات للإشارة إلى ٣' }, { movement: 'pinch', upperBead: true, lowerBeads: 2, finger: 'both', explanation: '٤ لا يمكن رفعها. استخدم قاعدة صديق ٤: أنزل العلوية + ارفع ٢ سفليّة (٥ - ٢ = ٣)' }], explanation: '٣ + ٤ = ٧. صديق ٤ هو ١، لكن لأن الخرزات السفلية لا تكفي، نستخدم العلوية' },
     ],
   },
   {
@@ -379,47 +179,13 @@ export const LEARN_MODULES: LearnModule[] = [
     rule: 'Small Friend: if adding N exceeds 4, use upper bead (5) and subtract (5 - N)',
     ruleAr: 'صديق صغير: إذا تجاوز الجمع ٤، استخدم العلوية (٥) واطرح (٥ - N)',
     examples: [
-      {
-        question: '٤ + ١ = ؟',
-        targetValue: 5,
-        type: 'small-friend',
-        steps: [
-          { movement: 'raise-lower', lowerBeads: 4, finger: 'thumb', explanation: 'ارفع ٤ خرزات للإشارة إلى ٤' },
-          { movement: 'raise-lower', lowerBeads: 1, finger: 'thumb', explanation: 'ارفع خرزة إضافية = ٥' },
-        ],
-        explanation: '٤ + ١ = ٥',
-      },
-      {
-        question: '٤ + ٣ = ؟',
-        targetValue: 7,
-        type: 'small-friend',
-        steps: [
-          { movement: 'raise-lower', lowerBeads: 4, finger: 'thumb', explanation: 'ارفع ٤ خرزات' },
-          { movement: 'pinch', upperBead: true, lowerBeads: 2, finger: 'both', explanation: 'صديق ٣ هو ٢. أنزل العلوية (٥) وارفع ٢ سفليّة (٥ - ٢ = ٣)' },
-        ],
-        explanation: '٤ + ٣ = ٧. صديق ٣ هو ٢',
-      },
-      {
-        question: '٣ + ٤ = ؟',
-        targetValue: 7,
-        type: 'small-friend',
-        steps: [
-          { movement: 'raise-lower', lowerBeads: 3, finger: 'thumb', explanation: 'ارفع ٣ خرزات' },
-          { movement: 'pinch', upperBead: true, lowerBeads: 1, finger: 'both', explanation: 'صديق ٤ هو ١. أنزل العلوية (٥) وارفع ١ سفليّة' },
-        ],
-        explanation: '٣ + ٤ = ٧',
-      },
-      {
-        question: '٢ + ٤ = ؟',
-        targetValue: 6,
-        type: 'small-friend',
-        steps: [
-          { movement: 'raise-lower', lowerBeads: 2, finger: 'thumb', explanation: 'ارفع خرزتين' },
-          { movement: 'pinch', upperBead: true, lowerBeads: 1, finger: 'both', explanation: 'صديق ٤ هو ١. أنزل العلوية + ١ سفليّة' },
-        ],
-        explanation: '٢ + ٤ = ٦',
-      },
-    ],  {
+      { question: '٤ + ١ = ؟', targetValue: 5, type: 'small-friend', steps: [{ movement: 'raise-lower', lowerBeads: 4, finger: 'thumb', explanation: 'ارفع ٤ خرزات للإشارة إلى ٤' }, { movement: 'raise-lower', lowerBeads: 1, finger: 'thumb', explanation: 'ارفع خرزة إضافية = ٥' }], explanation: '٤ + ١ = ٥' },
+      { question: '٤ + ٣ = ؟', targetValue: 7, type: 'small-friend', steps: [{ movement: 'raise-lower', lowerBeads: 4, finger: 'thumb', explanation: 'ارفع ٤ خرزات' }, { movement: 'pinch', upperBead: true, lowerBeads: 2, finger: 'both', explanation: 'صديق ٣ هو ٢. أنزل العلوية (٥) وارفع ٢ سفليّة (٥ - ٢ = ٣)' }], explanation: '٤ + ٣ = ٧. صديق ٣ هو ٢' },
+      { question: '٣ + ٤ = ؟', targetValue: 7, type: 'small-friend', steps: [{ movement: 'raise-lower', lowerBeads: 3, finger: 'thumb', explanation: 'ارفع ٣ خرزات' }, { movement: 'pinch', upperBead: true, lowerBeads: 1, finger: 'both', explanation: 'صديق ٤ هو ١. أنزل العلوية (٥) وارفع ١ سفليّة' }], explanation: '٣ + ٤ = ٧' },
+      { question: '٢ + ٤ = ؟', targetValue: 6, type: 'small-friend', steps: [{ movement: 'raise-lower', lowerBeads: 2, finger: 'thumb', explanation: 'ارفع خرزتين' }, { movement: 'pinch', upperBead: true, lowerBeads: 1, finger: 'both', explanation: 'صديق ٤ هو ١. أنزل العلوية + ١ سفليّة' }], explanation: '٢ + ٤ = ٦' },
+    ],
+  },
+  {
     id: 9,
     title: 'Adding 10',
     titleAr: 'الجمع مع أصدقاء 10',
@@ -435,56 +201,11 @@ export const LEARN_MODULES: LearnModule[] = [
     rule: 'Big Friend: if adding N exceeds 9, add 10 and subtract (10 - N)',
     ruleAr: 'صديق كبير: إذا تجاوز الجمع ٩، أضف ١٠ واطرح (١٠ - N)',
     examples: [
-      {
-        question: '٥ + ٥ = ؟',
-        targetValue: 10,
-        type: 'big-friend',
-        steps: [
-          { movement: 'raise-lower', lowerBeads: 5, finger: 'thumb', explanation: 'ارفع ٥ = ٥' },
-          { movement: 'pinch', upperBead: true, lowerBeads: 0, finger: 'both', explanation: 'صديق ٥ هو ٥: أضف ١٠ في العشرات، اطرح ٥ من الآحاد' },
-        ],
-        explanation: '٥ + ٥ = ١٠',
-      },
-      {
-        question: '٦ + ٥ = ؟',
-        targetValue: 11,
-        type: 'big-friend',
-        steps: [
-          { movement: 'pinch', upperBead: true, lowerBeads: 1, finger: 'both', explanation: 'مثّل ٦' },
-          { movement: 'big-friend', upperBead: true, lowerBeads: 0, finger: 'both', explanation: 'صديق ٥ هو ٥: أضف ١٠، اطرح ٥ من الآحاد' },
-        ],
-        explanation: '٦ + ٥ = ١١',
-      },
-      {
-        question: '٧ + ٥ = ؟',
-        targetValue: 12,
-        type: 'big-friend',
-        steps: [
-          { movement: 'pinch', upperBead: true, lowerBeads: 2, finger: 'both', explanation: 'مثّل ٧' },
-          { movement: 'big-friend', upperBead: true, lowerBeads: 0, finger: 'both', explanation: 'صديق ٥: أضف ١٠، اطرح ٥' },
-        ],
-        explanation: '٧ + ٥ = ١٢',
-      },
-      {
-        question: '٨ + ٥ = ؟',
-        targetValue: 13,
-        type: 'big-friend',
-        steps: [
-          { movement: 'pinch', upperBead: true, lowerBeads: 3, finger: 'both', explanation: 'مثّل ٨' },
-          { movement: 'big-friend', upperBead: true, lowerBeads: 0, finger: 'both', explanation: 'صديق ٥: أضف ١٠، اطرح ٥' },
-        ],
-        explanation: '٨ + ٥ = ١٣',
-      },
-      {
-        question: '٩ + ٥ = ؟',
-        targetValue: 14,
-        type: 'big-friend',
-        steps: [
-          { movement: 'pinch', upperBead: true, lowerBeads: 4, finger: 'both', explanation: 'مثّل ٩' },
-          { movement: 'big-friend', upperBead: true, lowerBeads: 0, finger: 'both', explanation: 'صديق ٥: أضف ١٠، اطرح ٥' },
-        ],
-        explanation: '٩ + ٥ = ١٤',
-      },
+      { question: '٥ + ٥ = ؟', targetValue: 10, type: 'big-friend', steps: [{ movement: 'raise-lower', lowerBeads: 5, finger: 'thumb', explanation: 'ارفع ٥ = ٥' }, { movement: 'pinch', upperBead: true, lowerBeads: 0, finger: 'both', explanation: 'صديق ٥ هو ٥: أضف ١٠ في العشرات، اطرح ٥ من الآحاد' }], explanation: '٥ + ٥ = ١٠' },
+      { question: '٦ + ٥ = ؟', targetValue: 11, type: 'big-friend', steps: [{ movement: 'pinch', upperBead: true, lowerBeads: 1, finger: 'both', explanation: 'مثّل ٦' }, { movement: 'big-friend', upperBead: true, lowerBeads: 0, finger: 'both', explanation: 'صديق ٥ هو ٥: أضف ١٠، اطرح ٥ من الآحاد' }], explanation: '٦ + ٥ = ١١' },
+      { question: '٧ + ٥ = ؟', targetValue: 12, type: 'big-friend', steps: [{ movement: 'pinch', upperBead: true, lowerBeads: 2, finger: 'both', explanation: 'مثّل ٧' }, { movement: 'big-friend', upperBead: true, lowerBeads: 0, finger: 'both', explanation: 'صديق ٥: أضف ١٠، اطرح ٥' }], explanation: '٧ + ٥ = ١٢' },
+      { question: '٨ + ٥ = ؟', targetValue: 13, type: 'big-friend', steps: [{ movement: 'pinch', upperBead: true, lowerBeads: 3, finger: 'both', explanation: 'مثّل ٨' }, { movement: 'big-friend', upperBead: true, lowerBeads: 0, finger: 'both', explanation: 'صديق ٥: أضف ١٠، اطرح ٥' }], explanation: '٨ + ٥ = ١٣' },
+      { question: '٩ + ٥ = ؟', targetValue: 14, type: 'big-friend', steps: [{ movement: 'pinch', upperBead: true, lowerBeads: 4, finger: 'both', explanation: 'مثّل ٩' }, { movement: 'big-friend', upperBead: true, lowerBeads: 0, finger: 'both', explanation: 'صديق ٥: أضف ١٠، اطرح ٥' }], explanation: '٩ + ٥ = ١٤' },
     ],
   },
   {
@@ -503,46 +224,10 @@ export const LEARN_MODULES: LearnModule[] = [
     rule: 'Use index finger to lower/remove lower beads',
     ruleAr: 'السبابة تنزل الخرزات السفلية عند الطرح',
     examples: [
-      {
-        question: '٥ - ١ = ؟',
-        targetValue: 4,
-        type: 'direct',
-        steps: [
-          { movement: 'raise-lower', lowerBeads: 1, finger: 'thumb', explanation: 'ارفع ١ للإشارة إلى ٥' },
-          { movement: 'raise-lower', lowerBeads: 1, finger: 'index', explanation: 'أنزل خرزة واحدة بالسبابة' },
-        ],
-        explanation: '٥ - ١ = ٤',
-      },
-      {
-        question: '٥ - ٢ = ؟',
-        targetValue: 3,
-        type: 'direct',
-        steps: [
-          { movement: 'raise-lower', lowerBeads: 5, finger: 'thumb', explanation: 'مثّل ٥' },
-          { movement: 'raise-lower', lowerBeads: 2, finger: 'index', explanation: 'أنزل خرزتين بالسبابة' },
-        ],
-        explanation: '٥ - ٢ = ٣',
-      },
-      {
-        question: '٦ - ٣ = ؟',
-        targetValue: 3,
-        type: 'direct',
-        steps: [
-          { movement: 'pinch', upperBead: true, lowerBeads: 1, finger: 'both', explanation: 'مثّل ٦' },
-          { movement: 'raise-lower', lowerBeads: 3, finger: 'index', explanation: 'أنزل ٣ خرزات بالسبابة' },
-        ],
-        explanation: '٦ - ٣ = ٣',
-      },
-      {
-        question: '٩ - ٥ = ؟',
-        targetValue: 4,
-        type: 'small-friend',
-        steps: [
-          { movement: 'pinch', upperBead: true, lowerBeads: 4, finger: 'both', explanation: 'مثّل ٩' },
-          { movement: 'raise-lower', upperBead: false, finger: 'index', explanation: 'صديق ٥: ارفع العلوية بالسبابة، ارجع ٤ سفليّة؟ (يحتاج شرح)' },
-        ],
-        explanation: '٩ - ٥ = ٤. اطرح ٥ مباشرة من العلوية',
-      },
+      { question: '٥ - ١ = ؟', targetValue: 4, type: 'direct', steps: [{ movement: 'raise-lower', lowerBeads: 5, finger: 'thumb', explanation: 'مثّل ٥' }, { movement: 'raise-lower', lowerBeads: 1, finger: 'index', explanation: 'أنزل خرزة واحدة بالسبابة' }], explanation: '٥ - ١ = ٤' },
+      { question: '٥ - ٢ = ؟', targetValue: 3, type: 'direct', steps: [{ movement: 'raise-lower', lowerBeads: 5, finger: 'thumb', explanation: 'مثّل ٥' }, { movement: 'raise-lower', lowerBeads: 2, finger: 'index', explanation: 'أنزل خرزتين بالسبابة' }], explanation: '٥ - ٢ = ٣' },
+      { question: '٦ - ٣ = ؟', targetValue: 3, type: 'direct', steps: [{ movement: 'pinch', upperBead: true, lowerBeads: 1, finger: 'both', explanation: 'مثّل ٦' }, { movement: 'raise-lower', lowerBeads: 3, finger: 'index', explanation: 'أنزل ٣ خرزات بالسبابة' }], explanation: '٦ - ٣ = ٣' },
+      { question: '٩ - ٥ = ؟', targetValue: 4, type: 'direct', steps: [{ movement: 'pinch', upperBead: true, lowerBeads: 4, finger: 'both', explanation: 'مثّل ٩' }, { movement: 'raise-lower', upperBead: true, finger: 'index', explanation: 'ارفع الخرزة العلوية بالسبابة' }], explanation: '٩ - ٥ = ٤. اطرح ٥ مباشرة من العلوية' },
     ],
   },
   {
@@ -561,36 +246,9 @@ export const LEARN_MODULES: LearnModule[] = [
     rule: 'Small Friend Subtraction: remove 5, add back (5 - N) lower beads',
     ruleAr: 'الطرح مع صديق 5: أزل العلوية (٥)، ثم أضف (٥ - N) سفليّة',
     examples: [
-      {
-        question: '٧ - ٣ = ؟',
-        targetValue: 4,
-        type: 'small-friend',
-        steps: [
-          { movement: 'pinch', upperBead: true, lowerBeads: 2, finger: 'both', explanation: 'مثّل ٧' },
-          { movement: 'open', upperBead: true, lowerBeads: 2, finger: 'both', explanation: 'صديق ٣ هو ٢: ارفع العلوية + ارفع ٢ سفليّة' },
-        ],
-        explanation: '٧ - ٣ = ٤. صديق ٣ هو ٢',
-      },
-      {
-        question: '٨ - ٤ = ؟',
-        targetValue: 4,
-        type: 'small-friend',
-        steps: [
-          { movement: 'pinch', upperBead: true, lowerBeads: 3, finger: 'both', explanation: 'مثّل ٨' },
-          { movement: 'open', upperBead: true, lowerBeads: 1, finger: 'both', explanation: 'صديق ٤ هو ١: ارفع العلوية + ارفع ١ سفليّة' },
-        ],
-        explanation: '٨ - ٤ = ٤',
-      },
-      {
-        question: '٦ - ٢ = ؟',
-        targetValue: 4,
-        type: 'small-friend',
-        steps: [
-          { movement: 'pinch', upperBead: true, lowerBeads: 1, finger: 'both', explanation: 'مثّل ٦' },
-          { movement: 'open', upperBead: true, lowerBeads: 3, finger: 'both', explanation: 'صديق ٢ هو ٣: ارفع العلوية + ارفع ٣ سفليّة' },
-        ],
-        explanation: '٦ - ٢ = ٤',
-      },
+      { question: '٧ - ٣ = ؟', targetValue: 4, type: 'small-friend', steps: [{ movement: 'pinch', upperBead: true, lowerBeads: 2, finger: 'both', explanation: 'مثّل ٧' }, { movement: 'open', upperBead: true, lowerBeads: 2, finger: 'both', explanation: 'صديق ٣ هو ٢: ارفع العلوية + ارفع ٢ سفليّة' }], explanation: '٧ - ٣ = ٤. صديق ٣ هو ٢' },
+      { question: '٨ - ٤ = ؟', targetValue: 4, type: 'small-friend', steps: [{ movement: 'pinch', upperBead: true, lowerBeads: 3, finger: 'both', explanation: 'مثّل ٨' }, { movement: 'open', upperBead: true, lowerBeads: 1, finger: 'both', explanation: 'صديق ٤ هو ١: ارفع العلوية + ارفع ١ سفليّة' }], explanation: '٨ - ٤ = ٤' },
+      { question: '٦ - ٢ = ؟', targetValue: 4, type: 'small-friend', steps: [{ movement: 'pinch', upperBead: true, lowerBeads: 1, finger: 'both', explanation: 'مثّل ٦' }, { movement: 'open', upperBead: true, lowerBeads: 3, finger: 'both', explanation: 'صديق ٢ هو ٣: ارفع العلوية + ارفع ٣ سفليّة' }], explanation: '٦ - ٢ = ٤' },
     ],
   },
   {
@@ -609,38 +267,9 @@ export const LEARN_MODULES: LearnModule[] = [
     rule: 'Big Friend Subtraction: subtract 10, add back (10 - N)',
     ruleAr: 'صديق كبير: اطرح ١٠، ثم أضف (١٠ - N)',
     examples: [
-      {
-        question: '١٠ - ٣ = ؟',
-        targetValue: 7,
-        type: 'big-friend',
-        steps: [
-          { movement: 'raise-lower', lowerBeads: 1, finger: 'thumb', explanation: 'مثّل ١٠ (خرزة في العشرات)' },
-          { movement: 'big-friend', lowerBeads: 7, finger: 'both', explanation: 'صديق ٣ هو ٧: اطرح ١٠، أضف ٧' },
-        ],
-        explanation: '١٠ - ٣ = ٧',
-      },
-      {
-        question: '١٢ - ٥ = ؟',
-        targetValue: 7,
-        type: 'big-friend',
-        steps: [
-          { movement: 'raise-lower', lowerBeads: 1, finger: 'thumb', explanation: 'مثّل ١٠' },
-          { movement: 'pinch', upperBead: true, lowerBeads: 2, finger: 'both', explanation: 'مثّل ١٢' },
-          { movement: 'big-friend', lowerBeads: 5, finger: 'both', explanation: 'صديق ٥: اطرح ١٠، أضف ٥' },
-        ],
-        explanation: '١٢ - ٥ = ٧',
-      },
-      {
-        question: '١٥ - ٧ = ؟',
-        targetValue: 8,
-        type: 'big-friend',
-        steps: [
-          { movement: 'raise-lower', lowerBeads: 1, finger: 'thumb', explanation: 'مثّل ١٠' },
-          { movement: 'pinch', upperBead: true, lowerBeads: 0, finger: 'both', explanation: 'مثّل ١٥' },
-          { movement: 'big-friend', lowerBeads: 3, finger: 'both', explanation: 'صديق ٧ هو ٣: اطرح ١٠، أضف ٣' },
-        ],
-        explanation: '١٥ - ٧ = ٨',
-      },
+      { question: '١٠ - ٣ = ؟', targetValue: 7, type: 'big-friend', steps: [{ movement: 'raise-lower', lowerBeads: 1, finger: 'thumb', explanation: 'مثّل ١٠ (خرزة في العشرات)' }, { movement: 'big-friend', lowerBeads: 7, finger: 'both', explanation: 'صديق ٣ هو ٧: اطرح ١٠، أضف ٧' }], explanation: '١٠ - ٣ = ٧' },
+      { question: '١٢ - ٥ = ؟', targetValue: 7, type: 'big-friend', steps: [{ movement: 'raise-lower', lowerBeads: 1, finger: 'thumb', explanation: 'مثّل ١٠' }, { movement: 'pinch', upperBead: true, lowerBeads: 2, finger: 'both', explanation: 'مثّل ١٢' }, { movement: 'big-friend', lowerBeads: 5, finger: 'both', explanation: 'صديق ٥: اطرح ١٠، أضف ٥' }], explanation: '١٢ - ٥ = ٧' },
+      { question: '١٥ - ٧ = ؟', targetValue: 8, type: 'big-friend', steps: [{ movement: 'raise-lower', lowerBeads: 1, finger: 'thumb', explanation: 'مثّل ١٠' }, { movement: 'raise-lower', lowerBeads: 1, upperBead: true, finger: 'both', explanation: 'مثّل ١٥' }, { movement: 'big-friend', lowerBeads: 3, finger: 'both', explanation: 'صديق ٧ هو ٣: اطرح ١٠، أضف ٣' }], explanation: '١٥ - ٧ = ٨' },
     ],
   },
   {
@@ -659,46 +288,10 @@ export const LEARN_MODULES: LearnModule[] = [
     rule: 'Multiplication is repeated addition',
     ruleAr: 'الضرب = جمع متكرر',
     examples: [
-      {
-        question: '٢ × ٢ = ؟',
-        targetValue: 4,
-        type: 'direct',
-        steps: [
-          { movement: 'raise-lower', lowerBeads: 2, finger: 'thumb', explanation: 'ارفع ٢ (٢ الأولى)' },
-          { movement: 'raise-lower', lowerBeads: 2, finger: 'thumb', explanation: 'ارفع ٢ (٢ الثانية)' },
-        ],
-        explanation: '٢ × ٢ = ٤',
-      },
-      {
-        question: '٢ × ٣ = ؟',
-        targetValue: 6,
-        type: 'pinch',
-        steps: [
-          { movement: 'raise-lower', lowerBeads: 4, finger: 'thumb', explanation: 'ارفع ٤ (٢+٢)' },
-          { movement: 'pinch', upperBead: true, lowerBeads: 1, finger: 'both', explanation: 'أضف ٢ (أنزل العلوية وارفع ١)' },
-        ],
-        explanation: '٢ × ٣ = ٦',
-      },
-      {
-        question: '٢ × ٤ = ؟',
-        targetValue: 8,
-        type: 'pinch',
-        steps: [
-          { movement: 'pinch', upperBead: true, lowerBeads: 1, finger: 'both', explanation: 'مثّل ٦' },
-          { movement: 'raise-lower', lowerBeads: 2, finger: 'thumb', explanation: 'أضف ٢' },
-        ],
-        explanation: '٢ × ٤ = ٨',
-      },
-      {
-        question: '٢ × ٥ = ؟',
-        targetValue: 10,
-        type: 'big-friend',
-        steps: [
-          { movement: 'pinch', upperBead: true, lowerBeads: 4, finger: 'both', explanation: 'مثّل ٩' },
-          { movement: 'big-friend', upperBead: false, lowerBeads: 0, finger: 'both', explanation: 'أضف ١: احمل ١٠ إلى العشرات، اطرح ٩' },
-        ],
-        explanation: '٢ × ٥ = ١٠',
-      },
+      { question: '٢ × ٢ = ؟', targetValue: 4, type: 'direct', steps: [{ movement: 'raise-lower', lowerBeads: 2, finger: 'thumb', explanation: 'ارفع ٢ (٢ الأولى)' }, { movement: 'raise-lower', lowerBeads: 2, finger: 'thumb', explanation: 'ارفع ٢ (٢ الثانية)' }], explanation: '٢ × ٢ = ٤' },
+      { question: '٢ × ٣ = ؟', targetValue: 6, type: 'pinch', steps: [{ movement: 'raise-lower', lowerBeads: 4, finger: 'thumb', explanation: 'ارفع ٤ (٢+٢)' }, { movement: 'pinch', upperBead: true, lowerBeads: 1, finger: 'both', explanation: 'أضف ٢ (أنزل العلوية وارفع ١)' }], explanation: '٢ × ٣ = ٦' },
+      { question: '٢ × ٤ = ؟', targetValue: 8, type: 'pinch', steps: [{ movement: 'pinch', upperBead: true, lowerBeads: 1, finger: 'both', explanation: 'مثّل ٦' }, { movement: 'raise-lower', lowerBeads: 2, finger: 'thumb', explanation: 'أضف ٢' }], explanation: '٢ × ٤ = ٨' },
+      { question: '٢ × ٥ = ؟', targetValue: 10, type: 'big-friend', steps: [{ movement: 'pinch', upperBead: true, lowerBeads: 4, finger: 'both', explanation: 'مثّل ٩' }, { movement: 'big-friend', upperBead: false, lowerBeads: 0, finger: 'both', explanation: 'أضف ١: احمل ١٠ إلى العشرات، اطرح ٩' }], explanation: '٢ × ٥ = ١٠' },
     ],
   },
   {
@@ -717,44 +310,10 @@ export const LEARN_MODULES: LearnModule[] = [
     rule: '5 times table = adding 5 repeatedly',
     ruleAr: 'جدول ضرب ٥ = إضافة ٥ متكررة',
     examples: [
-      {
-        question: '٥ × ١ = ؟',
-        targetValue: 5,
-        type: 'direct',
-        steps: [
-          { movement: 'raise-lower', upperBead: true, finger: 'index', explanation: 'أنزل العلوية = ٥' },
-        ],
-        explanation: '٥ × ١ = ٥',
-      },
-      {
-        question: '٥ × ٢ = ؟',
-        targetValue: 10,
-        type: 'big-friend',
-        steps: [
-          { movement: 'raise-lower', upperBead: true, finger: 'index', explanation: 'مثّل ٥' },
-          { movement: 'big-friend', upperBead: false, lowerBeads: 0, finger: 'both', explanation: 'أضف ٥: احمل ١٠، اطرح ٥' },
-        ],
-        explanation: '٥ × ٢ = ١٠',
-      },
-      {
-        question: '٥ × ٣ = ؟',
-        targetValue: 15,
-        type: 'big-friend',
-        steps: [
-          { movement: 'raise-lower', lowerBeads: 1, finger: 'thumb', explanation: 'مثّل ١٠' },
-          { movement: 'raise-lower', upperBead: true, finger: 'index', explanation: 'مثّل ٥ إضافية' },
-        ],
-        explanation: '٥ × ٣ = ١٥',
-      },
-      {
-        question: '٥ × ٤ = ؟',
-        targetValue: 20,
-        type: 'big-friend',
-        steps: [
-          { movement: 'raise-lower', lowerBeads: 2, finger: 'thumb', explanation: 'مثّل ٢٠ مباشرة (٢ في العشرات)' },
-        ],
-        explanation: '٥ × ٤ = ٢٠',
-      },
+      { question: '٥ × ١ = ؟', targetValue: 5, type: 'direct', steps: [{ movement: 'raise-lower', upperBead: true, finger: 'index', explanation: 'أنزل العلوية = ٥' }], explanation: '٥ × ١ = ٥' },
+      { question: '٥ × ٢ = ؟', targetValue: 10, type: 'big-friend', steps: [{ movement: 'raise-lower', upperBead: true, finger: 'index', explanation: 'مثّل ٥' }, { movement: 'big-friend', upperBead: false, lowerBeads: 0, finger: 'both', explanation: 'أضف ٥: احمل ١٠، اطرح ٥' }], explanation: '٥ × ٢ = ١٠' },
+      { question: '٥ × ٣ = ؟', targetValue: 15, type: 'big-friend', steps: [{ movement: 'raise-lower', lowerBeads: 1, finger: 'thumb', explanation: 'مثّل ١٠' }, { movement: 'raise-lower', upperBead: true, finger: 'index', explanation: 'مثّل ٥ إضافية' }], explanation: '٥ × ٣ = ١٥' },
+      { question: '٥ × ٤ = ؟', targetValue: 20, type: 'big-friend', steps: [{ movement: 'raise-lower', lowerBeads: 2, finger: 'thumb', explanation: 'مثّل ٢٠ مباشرة (٢ في العشرات)' }], explanation: '٥ × ٤ = ٢٠' },
     ],
   },
   {
@@ -773,42 +332,10 @@ export const LEARN_MODULES: LearnModule[] = [
     rule: 'Division = splitting into equal groups',
     ruleAr: 'القسمة = التقسيم إلى مجموعات متساوية',
     examples: [
-      {
-        question: '٤ ÷ ٢ = ؟',
-        targetValue: 2,
-        type: 'direct',
-        steps: [
-          { movement: 'raise-lower', lowerBeads: 2, finger: 'thumb', explanation: 'ارفع ٢ (النتيجة)' },
-        ],
-        explanation: '٤ ÷ ٢ = ٢',
-      },
-      {
-        question: '٦ ÷ ٢ = ؟',
-        targetValue: 3,
-        type: 'direct',
-        steps: [
-          { movement: 'raise-lower', lowerBeads: 3, finger: 'thumb', explanation: 'ارفع ٣ (النتيجة)' },
-        ],
-        explanation: '٦ ÷ ٢ = ٣',
-      },
-      {
-        question: '٨ ÷ ٢ = ؟',
-        targetValue: 4,
-        type: 'direct',
-        steps: [
-          { movement: 'raise-lower', lowerBeads: 4, finger: 'thumb', explanation: 'ارفع ٤' },
-        ],
-        explanation: '٨ ÷ ٢ = ٤',
-      },
-      {
-        question: '١٠ ÷ ٢ = ؟',
-        targetValue: 5,
-        type: 'direct',
-        steps: [
-          { movement: 'raise-lower', upperBead: true, finger: 'index', explanation: 'أنزل العلوية = ٥' },
-        ],
-        explanation: '١٠ ÷ ٢ = ٥',
-      },
+      { question: '٤ ÷ ٢ = ؟', targetValue: 2, type: 'direct', steps: [{ movement: 'raise-lower', lowerBeads: 2, finger: 'thumb', explanation: 'ارفع ٢ (النتيجة)' }], explanation: '٤ ÷ ٢ = ٢' },
+      { question: '٦ ÷ ٢ = ؟', targetValue: 3, type: 'direct', steps: [{ movement: 'raise-lower', lowerBeads: 3, finger: 'thumb', explanation: 'ارفع ٣ (النتيجة)' }], explanation: '٦ ÷ ٢ = ٣' },
+      { question: '٨ ÷ ٢ = ؟', targetValue: 4, type: 'direct', steps: [{ movement: 'raise-lower', lowerBeads: 4, finger: 'thumb', explanation: 'ارفع ٤' }], explanation: '٨ ÷ ٢ = ٤' },
+      { question: '١٠ ÷ ٢ = ؟', targetValue: 5, type: 'direct', steps: [{ movement: 'raise-lower', upperBead: true, finger: 'index', explanation: 'أنزل العلوية = ٥' }], explanation: '١٠ ÷ ٢ = ٥' },
     ],
   },
   {
@@ -827,42 +354,10 @@ export const LEARN_MODULES: LearnModule[] = [
     rule: 'Division by 5',
     ruleAr: 'القسمة على ٥',
     examples: [
-      {
-        question: '٥ ÷ ٥ = ؟',
-        targetValue: 1,
-        type: 'direct',
-        steps: [
-          { movement: 'raise-lower', lowerBeads: 1, finger: 'thumb', explanation: 'ارفع ١' },
-        ],
-        explanation: '٥ ÷ ٥ = ١',
-      },
-      {
-        question: '١٠ ÷ ٥ = ؟',
-        targetValue: 2,
-        type: 'direct',
-        steps: [
-          { movement: 'raise-lower', lowerBeads: 2, finger: 'thumb', explanation: 'ارفع ٢' },
-        ],
-        explanation: '١٠ ÷ ٥ = ٢',
-      },
-      {
-        question: '١٥ ÷ ٥ = ؟',
-        targetValue: 3,
-        type: 'direct',
-        steps: [
-          { movement: 'raise-lower', lowerBeads: 3, finger: 'thumb', explanation: 'ارفع ٣' },
-        ],
-        explanation: '١٥ ÷ ٥ = ٣',
-      },
-      {
-        question: '٢٠ ÷ ٥ = ؟',
-        targetValue: 4,
-        type: 'direct',
-        steps: [
-          { movement: 'raise-lower', lowerBeads: 4, finger: 'thumb', explanation: 'ارفع ٤' },
-        ],
-        explanation: '٢٠ ÷ ٥ = ٤',
-      },
+      { question: '٥ ÷ ٥ = ؟', targetValue: 1, type: 'direct', steps: [{ movement: 'raise-lower', lowerBeads: 1, finger: 'thumb', explanation: 'ارفع ١' }], explanation: '٥ ÷ ٥ = ١' },
+      { question: '١٠ ÷ ٥ = ؟', targetValue: 2, type: 'direct', steps: [{ movement: 'raise-lower', lowerBeads: 2, finger: 'thumb', explanation: 'ارفع ٢' }], explanation: '١٠ ÷ ٥ = ٢' },
+      { question: '١٥ ÷ ٥ = ؟', targetValue: 3, type: 'direct', steps: [{ movement: 'raise-lower', lowerBeads: 3, finger: 'thumb', explanation: 'ارفع ٣' }], explanation: '١٥ ÷ ٥ = ٣' },
+      { question: '٢٠ ÷ ٥ = ؟', targetValue: 4, type: 'direct', steps: [{ movement: 'raise-lower', lowerBeads: 4, finger: 'thumb', explanation: 'ارفع ٤' }], explanation: '٢٠ ÷ ٥ = ٤' },
     ],
   },
 ];
@@ -981,6 +476,4 @@ export const BADGES = [
   { id: 'professional', name: 'Professional', nameAr: 'محترف', xpRequired: 3500, icon: 'Diamond' },
   { id: 'legend', name: 'Legend', nameAr: 'أسطورة', xpRequired: 5000, icon: 'Crown' },
   { id: 'eternal-legend', name: 'Eternal Legend', nameAr: 'أسطورة خالدة', xpRequired: 10000, icon: 'Crown' },
-];
-  },
 ];
