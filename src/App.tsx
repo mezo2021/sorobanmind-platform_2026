@@ -13,7 +13,7 @@ import { PracticeScreen } from './components/PracticeScreen';
 import { AnzanScreen } from './components/AnzanScreen';
 import { QuestsScreen } from './components/QuestsScreen';
 import { GuardianDashboard } from './components/GuardianDashboard';
-import InteractiveSorobanScreen from './components/InteractiveSorobanScreen';
+import { InteractiveSorobanScreen } from './components/InteractiveSorobanScreen';
 import { BadgeModal } from './components/BadgeModal';
 
 function App() {
