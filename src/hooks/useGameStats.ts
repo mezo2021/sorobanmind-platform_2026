@@ -3,8 +3,9 @@ import type { GameStats } from '@/types';
 import { BADGES } from '@/data';
 
 const STORAGE_KEY = 'sorobanmind-stats';
+const LAST_VISIT_KEY = 'soroban_last_visit';
 
-// القيم الافتراضية: ابدأ من الصفر للمستخدم الجديد
+// القيم الافتراضية: ابدأ من الصفر
 const DEFAULT_STATS: GameStats = {
   xp: 0,
   streak: 0,
@@ -19,7 +20,6 @@ export function useGameStats() {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
         const parsed = JSON.parse(stored);
-        // دمج آمن: القيم المحفوظة تأخذ الأولوية
         return {
           xp: typeof parsed.xp === 'number' ? parsed.xp : DEFAULT_STATS.xp,
           streak: typeof parsed.streak === 'number' ? parsed.streak : DEFAULT_STATS.streak,
@@ -28,24 +28,60 @@ export function useGameStats() {
           earnedBadges: Array.isArray(parsed.earnedBadges) ? parsed.earnedBadges : DEFAULT_STATS.earnedBadges,
         };
       }
-    } catch (e) {
-      console.warn('Failed to load stats:', e);
+    } catch {
+      /* ignore */
     }
     return DEFAULT_STATS;
   });
 
   const [newBadge, setNewBadge] = useState<string | null>(null);
 
-  // حفظ تلقائي عند كل تغيير
+  // ============================================================
+  // التحقق اليومي من السلسلة (Streak)
+  // ============================================================
+  useEffect(() => {
+    const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+    const lastVisit = localStorage.getItem(LAST_VISIT_KEY);
+
+    if (lastVisit !== today) {
+      // يوم جديد
+      if (lastVisit) {
+        const lastDate = new Date(lastVisit);
+        const todayDate = new Date(today);
+        const diffDays = Math.floor(
+          (todayDate.getTime() - lastDate.getTime()) / (1000 * 60 * 60 * 24)
+        );
+
+        if (diffDays === 1) {
+          // يوم متتالي → زيادة السلسلة
+          setStats((prev) => ({ ...prev, streak: prev.streak + 1 }));
+        } else if (diffDays > 1) {
+          // انقطعت السلسلة → إعادة من 1
+          setStats((prev) => ({ ...prev, streak: 1 }));
+        }
+      } else {
+        // أول زيارة → streak = 1
+        setStats((prev) => ({ ...prev, streak: 1 }));
+      }
+
+      localStorage.setItem(LAST_VISIT_KEY, today);
+    }
+  }, []);
+
+  // ============================================================
+  // حفظ تلقائي
+  // ============================================================
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(stats));
-      console.log('✅ Stats saved:', stats);
-    } catch (e) {
-      console.warn('❌ Failed to save stats:', e);
+    } catch {
+      /* ignore */
     }
   }, [stats]);
 
+  // ============================================================
+  // إضافة XP
+  // ============================================================
   const addXP = useCallback((amount: number) => {
     setStats((prev) => {
       const newXp = prev.xp + amount;
@@ -89,7 +125,10 @@ export function useGameStats() {
   const resetStats = useCallback(() => {
     setStats(DEFAULT_STATS);
     localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem(LAST_VISIT_KEY);
   }, []);
 
   return { stats, addXP, toggleSound, incrementStreak, newBadge, clearNewBadge, resetStats };
 }
+
+export default useGameStats;
