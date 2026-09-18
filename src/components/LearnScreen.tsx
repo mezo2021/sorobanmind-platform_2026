@@ -4,6 +4,7 @@ import {
   ArrowRight, Lock, CheckCircle2, Info, Star, CircleDot,
   Combine, Hash, Sigma, Minus, Plus, Lightbulb, Eye, Hand,
   X, Divide, ThumbsUp, Fingerprint, MoveRight, Calculator, Target,
+  BookOpen, Sparkles,
   type LucideIcon,
 } from 'lucide-react';
 import { LEARN_MODULES } from '@/data';
@@ -11,14 +12,14 @@ import { Soroban } from './Soroban';
 import { InteractiveSoroban } from './InteractiveSoroban';
 import { SpeechButton } from './SpeechButton';
 import { useSpeech } from '@/hooks/useSpeech';
-import type { LearnModule, MovementStep } from '@/types';
+import type { LearnModule, LessonStep } from '@/types';
 
 function toArabicNumber(value: number | string): string {
   return String(value).replace(/\d/g, (d) => '٠١٢٣٤٥٦٧٨٩'[Number(d)]);
 }
 
 const ICONS: Record<string, LucideIcon> = {
-  Info, Star, CircleDot, Combine, Hash, Sigma, Minus, Plus, X, Divide,
+  Info, Star, CircleDot, Combine, Hash, Sigma, Minus, Plus, X, Divide, Brain: Target,
 };
 
 interface LearnScreenProps {
@@ -41,19 +42,43 @@ function getColumnsForValue(value: number): number {
 function getFingerLabel(finger: string): string {
   if (finger === 'thumb') return '👍 الإبهام';
   if (finger === 'index') return '☝️ السبابة';
-  return '✋ الإبهام + السبابة';
+  if (finger === 'both_pinch') return '✋ الإبهام + السبابة';
+  if (finger === 'left_index') return '☝️ سبابة اليد اليسرى';
+  return '👆';
 }
 
-function getMovementIcon(movement: string): string {
-  if (movement === 'multiply-digit') return '✖️';
-  if (movement === 'shift-position') return '➡️';
-  if (movement === 'divide-estimate') return '🎯';
-  if (movement === 'divide-subtract') return '➖';
-  if (movement === 'pinch') return '🤏';
-  if (movement === 'open') return '🖐️';
-  if (movement === 'small-friend') return '👥';
-  if (movement === 'big-friend') return '👫';
-  return '👆';
+function getDirectionLabel(direction: string): string {
+  if (direction === 'up') return '⬆️ ارفع';
+  if (direction === 'down') return '⬇️ أنزل';
+  if (direction === 'pinch_in') return '🤏 ضم';
+  if (direction === 'pinch_out') return '🖐️ افتح';
+  return '↔️';
+}
+
+function getColumnLabel(column: string): string {
+  if (column === 'units') return 'الآحاد';
+  if (column === 'tens') return 'العشرات';
+  if (column === 'hundreds') return 'المئات';
+  if (column === 'thousands') return 'الآلاف';
+  return '';
+}
+
+function getRuleLabel(category: string): string {
+  if (category === 'direct') return 'مباشر';
+  if (category === 'small_friends') return 'صديق 5';
+  if (category === 'big_friends') return 'صديق 10';
+  if (category === 'combined') return 'مركب';
+  if (category === 'anzan') return 'تخيل';
+  return '';
+}
+
+function getRuleColor(category: string): string {
+  if (category === 'direct') return 'from-emerald2-400 to-emerald2-600';
+  if (category === 'small_friends') return 'from-electric-400 to-electric-600';
+  if (category === 'big_friends') return 'from-purple-400 to-purple-600';
+  if (category === 'combined') return 'from-gold-400 to-gold-600';
+  if (category === 'anzan') return 'from-pink-400 to-pink-600';
+  return 'from-white/20 to-white/10';
 }
 
 export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
@@ -77,16 +102,10 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
   useEffect(() => {
     try {
       localStorage.setItem(COMPLETED_STORAGE_KEY, JSON.stringify(completed));
-    } catch {
-      /* ignore */
-    }
+    } catch { /* ignore */ }
   }, [completed]);
 
-  useEffect(() => {
-    return () => {
-      stop();
-    };
-  }, [stop]);
+  useEffect(() => { return () => { stop(); }; }, [stop]);
 
   const handleOpen = (mod: LearnModule, isLocked: boolean) => {
     if (isLocked) return;
@@ -100,10 +119,7 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
     setTimeout(() => speak(mod.audioText), 300);
   };
 
-  const handleClose = () => {
-    stop();
-    setSelected(null);
-  };
+  const handleClose = () => { stop(); setSelected(null); };
 
   const handleComplete = () => {
     if (!selected) return;
@@ -161,35 +177,21 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
     }
   };
 
-  const allExamplesSolved =
-    selected && solvedExamples.length === selected.examples.length;
-
+  const allExamplesSolved = selected && solvedExamples.length === selected.examples.length;
   const currentEx = selected?.examples[currentExample];
   const isSolved = solvedExamples.includes(currentExample);
   const isLastExample = selected ? currentExample + 1 === selected.examples.length : false;
   const isFirstExample = currentExample === 0;
 
-  // تحديد نوع العملية لعرض شرح مناسب
-  const isMultiplication = currentEx?.type === 'multiply';
-  const isDivision = currentEx?.type === 'divide';
-
   return (
     <div className="px-3 sm:px-6 py-6 max-w-5xl mx-auto">
       <div className="flex items-center gap-3 mb-6">
-        <button
-          onClick={() => {
-            playSound('click');
-            onBack();
-          }}
-          className="btn-ghost !px-3 !py-2"
-        >
+        <button onClick={() => { playSound('click'); onBack(); }} className="btn-ghost !px-3 !py-2">
           <ArrowRight className="w-5 h-5" />
           <span className="hidden sm:inline">رجوع</span>
         </button>
         <div>
-          <h2 className="text-2xl sm:text-3xl font-extrabold font-display text-white">
-            التعلّم
-          </h2>
+          <h2 className="text-2xl sm:text-3xl font-extrabold font-display text-white">التعلّم</h2>
           <p className="text-sm text-white/50 font-body">تعرّف على السوروبان خطوة بخطوة</p>
         </div>
       </div>
@@ -233,9 +235,7 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
                   </span>
                 )}
               </div>
-              <h3 className="text-lg font-extrabold font-display text-white mb-1">
-                {mod.titleAr}
-              </h3>
+              <h3 className="text-lg font-extrabold font-display text-white mb-1">{mod.titleAr}</h3>
               <p className="text-xs text-white/40 font-body mb-2">{mod.title}</p>
               <p className="text-sm text-white/60 font-body leading-snug">{mod.descriptionAr}</p>
             </motion.button>
@@ -264,17 +264,8 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
                 <h3 className="text-xl sm:text-2xl font-extrabold font-display text-white flex-1">
                   {selected.titleAr}
                 </h3>
-                <SpeechButton
-                  text={selected.audioText}
-                  speak={speak}
-                  stop={stop}
-                  isSpeaking={isSpeaking}
-                  isSupported={isSupported}
-                />
-                <button
-                  onClick={handleClose}
-                  className="w-9 h-9 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors shrink-0"
-                >
+                <SpeechButton text={selected.audioText} speak={speak} stop={stop} isSpeaking={isSpeaking} isSupported={isSupported} />
+                <button onClick={handleClose} className="w-9 h-9 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors shrink-0">
                   <span className="text-white/70 text-xl">×</span>
                 </button>
               </div>
@@ -285,12 +276,23 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
                   <Fingerprint className="w-5 h-5 text-gold-400 shrink-0 mt-0.5" />
                   <div>
                     <p className="text-xs font-bold text-gold-300 mb-1">القاعدة:</p>
-                    <p className="text-sm text-white/80 font-body leading-relaxed">
-                      {selected.ruleAr}
-                    </p>
+                    <p className="text-sm text-white/80 font-body leading-relaxed">{selected.ruleAr}</p>
                   </div>
                 </div>
               </div>
+
+              {/* Story Card */}
+              {selected.story && (
+                <div className="mb-4 p-3 rounded-2xl bg-gradient-to-br from-pink-500/10 to-purple-500/10 border border-pink-400/30">
+                  <div className="flex items-start gap-2">
+                    <Sparkles className="w-5 h-5 text-pink-300 shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-xs font-bold text-pink-300 mb-1">القصة:</p>
+                      <p className="text-sm text-white/80 font-body leading-relaxed">{selected.story}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               <p className="text-white/60 font-body text-sm mb-4">{selected.descriptionAr}</p>
 
@@ -299,9 +301,7 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
                 <button
                   onClick={() => switchMode('watch')}
                   className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl font-bold font-body text-sm transition-all ${
-                    mode === 'watch'
-                      ? 'bg-gradient-to-br from-purple-500 to-electric-500 text-white shadow-lg'
-                      : 'text-white/50 hover:text-white/80'
+                    mode === 'watch' ? 'bg-gradient-to-br from-purple-500 to-electric-500 text-white shadow-lg' : 'text-white/50 hover:text-white/80'
                   }`}
                 >
                   <Eye className="w-4 h-4" /> شاهد
@@ -309,9 +309,7 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
                 <button
                   onClick={() => switchMode('try')}
                   className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl font-bold font-body text-sm transition-all ${
-                    mode === 'try'
-                      ? 'bg-gradient-to-br from-purple-500 to-electric-500 text-white shadow-lg'
-                      : 'text-white/50 hover:text-white/80'
+                    mode === 'try' ? 'bg-gradient-to-br from-purple-500 to-electric-500 text-white shadow-lg' : 'text-white/50 hover:text-white/80'
                   }`}
                 >
                   <Hand className="w-4 h-4" /> جرّب
@@ -325,25 +323,20 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
                     <p className="text-xs text-white/40 font-body">
                       المثال {toArabicNumber(currentExample + 1)} من {toArabicNumber(selected.examples.length)}
                     </p>
-                    <div className="flex gap-1">
-                      {selected.examples.map((_, i) => (
-                        <span
-                          key={i}
-                          className={`w-2 h-2 rounded-full ${
-                            solvedExamples.includes(i)
-                              ? 'bg-emerald2-400'
-                              : i === currentExample
-                              ? 'bg-white'
-                              : 'bg-white/20'
-                          }`}
-                        />
-                      ))}
+                    <div className="flex items-center gap-2">
+                      <span className={`badge bg-gradient-to-br ${getRuleColor(currentEx.ruleCategory)} text-white text-[10px]`}>
+                        {getRuleLabel(currentEx.ruleCategory)}
+                      </span>
+                      <div className="flex gap-1">
+                        {selected.examples.map((_, i) => (
+                          <span key={i} className={`w-2 h-2 rounded-full ${
+                            solvedExamples.includes(i) ? 'bg-emerald2-400' : i === currentExample ? 'bg-white' : 'bg-white/20'
+                          }`} />
+                        ))}
+                      </div>
                     </div>
                   </div>
-
-                  <p className="text-center text-lg font-extrabold font-display text-white mb-4">
-                    {currentEx.question}
-                  </p>
+                  <p className="text-center text-lg font-extrabold font-display text-white mb-4">{currentEx.problemText}</p>
                 </div>
               )}
 
@@ -352,32 +345,15 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
                 <div className="flex justify-center mb-4">
                   <AnimatePresence mode="wait">
                     {mode === 'watch' ? (
-                      <motion.div
-                        key={`watch-${currentExample}`}
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                      >
-                        <Soroban
-                          value={currentEx.targetValue}
-                          columns={getColumnsForValue(currentEx.targetValue)}
-                        />
+                      <motion.div key={`watch-${currentExample}`} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                        <Soroban value={currentEx.answer} columns={getColumnsForValue(currentEx.answer)} />
                       </motion.div>
                     ) : (
-                      <motion.div
-                        key={`try-${currentExample}`}
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                      >
+                      <motion.div key={`try-${currentExample}`} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
                         <InteractiveSoroban
-                          columns={getColumnsForValue(currentEx.targetValue)}
+                          columns={getColumnsForValue(currentEx.answer)}
                           value={0}
-                          onValueChange={(v) => {
-                            if (v === currentEx.targetValue && !isSolved) {
-                              handleExampleSolved();
-                            }
-                          }}
+                          onValueChange={(v) => { if (v === currentEx.answer && !isSolved) handleExampleSolved(); }}
                         />
                       </motion.div>
                     )}
@@ -390,20 +366,11 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
                 <div className="mb-4">
                   {!showSteps ? (
                     <button
-                      onClick={() => {
-                        setShowSteps(true);
-                        setCurrentStep(0);
-                      }}
+                      onClick={() => { setShowSteps(true); setCurrentStep(0); }}
                       className="w-full btn-primary !py-3"
                     >
-                      {isMultiplication && <Calculator className="w-5 h-5" />}
-                      {isDivision && <Target className="w-5 h-5" />}
-                      {!isMultiplication && !isDivision && <ThumbsUp className="w-5 h-5" />}
-                      {isMultiplication
-                        ? 'اشرح لي طريقة الضرب'
-                        : isDivision
-                        ? 'اشرح لي طريقة القسمة'
-                        : 'اشرح لي الخطوات'}
+                      <BookOpen className="w-5 h-5" />
+                      اشرح لي الخطوات
                     </button>
                   ) : (
                     <div className="space-y-2">
@@ -413,34 +380,30 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
                         </p>
                       </div>
 
-                      {currentEx.steps.slice(0, currentStep + 1).map((step, i) => (
+                      {currentEx.steps.slice(0, currentStep + 1).map((step: LessonStep, i: number) => (
                         <motion.div
                           key={i}
                           initial={{ opacity: 0, x: -20 }}
                           animate={{ opacity: 1, x: 0 }}
                           className={`p-3 rounded-2xl border ${
-                            i === currentStep
-                              ? 'bg-electric-500/20 border-electric-400/40'
-                              : 'bg-white/5 border-white/10'
+                            i === currentStep ? 'bg-electric-500/20 border-electric-400/40' : 'bg-white/5 border-white/10'
                           }`}
                         >
                           <div className="flex items-start gap-3">
                             <div className="w-8 h-8 rounded-full bg-electric-500/30 flex items-center justify-center shrink-0 text-sm font-bold text-electric-200">
-                              {getMovementIcon(step.movement)}
+                              {toArabicNumber(i + 1)}
                             </div>
                             <div className="flex-1">
                               <div className="flex items-center gap-2 mb-1 flex-wrap">
-                                <span className="text-xs font-bold text-gold-300">
-                                  {getFingerLabel(step.finger)}
-                                </span>
-                                {step.column !== undefined && (
-                                  <span className="text-xs text-purple-300 font-body">
-                                    (الخانة {toArabicNumber(step.column)})
-                                  </span>
+                                <span className="text-xs font-bold text-gold-300">{getFingerLabel(step.fingerUsed)}</span>
+                                <span className="text-xs font-bold text-electric-300">{getDirectionLabel(step.direction)}</span>
+                                {step.targetColumn && (
+                                  <span className="text-xs text-purple-300 font-body">({getColumnLabel(step.targetColumn)})</span>
                                 )}
                               </div>
-                              <p className="text-sm text-white/80 font-body leading-relaxed">
-                                {step.explanation}
+                              <p className="text-sm text-white/80 font-body leading-relaxed">{step.instructionText}</p>
+                              <p className="text-xs text-emerald2-300 font-body mt-1">
+                                القيمة بعد هذه الخطوة: {toArabicNumber(step.expectedValueAfter)}
                               </p>
                             </div>
                           </div>
@@ -448,10 +411,7 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
                       ))}
 
                       {currentStep + 1 < currentEx.steps.length && (
-                        <button
-                          onClick={nextStep}
-                          className="w-full btn-primary !py-2 !text-sm mt-2"
-                        >
+                        <button onClick={nextStep} className="w-full btn-primary !py-2 !text-sm mt-2">
                           <MoveRight className="w-4 h-4" /> الخطوة التالية
                         </button>
                       )}
@@ -464,48 +424,27 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
               {currentEx && (
                 <div className="flex gap-3 p-3 rounded-2xl bg-purple-500/10 border border-purple-400/20 mb-4">
                   <Lightbulb className="w-5 h-5 text-gold-400 shrink-0 mt-0.5" />
-                  <p className="text-sm text-white/80 font-body leading-relaxed">
-                    {currentEx.explanation}
-                  </p>
+                  <p className="text-sm text-white/80 font-body leading-relaxed">{currentEx.explanation}</p>
                 </div>
               )}
 
               {/* Navigation */}
               <div className="flex gap-2 mb-4">
-                <button
-                  onClick={prevExample}
-                  disabled={isFirstExample}
-                  className="btn-ghost flex-1 !py-2 !text-sm disabled:opacity-30"
-                >
-                  السابق
-                </button>
-                <button
-                  onClick={nextExample}
-                  disabled={isLastExample}
-                  className={`flex-1 !py-2 !text-sm ${
-                    !isLastExample ? 'btn-primary' : 'btn-ghost opacity-30'
-                  }`}
-                >
-                  التالي
-                </button>
+                <button onClick={prevExample} disabled={isFirstExample} className="btn-ghost flex-1 !py-2 !text-sm disabled:opacity-30">السابق</button>
+                <button onClick={nextExample} disabled={isLastExample} className={`flex-1 !py-2 !text-sm ${!isLastExample ? 'btn-primary' : 'btn-ghost opacity-30'}`}>التالي</button>
               </div>
 
               {/* Try mode feedback */}
               {mode === 'try' && (
                 <div className="text-center mb-4">
                   {isSolved ? (
-                    <p className="text-sm text-emerald2-300 font-bold font-body">
-                      ✅ أحسنت! وصلت للقيمة الصحيحة
-                    </p>
+                    <p className="text-sm text-emerald2-300 font-bold font-body">✅ أحسنت! وصلت للقيمة الصحيحة</p>
                   ) : (
-                    <p className="text-xs text-white/40 font-body">
-                      حرّك الخرزات لتصل إلى القيمة {toArabicNumber(currentEx?.targetValue || 0)}
-                    </p>
+                    <p className="text-xs text-white/40 font-body">حرّك الخرزات لتصل إلى القيمة {toArabicNumber(currentEx?.answer || 0)}</p>
                   )}
                 </div>
               )}
 
-              {/* Complete button */}
               <button
                 onClick={handleComplete}
                 disabled={mode === 'try' && !allExamplesSolved}
