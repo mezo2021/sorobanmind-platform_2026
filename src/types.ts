@@ -12,47 +12,66 @@ export type Screen =
 
 export type LearnModuleStatus = 'locked' | 'available' | 'completed';
 
-export type FingerType = 'thumb' | 'index' | 'both';
+// الأصابع المستخدمة
+export type FingerType =
+  | 'thumb'           // الإبهام
+  | 'index'           // السبابة
+  | 'both_pinch'      // الإبهام والسبابة معاً (حركة القبض)
+  | 'left_index';     // سبابة اليد اليسرى (للخانات الكبرى)
 
-export type MovementType =
-  | 'raise-lower'
-  | 'pinch'
-  | 'open'
-  | 'small-friend'
-  | 'big-friend'
-  | 'multiply-digit'
-  | 'shift-position'
-  | 'divide-estimate'
-  | 'divide-subtract';
+// اتجاه الحركة
+export type MovementDirection =
+  | 'up'              // رفع الخرزات (للجمع)
+  | 'down'            // إنزال الخرزات (للطرح)
+  | 'pinch_in'        // حركة القبض (ضم الخرزات للعارضة)
+  | 'pinch_out';      // فتح القبض (إبعاد الخرزات عن العارضة)
 
-export interface MovementStep {
-  /** نوع الحركة */
-  movement: MovementType;
-  /** عدد الخرزات السفلية */
-  lowerBeads?: number;
-  /** هل الخرزة العلوية تُفعّل؟ */
-  upperBead?: boolean;
+// الخانات المستهدفة
+export type ColumnType = 'units' | 'tens' | 'hundreds' | 'thousands';
+
+// خطوة واحدة في الحل
+export interface LessonStep {
+  /** رقم الخطوة (1، 2، 3...) */
+  stepIndex: number;
+  /** النص الإرشادي للطفل */
+  instructionText: string;
   /** الإصبع المستخدم */
-  finger: FingerType;
-  /** نص شرح الحركة */
-  explanation: string;
-  /** رقم الخانة (للضرب والقسمة) */
-  column?: number;
+  fingerUsed: FingerType;
+  /** اتجاه الحركة */
+  direction: MovementDirection;
+  /** الخانة المستهدفة */
+  targetColumn: ColumnType;
+  /** الخرزات المتأثرة (0-4 للسفلية، 5 للعلوية) */
+  beadsAffected: number[];
+  /** القيمة المتوقعة بعد هذه الخطوة */
+  expectedValueAfter: number;
 }
 
+// نوع القاعدة في الدرس
+export type RuleCategory =
+  | 'direct'          // الجمع/الطرح المباشر
+  | 'small_friends'   // أصدقاء 5
+  | 'big_friends'     // أصدقاء 10
+  | 'combined'        // القواعد المركبة
+  | 'anzan';          // التصور الذهني
+
+// مثال تعليمي
 export interface LessonExample {
-  /** السؤال المعروض */
-  question: string;
-  /** القيمة المطلوبة */
-  targetValue: number;
-  /** نوع العملية */
-  type: 'direct' | 'small-friend' | 'big-friend' | 'multiply' | 'divide';
+  /** النص المعروض للسؤال */
+  problemText: string;
+  /** الإجابة النهائية */
+  answer: number;
+  /** نوع القاعدة المستخدمة */
+  ruleCategory: RuleCategory;
   /** خطوات الحل */
-  steps: MovementStep[];
-  /** الشرح العام */
+  steps: LessonStep[];
+  /** شرح عام للمثال */
   explanation: string;
+  /** القصة المشوقة للطفل */
+  story?: string;
 }
 
+// وحدة تعليمية
 export interface LearnModule {
   id: number;
   title: string;
@@ -70,10 +89,13 @@ export interface LearnModule {
   /** القاعدة التعليمية */
   rule: string;
   ruleAr: string;
+  /** القصة المشوقة */
+  story: string;
   /** أمثلة الدرس */
   examples: LessonExample[];
 }
 
+// باقي الأنواع كما هي
 export interface LevelNode {
   id: number;
   name: string;
@@ -112,8 +134,8 @@ export interface PracticeQuestion {
   question: string;
   answer: number;
   choices: number[];
-  type?: 'direct' | 'small-friend' | 'big-friend' | 'multiply' | 'divide';
-  steps?: MovementStep[];
+  type?: RuleCategory;
+  steps?: LessonStep[];
 }
 
 export interface Badge {
