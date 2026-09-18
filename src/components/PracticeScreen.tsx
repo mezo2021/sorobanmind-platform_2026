@@ -14,6 +14,11 @@ interface PracticeScreenProps {
   burst: (x?: number, y?: number) => void;
 }
 
+/** تحويل الأرقام إلى أرقام عربية */
+function toArabicNumber(value: number | string): string {
+  return String(value).replace(/\d/g, (d) => '٠١٢٣٤٥٦٧٨٩'[Number(d)]);
+}
+
 export function PracticeScreen({ onBack, playSound, onXP, burst }: PracticeScreenProps) {
   // قراءة الدروس المكتملة من localStorage
   const [completed, setCompleted] = useState<number[]>(() => {
@@ -122,10 +127,12 @@ export function PracticeScreen({ onBack, playSound, onXP, burst }: PracticeScree
         </motion.div>
         <h2 className="text-3xl font-extrabold font-display text-white mb-2">انتهى التدريب!</h2>
         <p className="text-white/60 font-body mb-6">
-          أجبت بشكل صحيح على {score} من {questions.length} مسألة
+          أجبت بشكل صحيح على {toArabicNumber(score)} من {toArabicNumber(questions.length)} مسألة
         </p>
         <div className="glass-card p-5 w-full max-w-xs mb-5 text-center">
-          <p className="text-4xl font-extrabold font-display shimmer-text">{score * 15}</p>
+          <p className="text-4xl font-extrabold font-display shimmer-text">
+            {toArabicNumber(score * 15)}
+          </p>
           <p className="text-sm text-white/50 font-body">نقاط خبرة مكتسبة</p>
         </div>
         <div className="flex gap-3 w-full max-w-xs">
@@ -162,7 +169,7 @@ export function PracticeScreen({ onBack, playSound, onXP, burst }: PracticeScree
           />
         </div>
         <span className="text-sm font-body text-white/50 whitespace-nowrap">
-          {index + 1}/{questions.length}
+          {toArabicNumber(index + 1)}/{toArabicNumber(questions.length)}
         </span>
       </div>
 
@@ -170,10 +177,10 @@ export function PracticeScreen({ onBack, playSound, onXP, burst }: PracticeScree
       <div className="flex gap-3 mb-5 flex-wrap">
         <div className="badge bg-emerald2-500/15 border-emerald2-400/20">
           <CheckCircle2 className="w-4 h-4 text-emerald2-300" />
-          <span className="text-emerald2-200 text-sm">{score} صحيح</span>
+          <span className="text-emerald2-200 text-sm">{toArabicNumber(score)} صحيح</span>
         </div>
         <div className="badge bg-orange-500/15 border-orange-400/20">
-          <span className="text-orange-200 text-sm">سلسلة: {streak}</span>
+          <span className="text-orange-200 text-sm">سلسلة: {toArabicNumber(streak)}</span>
         </div>
         {hasSubtraction && (
           <div className="badge bg-purple-500/15 border-purple-400/20">
@@ -222,7 +229,7 @@ export function PracticeScreen({ onBack, playSound, onXP, burst }: PracticeScree
                   disabled={selected !== null}
                   className={`relative py-5 rounded-2xl border-2 font-extrabold text-2xl font-display transition-all duration-300 ${style}`}
                 >
-                  {choice}
+                  {toArabicNumber(choice)}
                   {selected !== null && isCorrect && (
                     <CheckCircle2 className="absolute top-2 right-2 w-5 h-5 text-emerald2-400" />
                   )}
