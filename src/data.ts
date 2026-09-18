@@ -213,7 +213,7 @@ export const SUBTRACTION_QUESTIONS: PracticeQuestion[] = [
   { question: '١٦ - ٨', answer: 8, choices: [7, 8, 9, 10] },
 ];
 
-// للتوافق مع الكود القديم: PRACTICE_QUESTIONS = كل الأسئلة
+// للتوافق مع الكود القديم
 export const PRACTICE_QUESTIONS: PracticeQuestion[] = [
   ...ADDITION_QUESTIONS,
   ...SUBTRACTION_QUESTIONS,
@@ -235,3 +235,38 @@ export const PROGRESS_DATA: ProgressData = {
     { day: 'الجمعة', xp: 90 },
   ],
 };
+
+// ============================================================
+// الشارات (Badges)
+// ============================================================
+
+export const BADGES = [
+  {
+    id: 'beginner',
+    name: 'Beginner',
+    nameAr: 'مبتدئ',
+    xpRequired: 50,
+    icon: 'Star',
+  },
+  {
+    id: 'anzan-master',
+    name: 'Anzan Master',
+    nameAr: 'سيد الأنزان',
+    xpRequired: 100,
+    icon: 'Eye',
+  },
+  {
+    id: 'soroban-expert',
+    name: 'Soroban Expert',
+    nameAr: 'خبير السوروبان',
+    xpRequired: 200,
+    icon: 'Award',
+  },
+  {
+    id: 'legend',
+    name: 'Legend',
+    nameAr: 'أسطورة',
+    xpRequired: 500,
+    icon: 'Crown',
+  },
+];
