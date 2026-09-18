@@ -552,5 +552,4 @@ export function HeroDashboard({ onNavigate, playSound, xp, streak, earnedBadges 
   );
 }
 
-export { HeroDashboard };
 export default HeroDashboard;
