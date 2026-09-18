@@ -3,12 +3,14 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   ArrowRight, Lock, CheckCircle2, Info, Star, CircleDot,
   Combine, Hash, Sigma, Minus, Plus, Lightbulb, Eye, Hand,
-  X, Divide,
+  X, Divide, RotateCcw,
   type LucideIcon,
 } from 'lucide-react';
 import { LEARN_MODULES } from '@/data';
 import { Soroban } from './Soroban';
 import { InteractiveSoroban } from './InteractiveSoroban';
+import { SpeechButton } from './SpeechButton';
+import { useSpeech } from '@/hooks/useSpeech';
 import type { LearnModule } from '@/types';
 
 function toArabicNumber(value: number | string): string {
@@ -16,8 +18,7 @@ function toArabicNumber(value: number | string): string {
 }
 
 const ICONS: Record<string, LucideIcon> = {
-  Info, Star, CircleDot, Combine, Hash, Sigma, Minus, Plus,
-  X, Divide,
+  Info, Star, CircleDot, Combine, Hash, Sigma, Minus, Plus, X, Divide,
 };
 
 interface LearnScreenProps {
@@ -48,7 +49,10 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
     }
   });
   const [mode, setMode] = useState<LessonMode>('watch');
-  const [triedSolved, setTriedSolved] = useState(false);
+  const [currentExample, setCurrentExample] = useState(0);
+  const [solvedExamples, setSolvedExamples] = useState<number[]>([]);
+
+  const { speak, stop, isSpeaking, isSupported } = useSpeech();
 
   useEffect(() => {
     try {
@@ -58,12 +62,27 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
     }
   }, [completed]);
 
+  // إيقاف الصوت عند إغلاق الدرس
+  useEffect(() => {
+    return () => {
+      stop();
+    };
+  }, [stop]);
+
   const handleOpen = (mod: LearnModule, isLocked: boolean) => {
     if (isLocked) return;
     playSound('click');
     setSelected(mod);
     setMode('watch');
-    setTriedSolved(false);
+    setCurrentExample(0);
+    setSolvedExamples([]);
+    // شغّل الصوت تلقائياً (بعد تفاعل المستخدم)
+    setTimeout(() => speak(mod.audioText), 300);
+  };
+
+  const handleClose = () => {
+    stop();
+    setSelected(null);
   };
 
   const handleComplete = () => {
@@ -73,13 +92,42 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
       setCompleted([...completed, selected.id]);
       onXP(30);
     }
+    stop();
     setSelected(null);
   };
 
   const switchMode = (m: LessonMode) => {
     playSound('click');
     setMode(m);
+    setCurrentExample(0);
+    setSolvedExamples([]);
   };
+
+  const handleExampleSolved = () => {
+    if (!solvedExamples.includes(currentExample)) {
+      setSolvedExamples([...solvedExamples, currentExample]);
+      playSound('success');
+    }
+  };
+
+  const nextExample = () => {
+    if (!selected) return;
+    if (currentExample + 1 < selected.examples.length) {
+      setCurrentExample(currentExample + 1);
+    }
+  };
+
+  const prevExample = () => {
+    if (currentExample > 0) {
+      setCurrentExample(currentExample - 1);
+    }
+  };
+
+  const allExamplesSolved =
+    selected && solvedExamples.length === selected.examples.length;
+
+  const currentEx = selected?.examples[currentExample];
+  const isSolved = solvedExamples.includes(currentExample);
 
   return (
     <div className="px-3 sm:px-6 py-6 max-w-5xl mx-auto">
@@ -157,7 +205,7 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            onClick={() => setSelected(null)}
+            onClick={handleClose}
             className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
           >
             <motion.div
@@ -166,15 +214,22 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
               exit={{ scale: 0.8, opacity: 0, y: 30 }}
               transition={{ type: 'spring', stiffness: 250, damping: 25 }}
               onClick={(e) => e.stopPropagation()}
-              className="glass-strong p-6 sm:p-8 max-w-lg w-full max-h-[90vh] overflow-y-auto scrollbar-hide"
+              className="glass-strong p-5 sm:p-7 max-w-lg w-full max-h-[90vh] overflow-y-auto scrollbar-hide"
             >
-              <div className="flex items-center justify-between mb-5">
-                <h3 className="text-2xl font-extrabold font-display text-white">
+              <div className="flex items-center justify-between mb-4 gap-3">
+                <h3 className="text-xl sm:text-2xl font-extrabold font-display text-white flex-1">
                   {selected.titleAr}
                 </h3>
+                <SpeechButton
+                  text={selected.audioText}
+                  speak={speak}
+                  stop={stop}
+                  isSpeaking={isSpeaking}
+                  isSupported={isSupported}
+                />
                 <button
-                  onClick={() => setSelected(null)}
-                  className="w-9 h-9 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
+                  onClick={handleClose}
+                  className="w-9 h-9 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors shrink-0"
                 >
                   <span className="text-white/70 text-xl">×</span>
                 </button>
@@ -182,7 +237,8 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
 
               <p className="text-white/60 font-body text-sm mb-4">{selected.descriptionAr}</p>
 
-              <div className="flex gap-2 mb-5 p-1 rounded-2xl bg-white/5 border border-white/10">
+              {/* Mode toggle */}
+              <div className="flex gap-2 mb-4 p-1 rounded-2xl bg-white/5 border border-white/10">
                 <button
                   onClick={() => switchMode('watch')}
                   className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl font-bold font-body text-sm transition-all ${
@@ -205,77 +261,124 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
                 </button>
               </div>
 
-              <div className="flex justify-center mb-5">
-                <AnimatePresence mode="wait">
-                  {mode === 'watch' ? (
-                    <motion.div
-                      key="watch"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                    >
-                      <Soroban
-                        value={selected.value}
-                        columns={getColumnsForValue(selected.value)}
-                      />
-                    </motion.div>
-                  ) : (
-                    <motion.div
-                      key="try"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                    >
-                      <InteractiveSoroban
-                        columns={getColumnsForValue(selected.value)}
-                        value={selected.value}
-                        onValueChange={(v) => {
-                          if (v === selected.value) {
-                            setTriedSolved(true);
-                            playSound('success');
-                          }
-                        }}
-                      />
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
+              {/* Example progress */}
+              {currentEx && (
+                <div className="mb-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-xs text-white/40 font-body">
+                      المثال {toArabicNumber(currentExample + 1)} من {toArabicNumber(selected.examples.length)}
+                    </p>
+                    <div className="flex gap-1">
+                      {selected.examples.map((_, i) => (
+                        <span
+                          key={i}
+                          className={`w-2 h-2 rounded-full ${
+                            solvedExamples.includes(i)
+                              ? 'bg-emerald2-400'
+                              : i === currentExample
+                              ? 'bg-white'
+                              : 'bg-white/20'
+                          }`}
+                        />
+                      ))}
+                    </div>
+                  </div>
 
-              {mode === 'try' && !triedSolved && (
-                <p className="text-center text-xs text-white/40 font-body mb-5">
-                  حرّك الخرزات حتى تصل إلى القيمة {toArabicNumber(selected.value)}
-                </p>
-              )}
-
-              {mode === 'try' && triedSolved && (
-                <p className="text-center text-sm text-emerald2-300 font-bold font-body mb-5">
-                  ✅ أحسنت! وصلت للقيمة الصحيحة
-                </p>
-              )}
-
-              {mode === 'watch' && (
-                <div className="text-center mb-5">
-                  <p className="text-white/40 font-body text-xs mb-1">القيمة</p>
-                  <motion.p
-                    initial={{ scale: 0.5 }}
-                    animate={{ scale: 1 }}
-                    className="text-5xl font-extrabold font-display shimmer-text"
-                  >
-                    {toArabicNumber(selected.value)}
-                  </motion.p>
+                  <p className="text-center text-lg font-extrabold font-display text-white mb-4">
+                    {currentEx.question}
+                  </p>
                 </div>
               )}
 
-              <div className="flex gap-3 p-4 rounded-2xl bg-purple-500/10 border border-purple-400/20 mb-5">
-                <Lightbulb className="w-5 h-5 text-gold-400 shrink-0 mt-0.5" />
-                <p className="text-sm text-white/80 font-body leading-relaxed">
-                  {selected.conceptAr}
-                </p>
-              </div>
+              {/* Soroban Visual */}
+              {currentEx && (
+                <div className="flex justify-center mb-4">
+                  <AnimatePresence mode="wait">
+                    {mode === 'watch' ? (
+                      <motion.div
+                        key={`watch-${currentExample}`}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                      >
+                        <Soroban
+                          value={currentEx.targetValue}
+                          columns={getColumnsForValue(currentEx.targetValue)}
+                        />
+                      </motion.div>
+                    ) : (
+                      <motion.div
+                        key={`try-${currentExample}`}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                      >
+                        <InteractiveSoroban
+                          columns={getColumnsForValue(currentEx.targetValue)}
+                          value={0}
+                          onValueChange={(v) => {
+                            if (v === currentEx.targetValue && !isSolved) {
+                              handleExampleSolved();
+                            }
+                          }}
+                        />
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              )}
 
-              <button onClick={handleComplete} className="btn-primary w-full">
+              {/* Explanation */}
+              {currentEx && (
+                <div className="flex gap-3 p-3 rounded-2xl bg-purple-500/10 border border-purple-400/20 mb-4">
+                  <Lightbulb className="w-5 h-5 text-gold-400 shrink-0 mt-0.5" />
+                  <p className="text-sm text-white/80 font-body leading-relaxed">
+                    {currentEx.explanation}
+                  </p>
+                </div>
+              )}
+
+              {/* Navigation */}
+              {mode === 'try' && (
+                <div className="flex gap-2 mb-4">
+                  <button
+                    onClick={prevExample}
+                    disabled={currentExample === 0}
+                    className="btn-ghost flex-1 !py-2 !text-sm disabled:opacity-30"
+                  >
+                    السابق
+                  </button>
+                  {isSolved && currentExample + 1 < selected.examples.length && (
+                    <button
+                      onClick={nextExample}
+                      className="btn-primary flex-1 !py-2 !text-sm"
+                    >
+                      التالي
+                    </button>
+                  )}
+                  {isSolved && currentExample + 1 === selected.examples.length && (
+                    <div className="flex-1 flex items-center justify-center text-emerald2-300 font-bold text-sm">
+                      ✅ أكملت كل الأمثلة!
+                    </div>
+                  )}
+                  {!isSolved && (
+                    <div className="flex-1 flex items-center justify-center text-white/40 text-sm font-body">
+                      جارٍ الحل...
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Complete button */}
+              <button
+                onClick={handleComplete}
+                disabled={mode === 'try' && !allExamplesSolved}
+                className="btn-primary w-full disabled:opacity-40"
+              >
                 <CheckCircle2 className="w-5 h-5" />
-                أكملت الدرس +{toArabicNumber(30)} XP
+                {allExamplesSolved || mode === 'watch'
+                  ? `أكملت الدرس +${toArabicNumber(30)} XP`
+                  : `حل ${toArabicNumber(selected.examples.length - solvedExamples.length)} أمثلة إضافية`}
               </button>
             </motion.div>
           </motion.div>
