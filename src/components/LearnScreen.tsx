@@ -21,7 +21,11 @@ interface LearnScreenProps {
 
 type LessonMode = 'watch' | 'try';
 
-/** عمود سوروبان تفاعلي واحد لوضع "جرّب" */
+/**
+ * عمود سوروبان تفاعلي واحد لوضع "جرّب".
+ * تم إعادة كتابته بالكامل ليعتمد على مبدأ المجموعتين المنفصلتين،
+ * تماماً كما في مكوّن Soroban.tsx الصحيح.
+ */
 function TryColumn({
   target,
   playSound,
@@ -71,6 +75,7 @@ function TryColumn({
     playSound('whoosh');
   };
 
+  // --- أنماط الألوان والقياسات (موحدة مع Soroban.tsx) ---
   const upperBeadStyle = upper
     ? 'bg-gradient-to-b from-yellow-300 to-amber-500 border-yellow-100 shadow-[0_0_8px_rgba(251,191,36,0.7)]'
     : 'bg-gradient-to-b from-amber-700 to-amber-900 border-amber-500/80';
@@ -79,11 +84,12 @@ function TryColumn({
   const inactiveBeadStyle =
     'bg-gradient-to-b from-blue-800 to-blue-950 border-blue-600/80';
   const beadBase = 'w-7 h-7 sm:w-8 sm:h-8 rounded-full border-2';
+  // ----------------------------------------------------
 
   return (
     <div className="inline-flex flex-col items-center gap-3 p-5 glass rounded-3xl">
       <div className="flex flex-col items-center">
-        {/* Upper deck */}
+        {/* Upper Deck (Heaven) */}
         <div className="relative flex flex-col w-9 sm:w-12 h-[60px] sm:h-[68px]">
           <div className="absolute left-1/2 top-0 bottom-0 w-[3px] -translate-x-1/2 bg-amber-800/70" />
           <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-gradient-to-r from-purple-500 via-electric-500 to-purple-500 rounded-full" />
@@ -99,20 +105,20 @@ function TryColumn({
           </motion.button>
         </div>
 
-        {/* Beam */}
+        {/* Beam (العازل) */}
         <div className="w-full h-[3px] rounded-full bg-gradient-to-r from-purple-500 via-electric-500 to-purple-500" />
 
-        {/* Lower deck - TWO SEPARATE GROUPS */}
+        {/* Lower Deck (Earth) - مجموعتان منفصلتان */}
         <div className="relative flex flex-col justify-between w-9 sm:w-12 h-[132px] sm:h-[148px] py-1.5">
           <div className="absolute left-1/2 top-0 bottom-0 w-[3px] -translate-x-1/2 bg-amber-800/70" />
           <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-purple-500 via-electric-500 to-purple-500 rounded-full" />
           <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-gradient-to-r from-purple-500 via-electric-500 to-purple-500 rounded-full" />
 
-          {/* Active beads - top group, touching beam */}
+          {/* المجموعة الأولى: الخرزات المفعّلة (ملتصقة بالعارضة) */}
           <div className="relative z-10 flex flex-col items-center gap-[3px]">
             {Array.from({ length: lower }).map((_, i) => (
               <motion.button
-                key={`a-${i}`}
+                key={`active-${i}`}
                 onClick={incrementLower}
                 whileTap={{ scale: 0.88 }}
                 initial={{ scale: 0.85, opacity: 0 }}
@@ -126,11 +132,11 @@ function TryColumn({
             ))}
           </div>
 
-          {/* Inactive beads - bottom group, at the bottom */}
+          {/* المجموعة الثانية: الخرزات غير المفعّلة (بعيدة عند الأسفل) */}
           <div className="relative z-10 flex flex-col items-center gap-[3px]">
             {Array.from({ length: lowerInactive }).map((_, i) => (
               <motion.button
-                key={`i-${i}`}
+                key={`inactive-${i}`}
                 onClick={incrementLower}
                 whileTap={{ scale: 0.88 }}
                 initial={{ scale: 0.85, opacity: 0 }}
