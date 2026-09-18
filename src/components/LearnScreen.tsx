@@ -10,6 +10,11 @@ import { Soroban } from './Soroban';
 import { InteractiveSoroban } from './InteractiveSoroban';
 import type { LearnModule } from '@/types';
 
+/** تحويل الأرقام إلى أرقام عربية */
+function toArabicNumber(value: number | string): string {
+  return String(value).replace(/\d/g, (d) => '٠١٢٣٤٥٦٧٨٩'[Number(d)]);
+}
+
 const ICONS: Record<string, LucideIcon> = {
   Info, Star, CircleDot, Combine, Hash, Sigma, Minus,
 };
@@ -45,7 +50,6 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
   const [mode, setMode] = useState<LessonMode>('watch');
   const [triedSolved, setTriedSolved] = useState(false);
 
-  // حفظ الدروس المكتملة في localStorage
   useEffect(() => {
     try {
       localStorage.setItem(COMPLETED_STORAGE_KEY, JSON.stringify(completed));
@@ -240,7 +244,7 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
 
               {mode === 'try' && !triedSolved && (
                 <p className="text-center text-xs text-white/40 font-body mb-5">
-                  حرّك الخرزات حتى تصل إلى القيمة {selected.value}
+                  حرّك الخرزات حتى تصل إلى القيمة {toArabicNumber(selected.value)}
                 </p>
               )}
 
@@ -259,7 +263,7 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
                     animate={{ scale: 1 }}
                     className="text-5xl font-extrabold font-display shimmer-text"
                   >
-                    {selected.value}
+                    {toArabicNumber(selected.value)}
                   </motion.p>
                 </div>
               )}
@@ -274,7 +278,7 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
 
               <button onClick={handleComplete} className="btn-primary w-full">
                 <CheckCircle2 className="w-5 h-5" />
-                أكملت الدرس +30 XP
+                أكملت الدرس +{toArabicNumber(30)} XP
               </button>
             </motion.div>
           </motion.div>
