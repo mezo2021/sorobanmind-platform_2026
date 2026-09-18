@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import { ArrowRight, RotateCcw, Calculator } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { getBeadClasses, valueToDigits } from './Soroban';
+import { getBeadClasses } from './Soroban';
 
 /** تحويل الأرقام إلى أرقام عربية */
 function toArabicNumber(value: number | string): string {
@@ -10,9 +10,6 @@ function toArabicNumber(value: number | string): string {
 
 const COLUMNS = 5;
 
-// ============================================================
-// عمود تفاعلي
-// ============================================================
 function InteractiveColumn({
   digit,
   onChange,
@@ -41,7 +38,6 @@ function InteractiveColumn({
     <div className="relative flex flex-col items-center w-10 sm:w-12">
       <div className="absolute top-0 bottom-0 left-1/2 -translate-x-1/2 w-[3px] bg-amber-800/70" />
 
-      {/* Upper deck */}
       <div className="relative z-10 flex flex-col w-full items-center h-[60px] sm:h-[68px]">
         <motion.button
           type="button"
@@ -54,10 +50,8 @@ function InteractiveColumn({
         </motion.button>
       </div>
 
-      {/* Beam */}
       <div className="relative z-10 w-full h-[3px] bg-gradient-to-r from-purple-500 via-indigo-400 to-purple-500 rounded-full" />
 
-      {/* Lower deck */}
       <div className="relative z-10 flex flex-col justify-between w-full items-center h-[132px] sm:h-[148px]">
         <div className="flex flex-col items-center gap-[3px] mt-1.5">
           {Array.from({ length: lowerActiveCount }).map((_, i) => (
@@ -86,17 +80,10 @@ function InteractiveColumn({
           ))}
         </div>
       </div>
-
-      <div className="mt-2 text-[10px] text-white/40 font-bold">
-        {['آحاد', 'عشرات', 'مئات', 'آلاف', 'ع. الآلاف'][4 - 0]}
-      </div>
     </div>
   );
 }
 
-// ============================================================
-// الشاشة الكاملة
-// ============================================================
 interface InteractiveSorobanScreenProps {
   onBack: () => void;
   playSound: (type: 'click' | 'success' | 'bead' | 'whoosh') => void;
@@ -109,7 +96,6 @@ export function InteractiveSorobanScreen({
 }: InteractiveSorobanScreenProps) {
   const [digits, setDigits] = useState<number[]>(() => Array(COLUMNS).fill(0));
 
-  // حساب القيمة الإجمالية (digits[0] = آحاد)
   const totalValue = digits.reduce((acc, d, i) => acc + d * Math.pow(10, i), 0);
 
   const updateDigit = useCallback(
@@ -134,7 +120,6 @@ export function InteractiveSorobanScreen({
 
   return (
     <div className="px-3 sm:px-6 py-6 max-w-2xl mx-auto">
-      {/* Header */}
       <div className="flex items-center gap-3 mb-6">
         <button
           onClick={() => {
@@ -153,7 +138,6 @@ export function InteractiveSorobanScreen({
         </div>
       </div>
 
-      {/* Value display */}
       <div className="glass-card p-5 sm:p-6 mb-4 text-center">
         <p className="text-white/50 text-sm mb-1 font-body">القيمة الإجمالية</p>
         <motion.p
@@ -166,7 +150,6 @@ export function InteractiveSorobanScreen({
         </motion.p>
       </div>
 
-      {/* Soroban */}
       <div className="glass-card p-4 sm:p-6 mb-4 overflow-x-auto">
         <div className="flex flex-row-reverse items-start justify-center gap-2 sm:gap-3 min-w-max" dir="ltr">
           {digits.map((digit, idx) => (
@@ -183,14 +166,12 @@ export function InteractiveSorobanScreen({
         </div>
       </div>
 
-      {/* Reset */}
       <div className="flex gap-3">
         <button onClick={handleReset} className="btn-primary flex-1">
           <RotateCcw className="w-5 h-5" /> تصفير
         </button>
       </div>
 
-      {/* Info */}
       <div className="glass-card p-4 mt-4 flex items-start gap-3">
         <Calculator className="w-5 h-5 text-electric-400 shrink-0 mt-0.5" />
         <div className="text-xs text-white/60 font-body leading-relaxed">
@@ -202,4 +183,4 @@ export function InteractiveSorobanScreen({
       </div>
     </div>
   );
-
+}
