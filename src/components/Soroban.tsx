@@ -110,4 +110,5 @@ const Soroban: React.FC<SorobanProps> = ({ value, columns = 5, className = '' })
   );
 };
 
+export { Soroban };
 export default Soroban;
