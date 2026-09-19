@@ -314,7 +314,7 @@ export function HeroDashboard({
         'sham',
         'rayan',
         'bana',
-        'joud'',
+        ''joud'',
       ].includes(saved)
     ) {
       setCompanion(saved as CharacterType);
