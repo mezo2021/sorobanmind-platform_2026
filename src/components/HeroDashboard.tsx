@@ -79,8 +79,8 @@ const CHARACTER_INFO: Record<
     lightColor: 'text-teal-300',
   },
   joud: {
-    name: 'آية',
-    title: 'البطلة النشيطة',
+    name: 'ريان',
+    title: 'البطل الشجاع',
     message: 'هيا! لدينا مغامرة حسابية جديدة!',
     color: 'from-pink-500 to-rose-700',
     lightColor: 'text-pink-300',
