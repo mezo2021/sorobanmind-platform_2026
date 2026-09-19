@@ -173,7 +173,10 @@ export const LEARN_MODULES: LearnModule[] = [
       { problemText: '21 ÷ 7 = ؟', answer: 3, ruleCategory: 'direct', steps: [{ stepIndex: 1, instructionText: 'مثّل 21', fingerUsed: 'thumb', direction: 'up', targetColumn: 'tens', beadsAffected: [1, 2], expectedAbacusState: [1, 2, 0] }, { stepIndex: 2, instructionText: 'اقسم 21 ÷ 7 = 3. اكتب 3', fingerUsed: 'thumb', direction: 'up', targetColumn: 'units', beadsAffected: [1, 2, 3], expectedAbacusState: [3, 0, 0] }, { stepIndex: 3, instructionText: 'تحقق: 3 × 7 = 21. اطرح 21', fingerUsed: 'both_pinch', direction: 'pinch_out', targetColumn: 'tens', beadsAffected: [1, 2], expectedAbacusState: [3, 0, 0] }], explanation: '21 ÷ 7 = 3. الباقي: 0' },
       { problemText: '18 ÷ 6 = ؟', answer: 3, ruleCategory: 'direct', steps: [{ stepIndex: 1, instructionText: 'مثّل 18 (1 عشرات، 8 آحاد)', fingerUsed: 'both_pinch', direction: 'pinch_in', targetColumn: 'tens', beadsAffected: [1], expectedAbacusState: [8, 1, 0] }, { stepIndex: 2, instructionText: 'اقسم 18 ÷ 6 = 3. اكتب 3', fingerUsed: 'thumb', direction: 'up', targetColumn: 'units', beadsAffected: [1, 2, 3], expectedAbacusState: [3, 0, 0] }, { stepIndex: 3, instructionText: 'تحقق: 3 × 6 = 18. اطرح 18', fingerUsed: 'both_pinch', direction: 'pinch_out', targetColumn: 'tens', beadsAffected: [1, 5, 1, 2, 3], expectedAbacusState: [3, 0, 0] }], explanation: '18 ÷ 6 = 3. الباقي: 0' }
     ]
-  }
+  },
+];
+
+export const QUESTS: Quest[] = [
 
 export const QUESTS: Quest[] = [
   { id: 1, title: 'Daily Practice', titleAr: 'التدريب اليومي', description: 'Complete 10', descriptionAr: 'أكمل ١٠ مسائل', xpReward: 50, progress: 0, target: 10, icon: 'Swords', color: 'from-purple-500 to-electric-500', type: 'practice' },
