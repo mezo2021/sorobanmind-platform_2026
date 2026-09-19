@@ -1,3 +1,10 @@
+// ============================================================
+// types.ts — الأنواع المركزية لمشروع SorobanMind
+// ============================================================
+
+// ------------------------------------------------------------
+// الأدوار والشاشات
+// ------------------------------------------------------------
 export type Role = 'hero' | 'guardian' | null;
 
 export type Screen =
@@ -10,6 +17,49 @@ export type Screen =
   | 'soroban'
   | 'guardian-dashboard';
 
+// ------------------------------------------------------------
+// الشخصيات (الأبطال المرافقون)
+// ------------------------------------------------------------
+/** معرّف الشخصية — مطابق لملفات الأفاتار في src/components/avatars */
+export type CharacterType = 'sham' | 'rayan' | 'bana' | 'joud';
+
+/** مرادف لـ CharacterType للاستخدام في سياق الأفاتار */
+export type AvatarId = CharacterType;
+
+/** مفتاح التخزين في localStorage */
+export const CHARACTER_STORAGE_KEY = 'soroban_companion';
+
+/** قائمة الشخصيات الصالحة — تُستخدم للتحقق */
+export const VALID_CHARACTERS: readonly CharacterType[] = [
+  'sham',
+  'rayan',
+  'bana',
+  'joud',
+] as const;
+
+/** خريطة التوافق مع الإصدارات القديمة من localStorage */
+export const LEGACY_CHARACTER_MAP: Readonly<Record<string, CharacterType>> = {
+  fox: 'sham',
+  owl: 'bana',
+  rabbit: 'rayan',
+  panda: 'joud',
+  aya: 'joud', // "آية" القديمة → "جود"
+};
+
+/** بيانات وصفية للشخصية */
+export interface CharacterInfo {
+  id: CharacterType;
+  name: string;
+  title: string;
+  description: string;
+  bgColor: string;
+  borderColor: string;
+  accentColor: string;
+}
+
+// ------------------------------------------------------------
+// حالة التعلّم
+// ------------------------------------------------------------
 export type LearnModuleStatus = 'locked' | 'available' | 'completed';
 
 export type FingerType = 'thumb' | 'index' | 'both_pinch' | 'left_index';
@@ -18,6 +68,17 @@ export type MovementDirection = 'up' | 'down' | 'pinch_in' | 'pinch_out';
 
 export type ColumnType = 'units' | 'tens' | 'hundreds' | 'thousands';
 
+export type RuleCategory =
+  | 'direct'
+  | 'small_friends'
+  | 'big_friends'
+  | 'combined'
+  | 'anzan'
+  | 'chain';
+
+// ------------------------------------------------------------
+// خطوات الدروس
+// ------------------------------------------------------------
 export interface LessonStep {
   stepIndex: number;
   instructionText: string;
@@ -38,8 +99,9 @@ export interface DivisionStep {
   expectedAbacusState: number[];
 }
 
-export type RuleCategory = 'direct' | 'small_friends' | 'big_friends' | 'combined' | 'anzan' | 'chain';
-
+// ------------------------------------------------------------
+// أمثلة الدروس
+// ------------------------------------------------------------
 export interface LessonExample {
   problemText: string;
   answer: number;
@@ -60,6 +122,9 @@ export interface DivisionExample {
   storyAudioText?: string;
 }
 
+// ------------------------------------------------------------
+// وحدات التعلّم
+// ------------------------------------------------------------
 export interface LearnModule {
   id: number;
   title: string;
@@ -90,9 +155,19 @@ export interface LevelNode {
   xpRequired: number;
 }
 
+// ------------------------------------------------------------
+// المهام (Quests)
+// ------------------------------------------------------------
 export type QuestType =
-  | 'practice' | 'anzan' | 'anzanHighScore' | 'streak' | 'lessons'
-  | 'addition' | 'subtraction' | 'multiplication' | 'division'
+  | 'practice'
+  | 'anzan'
+  | 'anzanHighScore'
+  | 'streak'
+  | 'lessons'
+  | 'addition'
+  | 'subtraction'
+  | 'multiplication'
+  | 'division'
   | 'chain';
 
 export interface Quest {
@@ -109,9 +184,9 @@ export interface Quest {
   type: QuestType;
 }
 
-// ============================================================
-// PracticeQuestion — موسّع بـ lessonId
-// ============================================================
+// ------------------------------------------------------------
+// أسئلة التدريب
+// ------------------------------------------------------------
 export interface PracticeQuestion {
   question: string;
   answer: number;
@@ -122,9 +197,9 @@ export interface PracticeQuestion {
   lessonId?: number;
 }
 
-// ============================================================
-// ChainExercise — تمرين سلسلة طويلة (الدرس 7)
-// ============================================================
+// ------------------------------------------------------------
+// تمارين السلاسل الطويلة (الدرس 7)
+// ------------------------------------------------------------
 export interface ChainOperation {
   value: number;
   operator: '+' | '-';
@@ -148,13 +223,13 @@ export interface ChainExercise {
   difficulty: number;
 }
 
-// ============================================================
-// AnzanLevelConfig — إعدادات مستويات الأنزان
-// ============================================================
+// ------------------------------------------------------------
+// إعدادات مستويات الأنزان
+// ------------------------------------------------------------
 export interface AnzanLevelRules {
   /** المستوى المرتبط بالدرس */
   lessonId: number;
-  /** مفتاح المستوى (beginner, intermediate, ...) */
+  /** مفتاح المستوى */
   key: 'beginner' | 'intermediate' | 'advanced' | 'expert' | 'master';
   /** عدد العمليات */
   operationsCount: number;
@@ -162,7 +237,7 @@ export interface AnzanLevelRules {
   allowSubtract: boolean;
   /** هل تسمح بمنزلتين أو أكثر */
   multiDigit: boolean;
-  /** القاعدة المسيطرة: direct | small_friends | big_friends | combined */
+  /** القاعدة المسيطرة */
   dominantRule: RuleCategory;
   /** أقصى قيمة للعملية الواحدة */
   maxValue: number;
@@ -170,6 +245,9 @@ export interface AnzanLevelRules {
   labelAr: string;
 }
 
+// ------------------------------------------------------------
+// الشارات والإحصائيات
+// ------------------------------------------------------------
 export interface Badge {
   id: string;
   nameAr: string;
@@ -194,6 +272,5 @@ export interface ProgressData {
   weeklyXP: { day: string; xp: number }[];
 }
 
-export interface LessonProgress {
-  [lessonId: number]: number[];
-}
+/** تقدّم الدروس: مفتاح = رقم الدرس، القيمة = مصفوفة خطوات مكتملة */
+export type LessonProgress = Record<number, number[]>;
