@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { Check, Sparkles } from 'lucide-react';
-import { ShamAvatar } from './avatars/ShamAvatar';
-import { RayanAvatar } from './avatars/RayanAvatar';
-import { BanaAvatar } from './avatars/BanaAvatar';
-import { JoudAvatar } from './avatars/JoudAvatar';
+import { ImageAvatar } from './avatars/ImageAvatar';
+import shamImg from '../assets/avatars/sham.png';
+import rayanImg from '../assets/avatars/rayan.png';
+import banaImg from '../assets/avatars/bana.png';
+import joudImg from '../assets/avatars/joud.png';
 import {
   CharacterType,
   CharacterInfo,
@@ -12,11 +13,9 @@ import {
   LEGACY_CHARACTER_MAP,
 } from '../types';
 
-// ------------------------------------------------------------
-// نوع محلي: معلومات الشخصية + مكوّن الأفاتار
-// ------------------------------------------------------------
 interface CharacterOption extends CharacterInfo {
-  Component: React.FC<{ className?: string; animated?: boolean }>;
+  image: string;
+  motionType: 'float' | 'breathe' | 'sway';
 }
 
 const CHARACTERS: CharacterOption[] = [
@@ -28,7 +27,8 @@ const CHARACTERS: CharacterOption[] = [
     bgColor: 'bg-violet-50',
     borderColor: 'border-violet-500',
     accentColor: 'text-violet-700',
-    Component: ShamAvatar,
+    image: shamImg,
+    motionType: 'float',
   },
   {
     id: 'rayan',
@@ -38,7 +38,8 @@ const CHARACTERS: CharacterOption[] = [
     bgColor: 'bg-blue-50',
     borderColor: 'border-blue-500',
     accentColor: 'text-blue-700',
-    Component: RayanAvatar,
+    image: rayanImg,
+    motionType: 'breathe',
   },
   {
     id: 'bana',
@@ -48,7 +49,8 @@ const CHARACTERS: CharacterOption[] = [
     bgColor: 'bg-teal-50',
     borderColor: 'border-teal-500',
     accentColor: 'text-teal-700',
-    Component: BanaAvatar,
+    image: banaImg,
+    motionType: 'sway',
   },
   {
     id: 'joud',
@@ -58,20 +60,15 @@ const CHARACTERS: CharacterOption[] = [
     bgColor: 'bg-indigo-50',
     borderColor: 'border-indigo-500',
     accentColor: 'text-indigo-700',
-    Component: JoudAvatar,
+    image: joudImg,
+    motionType: 'float',
   },
 ];
 
-// ------------------------------------------------------------
-// Props
-// ------------------------------------------------------------
 interface CharacterSelectorProps {
   onSelectCharacter?: (character: CharacterType) => void;
 }
 
-// ------------------------------------------------------------
-// المكوّن
-// ------------------------------------------------------------
 export const CharacterSelector: React.FC<CharacterSelectorProps> = ({
   onSelectCharacter,
 }) => {
@@ -85,13 +82,11 @@ export const CharacterSelector: React.FC<CharacterSelectorProps> = ({
       return;
     }
 
-    // قيمة صالحة مباشرة
-    if ((VALID_CHARACTERS as readonly string[]).includes(saved)) {
+    if ((VALID_CHARACTERS as string[]).includes(saved)) {
       setSelected(saved as CharacterType);
       return;
     }
 
-    // توافق مع الإصدارات القديمة
     const migrated = LEGACY_CHARACTER_MAP[saved];
     if (migrated) {
       setSelected(migrated);
@@ -99,7 +94,6 @@ export const CharacterSelector: React.FC<CharacterSelectorProps> = ({
       return;
     }
 
-    // قيمة غير معروفة → الافتراضي
     setSelected('sham');
     localStorage.setItem(CHARACTER_STORAGE_KEY, 'sham');
   }, []);
@@ -130,7 +124,6 @@ export const CharacterSelector: React.FC<CharacterSelectorProps> = ({
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
         {CHARACTERS.map((char) => {
           const isSelected = selected === char.id;
-          const AvatarComponent = char.Component;
 
           return (
             <button
@@ -148,13 +141,18 @@ export const CharacterSelector: React.FC<CharacterSelectorProps> = ({
               }`}
             >
               {isSelected && (
-                <div className="absolute top-3 right-3 w-8 h-8 bg-emerald-500 text-white rounded-full flex items-center justify-center shadow-lg">
+                <div className="absolute top-3 right-3 w-8 h-8 bg-emerald-500 text-white rounded-full flex items-center justify-center shadow-lg z-10">
                   <Check className="w-5 h-5" strokeWidth={3} />
                 </div>
               )}
 
               <div className="mb-3 transition-transform duration-300 group-hover:-translate-y-2">
-                <AvatarComponent className="w-28 h-28 sm:w-32 sm:h-32 drop-shadow-xl" />
+                <ImageAvatar
+                  src={char.image}
+                  alt={char.name}
+                  className="w-28 h-28 sm:w-32 sm:h-32 drop-shadow-xl"
+                  motionType={char.motionType}
+                />
               </div>
 
               <h3 className="text-xl font-black text-slate-800 mb-1">
