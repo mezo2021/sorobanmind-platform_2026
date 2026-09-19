@@ -147,12 +147,6 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
 
   useEffect(() => { return () => { stop(); }; }, [stop]);
 
-  // التحقق من إتمام جميع أمثلة درس معين
-  const isLessonFullyCompleted = (moduleId: number, examplesCount: number): boolean => {
-    const solved = lessonProgress[moduleId] || [];
-    return solved.length >= examplesCount;
-  };
-
   const handleOpen = (mod: LearnModule, isLocked: boolean) => {
     if (isLocked) return;
     playSound('click');
@@ -160,7 +154,6 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
     setMode('watch');
     setCurrentExample(0);
     setCurrentStep(0);
-    // استرجاع الأمثلة المحلولة سابقاً لهذا الدرس
     const savedSolved = lessonProgress[mod.id] || [];
     setSolvedExamples(savedSolved);
     setShowSteps(false);
@@ -172,10 +165,7 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
 
   const handleComplete = () => {
     if (!selected) return;
-    // لا يكتمل الدرس إلا إذا حُلّت جميع الأمثلة
-    if (solvedExamples.length < selected.examples.length) {
-      return;
-    }
+    if (solvedExamples.length < selected.examples.length) return;
     playSound('success');
     if (!completed.includes(selected.id)) {
       setCompleted([...completed, selected.id]);
@@ -190,7 +180,6 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
     setMode(m);
     setCurrentExample(0);
     setCurrentStep(0);
-    // استرجاع الأمثلة المحلولة عند العودة
     if (selected) {
       const savedSolved = lessonProgress[selected.id] || [];
       setSolvedExamples(savedSolved);
@@ -204,7 +193,6 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
     if (!solvedExamples.includes(currentExample)) {
       const newSolved = [...solvedExamples, currentExample];
       setSolvedExamples(newSolved);
-      // حفظ التقدم
       setLessonProgress({
         ...lessonProgress,
         [selected.id]: newSolved,
@@ -248,6 +236,17 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
     } else {
       setShowSteps(false);
     }
+  };
+
+  // حساب القيمة الأولية للمعداد عند الخطوة الحالية
+  const getInitialValue = (): number => {
+    if (!currentEx || currentEx.steps.length === 0) return 0;
+    if (currentStep === 0) return 0;
+    const prevStep = currentEx.steps[currentStep - 1];
+    if ('expectedValueAfter' in prevStep) {
+      return (prevStep as LessonStep).expectedValueAfter;
+    }
+    return 0;
   };
 
   return (
@@ -309,7 +308,6 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
               <p className="text-xs text-white/40 font-body mb-2">{mod.title}</p>
               <p className="text-sm text-white/60 font-body leading-snug mb-2">{mod.descriptionAr}</p>
 
-              {/* شريط التقدم */}
               {!isLocked && totalCount > 0 && (
                 <div className="mt-2">
                   <div className="flex items-center gap-2 mb-1">
@@ -458,7 +456,7 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
 
                         <InteractiveSoroban
                           columns={getColumnsForValue(currentEx.answer)}
-                          value={0}
+                          initialValue={getInitialValue()}
                           strictMode={currentEx.steps.length > 0}
                           expectedStep={currentEx.steps.length > 0 ? currentEx.steps[currentStep] : undefined}
                           onStepCorrect={() => {
