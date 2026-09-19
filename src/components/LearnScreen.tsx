@@ -346,6 +346,7 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
                 </button>
               </div>
 
+              {/* بطاقة القاعدة */}
               <div className="mb-4 p-3 rounded-2xl bg-gradient-to-br from-gold-400/10 to-gold-600/10 border border-gold-400/30">
                 <div className="flex items-start gap-2">
                   <Fingerprint className="w-5 h-5 text-gold-400 shrink-0 mt-0.5" />
@@ -355,6 +356,22 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
                   </div>
                 </div>
               </div>
+
+              {/* جدول القاعدة */}
+              {selected.ruleTable && selected.ruleTable.length > 0 && (
+                <div className="mb-4 p-3 rounded-2xl bg-black/30 border border-gold-400/20">
+                  <p className="text-xs font-bold text-gold-300 mb-2 text-center">📋 جدول القاعدة</p>
+                  <div className="grid grid-cols-3 gap-1.5">
+                    {selected.ruleTable.map((row, idx) => (
+                      <div key={idx} className="flex items-center justify-center gap-1 p-1.5 rounded-lg bg-white/5 border border-white/10">
+                        <span className="text-xs font-bold text-electric-300 font-display">{row.formula}</span>
+                        <span className="text-[10px] text-white/40">=</span>
+                        <span className="text-xs font-bold text-emerald2-300 font-display">{row.result}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {selected.story && (
                 <div className="mb-4 p-3 rounded-2xl bg-gradient-to-br from-pink-500/10 to-purple-500/10 border border-pink-400/30">
@@ -516,7 +533,8 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
                 </div>
               )}
 
-              {currentEx && (
+              {/* الشرح - يظهر فقط في "شاهد" أو بعد الحل في "جرّب" */}
+              {currentEx && (mode === 'watch' || isSolved) && (
                 <div className="flex gap-3 p-3 rounded-2xl bg-purple-500/10 border border-purple-400/20 mb-4">
                   <Lightbulb className="w-5 h-5 text-gold-400 shrink-0 mt-0.5" />
                   <p className="text-sm text-white/80 font-body leading-relaxed">{currentEx.explanation}</p>
