@@ -38,7 +38,7 @@ export interface DivisionStep {
   expectedAbacusState: number[];
 }
 
-export type RuleCategory = 'direct' | 'small_friends' | 'big_friends' | 'combined' | 'anzan';
+export type RuleCategory = 'direct' | 'small_friends' | 'big_friends' | 'combined' | 'anzan' | 'chain';
 
 export interface LessonExample {
   problemText: string;
@@ -92,7 +92,8 @@ export interface LevelNode {
 
 export type QuestType =
   | 'practice' | 'anzan' | 'anzanHighScore' | 'streak' | 'lessons'
-  | 'addition' | 'subtraction' | 'multiplication' | 'division';
+  | 'addition' | 'subtraction' | 'multiplication' | 'division'
+  | 'chain';
 
 export interface Quest {
   id: number;
@@ -108,12 +109,65 @@ export interface Quest {
   type: QuestType;
 }
 
+// ============================================================
+// PracticeQuestion — موسّع بـ lessonId
+// ============================================================
 export interface PracticeQuestion {
   question: string;
   answer: number;
   choices: number[];
   type?: RuleCategory;
   steps?: LessonStep[];
+  /** رقم الدرس المرتبط بالسؤال (1-12) */
+  lessonId?: number;
+}
+
+// ============================================================
+// ChainExercise — تمرين سلسلة طويلة (الدرس 7)
+// ============================================================
+export interface ChainOperation {
+  value: number;
+  operator: '+' | '-';
+}
+
+export interface ChainExercise {
+  id: string;
+  /** العمليات المتتالية */
+  operations: ChainOperation[];
+  /** النتيجة النهائية */
+  answer: number;
+  /** عدد الصفوف (4-15) */
+  rows: number;
+  /** عدد المنازل: 1 = آحاد، 2 = عشرات، 3 = مئات */
+  digits: 1 | 2 | 3;
+  /** اسم المجموعة */
+  groupAr: string;
+  /** مرتبط بالدرس */
+  lessonId: number;
+  /** صعوبة: 1-6 */
+  difficulty: number;
+}
+
+// ============================================================
+// AnzanLevelConfig — إعدادات مستويات الأنزان
+// ============================================================
+export interface AnzanLevelRules {
+  /** المستوى المرتبط بالدرس */
+  lessonId: number;
+  /** مفتاح المستوى (beginner, intermediate, ...) */
+  key: 'beginner' | 'intermediate' | 'advanced' | 'expert' | 'master';
+  /** عدد العمليات */
+  operationsCount: number;
+  /** هل تسمح بالطرح */
+  allowSubtract: boolean;
+  /** هل تسمح بمنزلتين أو أكثر */
+  multiDigit: boolean;
+  /** القاعدة المسيطرة: direct | small_friends | big_friends | combined */
+  dominantRule: RuleCategory;
+  /** أقصى قيمة للعملية الواحدة */
+  maxValue: number;
+  /** الوصف بالعربية */
+  labelAr: string;
 }
 
 export interface Badge {
