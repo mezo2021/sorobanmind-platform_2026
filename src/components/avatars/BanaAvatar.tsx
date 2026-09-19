@@ -14,95 +14,166 @@ export const BanaAvatar: React.FC<AvatarProps> = ({
     xmlns="http://www.w3.org/2000/svg"
     aria-label="بانة"
   >
-    {/* الحجاب */}
+    <defs>
+      <linearGradient id="bana-hair" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stopColor="#4A2E1F" />
+        <stop offset="100%" stopColor="#2B1A0F" />
+      </linearGradient>
+      <linearGradient id="bana-top" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stopColor="#5EEAD4" />
+        <stop offset="100%" stopColor="#0D9488" />
+      </linearGradient>
+      <linearGradient id="bana-pants" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stopColor="#D6D3D1" />
+        <stop offset="100%" stopColor="#A8A29E" />
+      </linearGradient>
+      <radialGradient id="bana-cheek" cx="0.5" cy="0.5" r="0.5">
+        <stop offset="0%" stopColor="#F59EAA" stopOpacity="0.5" />
+        <stop offset="100%" stopColor="#F59EAA" stopOpacity="0" />
+      </radialGradient>
+    </defs>
+
+    {/* الشعر الطويل المفرود (خلف الرأس) */}
     <path
-      d="M40 73 Q38 37 80 25 Q122 37 120 73 L125 111 Q112 148 80 153 Q48 148 35 111Z"
-      fill="#0F766E"
+      d="M38 70 Q34 32 80 26 Q126 32 122 70 L126 140 Q120 148 112 145 L118 80 Q110 60 80 58 Q50 60 42 80 L48 145 Q40 148 34 140Z"
+      fill="url(#bana-hair)"
+    />
+
+    {/* الرقبة */}
+    <path
+      d="M70 108 L70 122 Q80 128 90 122 L90 108Z"
+      fill="#D7A17B"
+    />
+    <path
+      d="M70 118 Q80 124 90 118 Q80 122 70 118Z"
+      fill="#AB7855"
+      opacity="0.5"
     />
 
     {/* الوجه */}
-    <ellipse cx="80" cy="77" rx="30" ry="38" fill="#D7A17B" />
+    <ellipse cx="80" cy="78" rx="31" ry="38" fill="#D7A17B" />
 
-    {/* مقدمة الحجاب */}
+    {/* ظل الذقن */}
+    <ellipse cx="80" cy="109" rx="18" ry="6" fill="#AB7855" opacity="0.35" />
+
+    {/* الغرة الناعمة */}
     <path
-      d="M48 62 Q53 32 80 30 Q107 32 112 62 Q100 49 80 50 Q60 49 48 62Z"
-      fill="#14B8A6"
+      d="M46 66 Q50 32 80 30 Q110 32 114 66 Q108 50 96 48 Q88 56 80 50 Q72 56 64 48 Q52 50 46 66Z"
+      fill="url(#bana-hair)"
+    />
+    {/* خصلة جانبية على الجبين */}
+    <path
+      d="M56 58 Q62 68 58 78 Q54 74 56 58Z"
+      fill="#3A2318"
+      opacity="0.85"
     />
 
-    {/* العينان */}
-    <ellipse cx="67" cy="78" rx="5.5" ry="7" fill="#2C211D" />
-    <ellipse cx="93" cy="78" rx="5.5" ry="7" fill="#2C211D" />
-    <circle cx="65.5" cy="76" r="2" fill="white" />
-    <circle cx="91.5" cy="76" r="2" fill="white" />
+    {/* الأذنان */}
+    <ellipse cx="49" cy="80" rx="5" ry="7" fill="#D7A17B" />
+    <ellipse cx="111" cy="80" rx="5" ry="7" fill="#D7A17B" />
 
-    {/* الحاجبان */}
+    {/* العينان */}
+    <ellipse cx="67" cy="79" rx="6" ry="7.5" fill="#FDFDFD" />
+    <ellipse cx="93" cy="79" rx="6" ry="7.5" fill="#FDFDFD" />
+    <ellipse cx="67" cy="79" rx="5" ry="6.5" fill="#2C211D" />
+    <ellipse cx="93" cy="79" rx="5" ry="6.5" fill="#2C211D" />
+    <circle cx="65.5" cy="77" r="2.2" fill="white" />
+    <circle cx="91.5" cy="77" r="2.2" fill="white" />
+    <circle cx="68" cy="81.5" r="0.9" fill="white" opacity="0.85" />
+    <circle cx="94" cy="81.5" r="0.9" fill="white" opacity="0.85" />
+
+    {/* رموش ناعمة */}
     <path
-      d="M59 68 Q67 63 74 68"
-      stroke="#69483A"
-      strokeWidth="3"
+      d="M61 74 L58 71"
+      stroke="#2B1A0F"
+      strokeWidth="1.2"
       strokeLinecap="round"
     />
     <path
-      d="M86 68 Q93 63 101 68"
-      stroke="#69483A"
-      strokeWidth="3"
+      d="M99 74 L102 71"
+      stroke="#2B1A0F"
+      strokeWidth="1.2"
+      strokeLinecap="round"
+    />
+
+    {/* الحاجبان */}
+    <path
+      d="M58 69 Q67 64 75 69"
+      stroke="#4A2E1F"
+      strokeWidth="2.8"
+      strokeLinecap="round"
+    />
+    <path
+      d="M85 69 Q93 64 102 69"
+      stroke="#4A2E1F"
+      strokeWidth="2.8"
       strokeLinecap="round"
     />
 
     {/* الأنف */}
     <path
-      d="M80 81 L77 89 Q80 91 84 89"
+      d="M80 82 L77 90 Q80 92 84 90"
       stroke="#A96C51"
       strokeWidth="2"
       strokeLinecap="round"
     />
 
-    {/* الابتسامة */}
+    {/* الابتسامة الهادئة */}
     <path
-      d="M70 97 Q80 103 90 97"
+      d="M70 98 Q80 105 90 98"
       stroke="#633E3D"
-      strokeWidth="3"
+      strokeWidth="2.8"
       strokeLinecap="round"
     />
 
     {/* الخدان */}
-    <ellipse cx="57" cy="92" rx="8" ry="4" fill="#F59EAA" opacity="0.4" />
-    <ellipse cx="103" cy="92" rx="8" ry="4" fill="#F59EAA" opacity="0.4" />
+    <ellipse cx="56" cy="92" rx="9" ry="4.5" fill="url(#bana-cheek)" />
+    <ellipse cx="104" cy="92" rx="9" ry="4.5" fill="url(#bana-cheek)" />
 
-    {/* اللباس */}
+    {/* البلوزة التركوازية */}
     <path
-      d="M38 112 Q80 99 122 112 L140 174 H20Z"
-      fill="#0D9488"
+      d="M42 116 Q80 106 118 116 L124 158 H36Z"
+      fill="url(#bana-top)"
     />
-
-    {/* ياقة */}
+    {/* ظل البلوزة */}
     <path
-      d="M62 112 Q80 126 98 112"
+      d="M42 116 Q60 111 80 112 Q100 111 118 116 Q100 118 80 119 Q60 118 42 116Z"
+      fill="#0F766E"
+      opacity="0.4"
+    />
+    {/* ياقة V ناعمة */}
+    <path
+      d="M68 114 L80 128 L92 114"
       fill="#CCFBF1"
+      stroke="#5EEAD4"
+      strokeWidth="1.2"
     />
 
-    {/* زخرفة نجمة */}
-    <path
-      d="M80 133 L84 142 L94 143 L86 149 L89 159 L80 153 L71 159 L74 149 L66 143 L76 142Z"
-      fill="#FBBF24"
-    />
+    {/* حزام بسيط */}
+    <rect x="55" y="155" width="50" height="5" rx="2" fill="#78350F" />
+    <rect x="76" y="154" width="8" height="7" rx="1.5" fill="#FBBF24" />
 
-    {/* كتاب صغير */}
-    <rect
-      x="105"
-      y="133"
-      width="28"
-      height="25"
-      rx="4"
-      fill="#FEF3C7"
-      stroke="#D97706"
-      strokeWidth="2"
+    {/* البنطال البيج */}
+    <path
+      d="M48 160 L76 160 L76 180 H48Z"
+      fill="url(#bana-pants)"
     />
     <path
-      d="M110 141 H128 M110 147 H125"
-      stroke="#D97706"
-      strokeWidth="2"
-      strokeLinecap="round"
+      d="M84 160 L112 160 L112 180 H84Z"
+      fill="url(#bana-pants)"
+    />
+    {/* ثنية ساق البنطال */}
+    <path
+      d="M48 174 L76 174"
+      stroke="#78716C"
+      strokeWidth="1"
+      opacity="0.5"
+    />
+    <path
+      d="M84 174 L112 174"
+      stroke="#78716C"
+      strokeWidth="1"
+      opacity="0.5"
     />
   </svg>
 );
