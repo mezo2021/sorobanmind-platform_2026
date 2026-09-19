@@ -1275,3 +1275,265 @@ export const BADGES = [
   { id: 'legend', name: 'Legend', nameAr: 'أسطورة', xpRequired: 5000, icon: 'Crown' },
   { id: 'eternal-legend', name: 'Eternal Legend', nameAr: 'أسطورة خالدة', xpRequired: 10000, icon: 'Crown' },
 ];
+// ═══════════════════════════════════════════════════════════
+// PRACTICE QUESTIONS — موحّدة مع lessonId
+// ═══════════════════════════════════════════════════════════
+export const PRACTICE_QUESTIONS: PracticeQuestion[] = [
+  { question: '1 + 2', answer: 3, choices: [2, 3, 4, 5], type: 'direct', lessonId: 3 },
+  { question: '2 + 2', answer: 4, choices: [3, 4, 5, 6], type: 'direct', lessonId: 3 },
+  { question: '5 + 3', answer: 8, choices: [7, 8, 9, 10], type: 'direct', lessonId: 3 },
+  { question: '4 + 5', answer: 9, choices: [8, 9, 10, 11], type: 'direct', lessonId: 3 },
+  { question: '4 - 1', answer: 3, choices: [2, 3, 4, 5], type: 'direct', lessonId: 3 },
+  { question: '9 - 5', answer: 4, choices: [3, 4, 5, 6], type: 'direct', lessonId: 3 },
+  { question: '8 - 3', answer: 5, choices: [4, 5, 6, 7], type: 'direct', lessonId: 3 },
+  { question: '12 + 21', answer: 33, choices: [31, 32, 33, 34], type: 'direct', lessonId: 3 },
+  { question: '4 + 4', answer: 8, choices: [7, 8, 9, 10], type: 'small_friends', lessonId: 4 },
+  { question: '3 + 3', answer: 6, choices: [5, 6, 7, 8], type: 'small_friends', lessonId: 4 },
+  { question: '2 + 3', answer: 5, choices: [4, 5, 6, 7], type: 'small_friends', lessonId: 4 },
+  { question: '4 + 3', answer: 7, choices: [6, 7, 8, 9], type: 'small_friends', lessonId: 4 },
+  { question: '1 + 4', answer: 5, choices: [4, 5, 6, 7], type: 'small_friends', lessonId: 4 },
+  { question: '2 + 4', answer: 6, choices: [5, 6, 7, 8], type: 'small_friends', lessonId: 4 },
+  { question: '5 - 4', answer: 1, choices: [1, 2, 3, 4], type: 'small_friends', lessonId: 4 },
+  { question: '6 - 3', answer: 3, choices: [2, 3, 4, 5], type: 'small_friends', lessonId: 4 },
+  { question: '7 - 4', answer: 3, choices: [2, 3, 4, 5], type: 'small_friends', lessonId: 4 },
+  { question: '8 - 4', answer: 4, choices: [3, 4, 5, 6], type: 'small_friends', lessonId: 4 },
+  { question: '9 + 9', answer: 18, choices: [17, 18, 19, 20], type: 'big_friends', lessonId: 5 },
+  { question: '8 + 8', answer: 16, choices: [15, 16, 17, 18], type: 'big_friends', lessonId: 5 },
+  { question: '7 + 7', answer: 14, choices: [13, 14, 15, 16], type: 'big_friends', lessonId: 5 },
+  { question: '6 + 6', answer: 12, choices: [11, 12, 13, 14], type: 'big_friends', lessonId: 5 },
+  { question: '5 + 5', answer: 10, choices: [9, 10, 11, 12], type: 'big_friends', lessonId: 5 },
+  { question: '8 + 7', answer: 15, choices: [14, 15, 16, 17], type: 'big_friends', lessonId: 5 },
+  { question: '9 + 4', answer: 13, choices: [12, 13, 14, 15], type: 'big_friends', lessonId: 5 },
+  { question: '6 + 8', answer: 14, choices: [13, 14, 15, 16], type: 'big_friends', lessonId: 5 },
+  { question: '7 + 5', answer: 12, choices: [11, 12, 13, 14], type: 'big_friends', lessonId: 5 },
+  { question: '11 - 9', answer: 2, choices: [1, 2, 3, 4], type: 'big_friends', lessonId: 5 },
+  { question: '12 - 8', answer: 4, choices: [3, 4, 5, 6], type: 'big_friends', lessonId: 5 },
+  { question: '15 - 7', answer: 8, choices: [7, 8, 9, 10], type: 'big_friends', lessonId: 5 },
+  { question: '13 - 5', answer: 8, choices: [7, 8, 9, 10], type: 'big_friends', lessonId: 5 },
+  { question: '10 - 3', answer: 7, choices: [6, 7, 8, 9], type: 'big_friends', lessonId: 5 },
+  { question: '5 + 6', answer: 11, choices: [10, 11, 12, 13], type: 'combined', lessonId: 6 },
+  { question: '6 + 7', answer: 13, choices: [12, 13, 14, 15], type: 'combined', lessonId: 6 },
+  { question: '7 + 8', answer: 15, choices: [14, 15, 16, 17], type: 'combined', lessonId: 6 },
+  { question: '8 + 9', answer: 17, choices: [16, 17, 18, 19], type: 'combined', lessonId: 6 },
+  { question: '5 + 7', answer: 12, choices: [11, 12, 13, 14], type: 'combined', lessonId: 6 },
+  { question: '6 + 8', answer: 14, choices: [13, 14, 15, 16], type: 'combined', lessonId: 6 },
+  { question: '14 - 6', answer: 8, choices: [7, 8, 9, 10], type: 'combined', lessonId: 6 },
+  { question: '13 - 7', answer: 6, choices: [5, 6, 7, 8], type: 'combined', lessonId: 6 },
+  { question: '12 - 8', answer: 4, choices: [3, 4, 5, 6], type: 'combined', lessonId: 6 },
+  { question: '15 - 9', answer: 6, choices: [5, 6, 7, 8], type: 'combined', lessonId: 6 },
+  { question: '20 + 40', answer: 60, choices: [50, 60, 70, 80], type: 'big_friends', lessonId: 9 },
+  { question: '30 + 30', answer: 60, choices: [50, 60, 70, 80], type: 'big_friends', lessonId: 9 },
+  { question: '40 + 40', answer: 80, choices: [70, 80, 90, 100], type: 'big_friends', lessonId: 9 },
+  { question: '50 - 30', answer: 20, choices: [10, 20, 30, 40], type: 'big_friends', lessonId: 9 },
+  { question: '40 - 20', answer: 20, choices: [10, 20, 30, 40], type: 'big_friends', lessonId: 9 },
+  { question: '50 + 50', answer: 100, choices: [90, 100, 110, 120], type: 'big_friends', lessonId: 10 },
+  { question: '60 + 50', answer: 110, choices: [100, 110, 120, 130], type: 'big_friends', lessonId: 10 },
+  { question: '100 - 30', answer: 70, choices: [60, 70, 80, 90], type: 'big_friends', lessonId: 10 },
+  { question: '120 - 40', answer: 80, choices: [70, 80, 90, 100], type: 'big_friends', lessonId: 10 },
+  { question: '150 - 70', answer: 80, choices: [70, 80, 90, 100], type: 'big_friends', lessonId: 10 },
+  { question: '2 × 2', answer: 4, choices: [2, 4, 6, 8], type: 'direct', lessonId: 11 },
+  { question: '3 × 2', answer: 6, choices: [4, 6, 8, 10], type: 'direct', lessonId: 11 },
+  { question: '4 × 2', answer: 8, choices: [6, 8, 10, 12], type: 'direct', lessonId: 11 },
+  { question: '5 × 2', answer: 10, choices: [8, 10, 12, 14], type: 'direct', lessonId: 11 },
+  { question: '3 × 3', answer: 9, choices: [6, 9, 12, 15], type: 'direct', lessonId: 11 },
+  { question: '4 × 3', answer: 12, choices: [9, 12, 15, 18], type: 'direct', lessonId: 11 },
+  { question: '12 × 3', answer: 36, choices: [33, 36, 39, 42], type: 'direct', lessonId: 11 },
+  { question: '14 × 3', answer: 42, choices: [39, 42, 45, 48], type: 'direct', lessonId: 11 },
+  { question: '23 × 2', answer: 46, choices: [43, 46, 49, 52], type: 'direct', lessonId: 11 },
+  { question: '11 × 4', answer: 44, choices: [41, 44, 47, 50], type: 'direct', lessonId: 11 },
+  { question: '6 ÷ 2', answer: 3, choices: [2, 3, 4, 5], type: 'direct', lessonId: 12 },
+  { question: '8 ÷ 2', answer: 4, choices: [3, 4, 5, 6], type: 'direct', lessonId: 12 },
+  { question: '9 ÷ 3', answer: 3, choices: [2, 3, 4, 5], type: 'direct', lessonId: 12 },
+  { question: '15 ÷ 5', answer: 3, choices: [2, 3, 4, 5], type: 'direct', lessonId: 12 },
+  { question: '12 ÷ 4', answer: 3, choices: [2, 3, 4, 5], type: 'direct', lessonId: 12 },
+  { question: '20 ÷ 5', answer: 4, choices: [3, 4, 5, 6], type: 'direct', lessonId: 12 },
+  { question: '21 ÷ 7', answer: 3, choices: [2, 3, 4, 5], type: 'direct', lessonId: 12 },
+  { question: '18 ÷ 6', answer: 3, choices: [2, 3, 4, 5], type: 'direct', lessonId: 12 },
+];
+
+// ═══════════════════════════════════════════════════════════
+// CHAIN EXERCISES — تمارين السلاسل الطويلة (الدرس 7)
+// ═══════════════════════════════════════════════════════════
+export const CHAIN_EXERCISES: ChainExercise[] = [
+  {
+    id: 'c1-1', rows: 10, digits: 1, lessonId: 7, difficulty: 5,
+    groupAr: 'سلاسل الآحاد (١٠ صفوف)',
+    operations: [
+      { value: 5, operator: '+' }, { value: 4, operator: '-' },
+      { value: 7, operator: '+' }, { value: 8, operator: '+' },
+      { value: 3, operator: '+' }, { value: 1, operator: '-' },
+      { value: 1, operator: '-' }, { value: 4, operator: '+' },
+    ],
+    answer: 21,
+  },
+  {
+    id: 'c1-2', rows: 10, digits: 1, lessonId: 7, difficulty: 5,
+    groupAr: 'سلاسل الآحاد (١٠ صفوف)',
+    operations: [
+      { value: 6, operator: '+' }, { value: 7, operator: '+' },
+      { value: 8, operator: '-' }, { value: 7, operator: '+' },
+      { value: 2, operator: '-' }, { value: 1, operator: '+' },
+      { value: 9, operator: '-' }, { value: 2, operator: '+' },
+      { value: 3, operator: '+' }, { value: 9, operator: '+' },
+    ],
+    answer: 16,
+  },
+  {
+    id: 'c1-3', rows: 10, digits: 1, lessonId: 7, difficulty: 5,
+    groupAr: 'سلاسل الآحاد (١٠ صفوف)',
+    operations: [
+      { value: 8, operator: '+' }, { value: 3, operator: '+' },
+      { value: 1, operator: '+' }, { value: 8, operator: '+' },
+      { value: 9, operator: '+' }, { value: 8, operator: '+' },
+      { value: 3, operator: '-' }, { value: 6, operator: '+' },
+      { value: 4, operator: '-' }, { value: 1, operator: '+' },
+    ],
+    answer: 37,
+  },
+  {
+    id: 'c2-1', rows: 4, digits: 2, lessonId: 7, difficulty: 3,
+    groupAr: 'منزلتان (٤ صفوف)',
+    operations: [
+      { value: 3, operator: '+' }, { value: 60, operator: '+' },
+      { value: 12, operator: '-' }, { value: 66, operator: '+' },
+    ],
+    answer: 117,
+  },
+  {
+    id: 'c2-2', rows: 4, digits: 2, lessonId: 7, difficulty: 3,
+    groupAr: 'منزلتان (٤ صفوف)',
+    operations: [
+      { value: 45, operator: '+' }, { value: 56, operator: '+' },
+      { value: 30, operator: '-' }, { value: 88, operator: '+' },
+    ],
+    answer: 159,
+  },
+  {
+    id: 'c2-3', rows: 4, digits: 2, lessonId: 7, difficulty: 4,
+    groupAr: 'منزلتان (٤ صفوف)',
+    operations: [
+      { value: 99, operator: '+' }, { value: 81, operator: '+' },
+      { value: 4, operator: '-' }, { value: 35, operator: '+' },
+    ],
+    answer: 211,
+  },
+  {
+    id: 'c3-1', rows: 4, digits: 2, lessonId: 7, difficulty: 4,
+    groupAr: 'منزلتان متقدمة',
+    operations: [
+      { value: 37, operator: '+' }, { value: 49, operator: '+' },
+      { value: 24, operator: '-' }, { value: 7, operator: '+' },
+    ],
+    answer: 69,
+  },
+  {
+    id: 'c3-2', rows: 4, digits: 2, lessonId: 7, difficulty: 4,
+    groupAr: 'منزلتان متقدمة',
+    operations: [
+      { value: 68, operator: '+' }, { value: 46, operator: '-' },
+      { value: 27, operator: '+' }, { value: 69, operator: '+' },
+    ],
+    answer: 118,
+  },
+  {
+    id: 'c4-1', rows: 4, digits: 3, lessonId: 7, difficulty: 5,
+    groupAr: 'مئات وآحاد',
+    operations: [
+      { value: 4, operator: '+' }, { value: 71, operator: '+' },
+      { value: 95, operator: '+' }, { value: 69, operator: '+' },
+    ],
+    answer: 239,
+  },
+  {
+    id: 'c4-2', rows: 4, digits: 3, lessonId: 7, difficulty: 5,
+    groupAr: 'مئات وآحاد',
+    operations: [
+      { value: 15, operator: '+' }, { value: 96, operator: '+' },
+      { value: 40, operator: '-' }, { value: 12, operator: '+' },
+    ],
+    answer: 83,
+  },
+  {
+    id: 'c5-1', rows: 5, digits: 2, lessonId: 7, difficulty: 5,
+    groupAr: '٥ صفوف متتالية',
+    operations: [
+      { value: 99, operator: '+' }, { value: 79, operator: '-' },
+      { value: 37, operator: '+' }, { value: 38, operator: '-' },
+      { value: 38, operator: '+' },
+    ],
+    answer: 57,
+  },
+  {
+    id: 'c5-2', rows: 5, digits: 2, lessonId: 7, difficulty: 5,
+    groupAr: '٥ صفوف متتالية',
+    operations: [
+      { value: 9, operator: '+' }, { value: 57, operator: '+' },
+      { value: 31, operator: '-' }, { value: 86, operator: '+' },
+      { value: 9, operator: '+' },
+    ],
+    answer: 130,
+  },
+  {
+    id: 'c5-3', rows: 5, digits: 2, lessonId: 7, difficulty: 6,
+    groupAr: '٥ صفوف متتالية',
+    operations: [
+      { value: 23, operator: '+' }, { value: 37, operator: '+' },
+      { value: 37, operator: '+' }, { value: 77, operator: '-' },
+      { value: 13, operator: '+' },
+    ],
+    answer: 33,
+  },
+  {
+    id: 'c6-1', rows: 15, digits: 2, lessonId: 7, difficulty: 6,
+    groupAr: 'التحدي الأكبر (١٥ صفاً)',
+    operations: [
+      { value: 21, operator: '+' }, { value: 72, operator: '+' },
+      { value: 40, operator: '+' }, { value: 53, operator: '-' },
+      { value: 65, operator: '-' }, { value: 35, operator: '+' },
+      { value: 66, operator: '+' }, { value: 42, operator: '+' },
+      { value: 24, operator: '-' }, { value: 47, operator: '-' },
+      { value: 86, operator: '+' }, { value: 49, operator: '+' },
+      { value: 7, operator: '-' }, { value: 14, operator: '-' },
+      { value: 75, operator: '-' },
+    ],
+    answer: 126,
+  },
+  {
+    id: 'c6-2', rows: 15, digits: 2, lessonId: 7, difficulty: 6,
+    groupAr: 'التحدي الأكبر (١٥ صفاً)',
+    operations: [
+      { value: 97, operator: '+' }, { value: 35, operator: '-' },
+      { value: 85, operator: '+' }, { value: 87, operator: '-' },
+      { value: 90, operator: '+' }, { value: 36, operator: '-' },
+      { value: 50, operator: '+' }, { value: 28, operator: '+' },
+      { value: 95, operator: '-' }, { value: 68, operator: '+' },
+      { value: 71, operator: '-' }, { value: 27, operator: '-' },
+      { value: 10, operator: '+' }, { value: 29, operator: '+' },
+      { value: 4, operator: '-' },
+    ],
+    answer: 102,
+  },
+  {
+    id: 'c6-3', rows: 15, digits: 2, lessonId: 7, difficulty: 6,
+    groupAr: 'التحدي الأكبر (١٥ صفاً)',
+    operations: [
+      { value: 34, operator: '+' }, { value: 77, operator: '+' },
+      { value: 9, operator: '+' }, { value: 70, operator: '-' },
+      { value: 33, operator: '+' }, { value: 37, operator: '-' },
+      { value: 41, operator: '+' }, { value: 81, operator: '+' },
+      { value: 60, operator: '-' }, { value: 67, operator: '+' },
+      { value: 22, operator: '+' }, { value: 7, operator: '-' },
+      { value: 65, operator: '-' }, { value: 21, operator: '+' },
+      { value: 54, operator: '+' },
+    ],
+    answer: 200,
+  },
+];
+
+// ═══════════════════════════════════════════════════════════
+// Aliases للتوافق مع الكود القديم
+// ═══════════════════════════════════════════════════════════
+export const ADDITION_QUESTIONS = PRACTICE_QUESTIONS.filter((q) => q.question.includes('+'));
+export const SUBTRACTION_QUESTIONS = PRACTICE_QUESTIONS.filter((q) => q.question.includes('-') && !q.question.includes('÷'));
+export const MULTIPLICATION_QUESTIONS = PRACTICE_QUESTIONS.filter((q) => q.question.includes('×'));
+export const DIVISION_QUESTIONS = PRACTICE_QUESTIONS.filter((q) => q.question.includes('÷'));
