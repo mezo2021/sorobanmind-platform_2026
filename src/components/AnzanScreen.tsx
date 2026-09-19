@@ -15,11 +15,17 @@ interface AnzanScreenProps {
 
 type Phase = 'idle' | 'flashing' | 'answer' | 'result';
 type Speed = 'slow' | 'medium' | 'fast';
-type Level = 'beginner' | 'intermediate' | 'advanced';
+type Level = 'beginner' | 'intermediate' | 'advanced' | 'expert' | 'master';
 
 const SPEED_MS: Record<Speed, number> = { slow: 1500, medium: 1000, fast: 700 };
 const SPEED_LABELS: Record<Speed, string> = { slow: 'بطيء', medium: 'متوسط', fast: 'سريع' };
-const LEVEL_LABELS: Record<Level, string> = { beginner: 'مبتدئ', intermediate: 'متوسط', advanced: 'متقدم' };
+const LEVEL_LABELS: Record<Level, string> = {
+  beginner: 'مبتدئ (٣ عمليات)',
+  intermediate: 'متوسط (٣ عمليات مختلطة)',
+  advanced: 'متقدم (٤ عمليات مختلطة)',
+  expert: 'خبير (٥ عمليات مختلطة)',
+  master: 'محترف (٥ عمليات بمنزلتين)',
+};
 
 const ANZAN_STORAGE_KEY = 'soroban_anzan_stats';
 
@@ -50,24 +56,166 @@ function saveAnzanStats(stats: AnzanStats) {
   } catch { /* ignore */ }
 }
 
-/** توليد تسلسل حسب المستوى */
-function generateSequence(count: number, level: Level): number[] {
-  const max = level === 'beginner' ? 5 : level === 'intermediate' ? 9 : 9;
-  const min = 1;
-  return Array.from({ length: count }, () => Math.floor(Math.random() * (max - min + 1)) + min);
+// ============================================================
+// توليد تسلسل حسب المستوى
+// ============================================================
+
+interface Operation {
+  value: number;
+  operator: '+' | '-';
 }
 
-/** عدد الأرقام حسب المستوى */
-function getCountForLevel(level: Level): number {
-  if (level === 'beginner') return 2;
-  if (level === 'intermediate') return 3;
-  return 4;
+interface SequenceData {
+  operations: Operation[];
+  expectedResult: number;
 }
 
-/** إظهار المعداد أثناء التسلسل حسب المستوى */
-function shouldShowAbacus(level: Level): boolean {
-  return level === 'beginner';
+// توليد رقم عشوائي بين min و max
+function randomInt(min: number, max: number): number {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
 }
+
+// توليد تسلسل حسب المستوى
+function generateSequence(level: Level): SequenceData {
+  const operations: Operation[] = [];
+
+  if (level === 'beginner') {
+    // 3 عمليات جمع، منزلة واحدة، الناتج ≤ 9
+    let current = 0;
+    for (let i = 0; i < 3; i++) {
+      const remaining = 9 - current;
+      const max = Math.min(4, remaining);
+      const min = 1;
+      if (max < min) { operations.push({ value: 1, operator: '+' }); current += 1; continue; }
+      const value = randomInt(min, max);
+      operations.push({ value, operator: '+' });
+      current += value;
+    }
+    return { operations, expectedResult: current };
+  }
+
+  if (level === 'intermediate') {
+    // 3 عمليات مختلطة (جمع وطرح)، منزلة واحدة، الناتج بين 0 و 9
+    let current = 0;
+    for (let i = 0; i < 3; i++) {
+      const isFirst = i === 0;
+      const isLast = i === 2;
+      // العملية الأولى: جمع دائماً
+      if (isFirst) {
+        const value = randomInt(2, 6);
+        operations.push({ value, operator: '+' });
+        current += value;
+        continue;
+      }
+      // العملية الثانية: عشوائي
+      const canSubtract = current > 0;
+      const canAdd = current < 9;
+      const useSubtract = canSubtract && (Math.random() < 0.5 || !canAdd);
+      if (useSubtract) {
+        const value = randomInt(1, Math.min(5, current));
+        operations.push({ value, operator: '-' });
+        current -= value;
+      } else if (canAdd) {
+        const value = randomInt(1, Math.min(4, 9 - current));
+        operations.push({ value, operator: '+' });
+        current += value;
+      } else {
+        operations.push({ value: 1, operator: '-' });
+        current -= 1;
+      }
+    }
+    return { operations, expectedResult: current };
+  }
+
+  if (level === 'advanced') {
+    // 4 عمليات مختلطة، منزلة واحدة، الناتج بين 0 و 9
+    let current = 0;
+    for (let i = 0; i < 4; i++) {
+      if (i === 0) {
+        const value = randomInt(2, 6);
+        operations.push({ value, operator: '+' });
+        current += value;
+        continue;
+      }
+      const canSubtract = current > 0;
+      const canAdd = current < 9;
+      const useSubtract = canSubtract && (Math.random() < 0.5 || !canAdd);
+      if (useSubtract) {
+        const value = randomInt(1, Math.min(5, current));
+        operations.push({ value, operator: '-' });
+        current -= value;
+      } else if (canAdd) {
+        const value = randomInt(1, Math.min(4, 9 - current));
+        operations.push({ value, operator: '+' });
+        current += value;
+      } else {
+        operations.push({ value: 1, operator: '-' });
+        current -= 1;
+      }
+    }
+    return { operations, expectedResult: current };
+  }
+
+  if (level === 'expert') {
+    // 5 عمليات مختلطة، منزلة واحدة، الناتج بين 0 و 9
+    let current = 0;
+    for (let i = 0; i < 5; i++) {
+      if (i === 0) {
+        const value = randomInt(2, 5);
+        operations.push({ value, operator: '+' });
+        current += value;
+        continue;
+      }
+      const canSubtract = current > 0;
+      const canAdd = current < 9;
+      const useSubtract = canSubtract && (Math.random() < 0.5 || !canAdd);
+      if (useSubtract) {
+        const value = randomInt(1, Math.min(4, current));
+        operations.push({ value, operator: '-' });
+        current -= value;
+      } else if (canAdd) {
+        const value = randomInt(1, Math.min(3, 9 - current));
+        operations.push({ value, operator: '+' });
+        current += value;
+      } else {
+        operations.push({ value: 1, operator: '-' });
+        current -= 1;
+      }
+    }
+    return { operations, expectedResult: current };
+  }
+
+  // master: 5 عمليات، أرقام بمنزلتين، الناتج ≤ 99
+  let current = 0;
+  for (let i = 0; i < 5; i++) {
+    if (i === 0) {
+      const value = randomInt(10, 40);
+      operations.push({ value, operator: '+' });
+      current += value;
+      continue;
+    }
+    const canSubtract = current >= 10;
+    const canAdd = current <= 89;
+    const useSubtract = canSubtract && (Math.random() < 0.5 || !canAdd);
+    if (useSubtract) {
+      const value = randomInt(5, Math.min(20, current));
+      operations.push({ value, operator: '-' });
+      current -= value;
+    } else if (canAdd) {
+      const value = randomInt(5, Math.min(20, 99 - current));
+      operations.push({ value, operator: '+' });
+      current += value;
+    } else {
+      operations.push({ value: 5, operator: '-' });
+      current -= 5;
+    }
+  }
+  return { operations, expectedResult: current };
+}
+
+// ============================================================
+// المكون الرئيسي
+// ============================================================
 
 export function AnzanScreen({ onBack, playSound, onXP, burst }: AnzanScreenProps) {
   const [phase, setPhase] = useState<Phase>('idle');
@@ -79,30 +227,35 @@ export function AnzanScreen({ onBack, playSound, onXP, burst }: AnzanScreenProps
   const [level, setLevel] = useState<Level>('beginner');
   const [speed, setSpeed] = useState<Speed>('slow');
   const [showSettings, setShowSettings] = useState(false);
-  const [sequence, setSequence] = useState<number[]>(() => generateSequence(2, 'beginner'));
 
-  const total = useMemo(() => sequence.reduce((a, b) => a + b, 0), [sequence]);
+  const [sequence, setSequence] = useState<SequenceData>(() => generateSequence('beginner'));
+
+  const total = sequence.expectedResult;
   const flashDuration = SPEED_MS[speed];
-  const numCount = getCountForLevel(level);
-  const showAbacus = shouldShowAbacus(level);
 
   // القيمة التراكمية المعروضة
   const runningTotal = useMemo(() => {
     if (flashIndex < 0) return 0;
-    return sequence.slice(0, flashIndex + 1).reduce((a, b) => a + b, 0);
+    let acc = 0;
+    for (let i = 0; i <= flashIndex && i < sequence.operations.length; i++) {
+      const op = sequence.operations[i];
+      acc += op.operator === '+' ? op.value : -op.value;
+    }
+    return acc;
   }, [sequence, flashIndex]);
 
   const startGame = useCallback(() => {
-    setSequence(generateSequence(numCount, level));
+    const newSeq = generateSequence(level);
+    setSequence(newSeq);
     setPhase('flashing');
     setFlashIndex(-1);
     setUserAnswer('');
     playSound('click');
-  }, [playSound, numCount, level]);
+  }, [playSound, level]);
 
   useEffect(() => {
     if (phase !== 'flashing') return;
-    if (flashIndex >= sequence.length) {
+    if (flashIndex >= sequence.operations.length) {
       setPhase('answer');
       return;
     }
@@ -142,7 +295,7 @@ export function AnzanScreen({ onBack, playSound, onXP, burst }: AnzanScreenProps
     startGame();
   };
 
-  const currentNumber = flashIndex >= 0 && flashIndex < sequence.length ? sequence[flashIndex] : null;
+  const currentOp = flashIndex >= 0 && flashIndex < sequence.operations.length ? sequence.operations[flashIndex] : null;
 
   return (
     <div className="px-3 sm:px-6 py-6 max-w-2xl mx-auto">
@@ -152,7 +305,7 @@ export function AnzanScreen({ onBack, playSound, onXP, burst }: AnzanScreenProps
         </button>
         <div className="flex-1">
           <h2 className="text-2xl sm:text-3xl font-extrabold font-display text-white">التصور الذهني</h2>
-          <p className="text-sm text-white/50 font-body">تخيل الخرزات في عقلك واجمع الأرقام</p>
+          <p className="text-sm text-white/50 font-body">تخيل الخرزات في عقلك واجمع/اطرح الأرقام</p>
         </div>
         {phase === 'idle' && (
           <button onClick={() => { playSound('click'); setShowSettings((s) => !s); }} className="btn-ghost !px-3 !py-2" aria-label="الإعدادات">
@@ -188,12 +341,12 @@ export function AnzanScreen({ onBack, playSound, onXP, burst }: AnzanScreenProps
           >
             <div className="mb-4">
               <p className="text-sm text-white/60 font-body mb-2">المستوى</p>
-              <div className="flex gap-2">
-                {(['beginner', 'intermediate', 'advanced'] as Level[]).map((l) => (
+              <div className="grid grid-cols-1 gap-2">
+                {(['beginner', 'intermediate', 'advanced', 'expert', 'master'] as Level[]).map((l) => (
                   <button
                     key={l}
                     onClick={() => { playSound('click'); setLevel(l); }}
-                    className={`flex-1 py-2 rounded-xl font-bold font-body text-xs transition-all ${
+                    className={`py-2 px-3 rounded-xl font-bold font-body text-xs transition-all text-right ${
                       level === l ? 'bg-gradient-to-br from-emerald2-500 to-electric-500 text-white shadow-lg' : 'bg-white/10 text-white/60 hover:bg-white/15'
                     }`}
                   >
@@ -201,11 +354,6 @@ export function AnzanScreen({ onBack, playSound, onXP, burst }: AnzanScreenProps
                   </button>
                 ))}
               </div>
-              <p className="text-xs text-white/40 font-body mt-2">
-                {level === 'beginner' && '٢ أرقام فقط + عرض المعداد'}
-                {level === 'intermediate' && '٣ أرقام بدون معداد'}
-                {level === 'advanced' && '٤ أرقام بدون معداد'}
-              </p>
             </div>
             <div>
               <p className="text-sm text-white/60 font-body mb-2">سرعة العرض</p>
@@ -238,8 +386,8 @@ export function AnzanScreen({ onBack, playSound, onXP, burst }: AnzanScreenProps
                 <Eye className="w-10 h-10 text-white" />
               </motion.div>
               <p className="text-white/60 font-body mb-5 max-w-sm mx-auto">
-                ستظهر {toArabicNumber(numCount)} أرقام بسرعة {SPEED_LABELS[speed]}ة.
-                {showAbacus ? ' شاهد المعداد وتخيل الخرزات!' : ' تخيل المعداد في عقلك فقط!'}
+                ستظهر {toArabicNumber(sequence.operations.length)} عمليات بسرعة {SPEED_LABELS[speed]}ة.
+                تخيل المعداد في عقلك واحسب الناتج!
               </p>
               <button onClick={startGame} className="btn-primary">
                 <Play className="w-5 h-5" /> ابدأ التحدي
@@ -249,7 +397,7 @@ export function AnzanScreen({ onBack, playSound, onXP, burst }: AnzanScreenProps
 
           {phase === 'flashing' && (
             <motion.div key="flashing" className="relative flex flex-col items-center w-full">
-              {currentNumber !== null ? (
+              {currentOp !== null ? (
                 <>
                   <motion.div
                     key={flashIndex}
@@ -257,21 +405,21 @@ export function AnzanScreen({ onBack, playSound, onXP, burst }: AnzanScreenProps
                     animate={{ scale: 1, opacity: 1, rotate: 0 }}
                     exit={{ scale: 1.5, opacity: 0 }}
                     transition={{ type: 'spring', stiffness: 300, damping: 15 }}
-                    className="text-8xl sm:text-9xl font-extrabold font-display text-glow-blue text-white"
+                    className={`text-7xl sm:text-8xl font-extrabold font-display ${
+                      currentOp.operator === '+' ? 'text-emerald2-300 text-glow-blue' : 'text-red-300'
+                    }`}
                   >
-                    {toArabicNumber(currentNumber)}
+                    {currentOp.operator === '+' ? '+' : '−'} {toArabicNumber(currentOp.value)}
                   </motion.div>
-                  {showAbacus && (
-                    <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-lg font-body text-gold-300 mt-4">
-                      المجموع الحالي: {toArabicNumber(runningTotal)}
-                    </motion.p>
-                  )}
+                  <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-lg font-body text-gold-300 mt-4">
+                    المجموع الحالي: {toArabicNumber(runningTotal)}
+                  </motion.p>
                 </>
               ) : (
                 <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-2xl font-body text-white/50">استعد...</motion.p>
               )}
-              <div className="flex gap-1.5 mt-6">
-                {sequence.map((_, i) => (
+              <div className="flex gap-1.5 mt-6 flex-wrap justify-center">
+                {sequence.operations.map((_, i) => (
                   <div key={i} className={`w-2 h-2 rounded-full transition-all ${
                     i < flashIndex ? 'bg-emerald2-400' : i === flashIndex ? 'bg-white scale-150' : 'bg-white/15'
                   }`} />
@@ -284,9 +432,9 @@ export function AnzanScreen({ onBack, playSound, onXP, burst }: AnzanScreenProps
             <motion.div key="answer" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="relative text-center w-full">
               <div className="mb-4 p-4 rounded-2xl bg-purple-500/10 border border-purple-400/20">
                 <Sparkles className="w-6 h-6 text-purple-300 mx-auto mb-2" />
-                <p className="text-white/70 font-body text-sm">تخيل المعداد في عقلك، واجمع الأرقام</p>
+                <p className="text-white/70 font-body text-sm">تخيل المعداد في عقلك، واحسب الناتج</p>
               </div>
-              <p className="text-white/60 font-body mb-4">ما المجموع؟</p>
+              <p className="text-white/60 font-body mb-4">ما الناتج؟</p>
               <input
                 type="number"
                 autoFocus
@@ -323,8 +471,10 @@ export function AnzanScreen({ onBack, playSound, onXP, burst }: AnzanScreenProps
                 </>
               )}
               <div className="mb-4 p-3 rounded-2xl bg-white/5 border border-white/10">
-                <p className="text-xs text-white/50 font-body mb-1">الأرقام التي ظهرت:</p>
-                <p className="text-lg font-bold text-white">{sequence.map((n) => toArabicNumber(n)).join(' + ')}</p>
+                <p className="text-xs text-white/50 font-body mb-1">العمليات التي ظهرت:</p>
+                <p className="text-lg font-bold text-white font-display" dir="ltr">
+                  {sequence.operations.map((op) => `${op.operator === '+' ? '+' : '−'}${toArabicNumber(op.value)}`).join(' ')}
+                </p>
               </div>
               <button onClick={nextRound} className="btn-primary">
                 <RotateCcw className="w-5 h-5" /> الجولة التالية
