@@ -1,54 +1,72 @@
-import React, { useState, useEffect } from 'react';
-import { FoxAvatar } from './avatars/FoxAvatar';
-import { OwlAvatar } from './avatars/OwlAvatar';
-import { PandaAvatar } from './avatars/PandaAvatar';
-import { RabbitAvatar } from './avatars/RabbitAvatar';
+import React, { useEffect, useState } from 'react';
+import { Check, Sparkles } from 'lucide-react';
+import { ShamAvatar } from './avatars/ShamAvatar';
+import { RayanAvatar } from './avatars/RayanAvatar';
+import { BanaAvatar } from './avatars/BanaAvatar';
+import { AyaAvatar } from './avatars/AyaAvatar';
 
-export type CharacterType = 'fox' | 'owl' | 'panda' | 'rabbit';
+export type CharacterType = 'sham' | 'rayan' | 'bana' | 'aya';
 
 interface CharacterOption {
   id: CharacterType;
   name: string;
   title: string;
+  description: string;
   bgColor: string;
   borderColor: string;
+  accentColor: string;
   Component: React.FC<{ className?: string }>;
 }
 
 const CHARACTERS: CharacterOption[] = [
   {
-    id: 'fox',
-    name: 'فَهِم',
-    title: 'ثعلب ذكي وشجاع',
-    bgColor: 'bg-orange-50',
-    borderColor: 'border-orange-500',
-    Component: FoxAvatar,
+    id: 'sham',
+    name: 'شام',
+    title: 'البطلة الذكية',
+    description: 'تحب التعلّم واكتشاف طرق الحساب الجديدة.',
+    bgColor: 'bg-violet-50',
+    borderColor: 'border-violet-500',
+    accentColor: 'text-violet-700',
+    Component: ShamAvatar,
   },
   {
-    id: 'owl',
-    name: 'حَكيم',
-    title: 'بومة حكيمة وصبورة',
-    bgColor: 'bg-amber-50',
-    borderColor: 'border-amber-700',
-    Component: OwlAvatar,
+    id: 'rayan',
+    name: 'ريان',
+    title: 'البطل السريع',
+    description: 'يحب التحديات ويتميز بسرعة التركيز.',
+    bgColor: 'bg-blue-50',
+    borderColor: 'border-blue-500',
+    accentColor: 'text-blue-700',
+    Component: RayanAvatar,
   },
   {
-    id: 'panda',
-    name: 'هادئ',
-    title: 'باندا لطيف وهادئ',
-    bgColor: 'bg-emerald-50',
-    borderColor: 'border-emerald-500',
-    Component: PandaAvatar,
+    id: 'bana',
+    name: 'بانة',
+    title: 'البطلة الهادئة',
+    description: 'تتقدم بخطوات ثابتة وتركيز رائع.',
+    bgColor: 'bg-teal-50',
+    borderColor: 'border-teal-500',
+    accentColor: 'text-teal-700',
+    Component: BanaAvatar,
   },
   {
-    id: 'rabbit',
-    name: 'سريع',
-    title: 'أرنب نشيط وسريع',
-    bgColor: 'bg-rose-50',
-    borderColor: 'border-rose-400',
-    Component: RabbitAvatar,
+    id: 'aya',
+    name: 'آية',
+    title: 'البطلة النشيطة',
+    description: 'تحب الحركة والمغامرة وحل المسائل.',
+    bgColor: 'bg-pink-50',
+    borderColor: 'border-pink-500',
+    accentColor: 'text-pink-700',
+    Component: AyaAvatar,
   },
 ];
+
+const LEGACY_CHARACTER_MAP: Record<string, CharacterType> = {
+  fox: 'sham',
+  owl: 'bana',
+  panda: 'aya',
+  rabbit: 'rayan',
+};
 
 interface CharacterSelectorProps {
   onSelectCharacter?: (character: CharacterType) => void;
@@ -57,36 +75,55 @@ interface CharacterSelectorProps {
 export const CharacterSelector: React.FC<CharacterSelectorProps> = ({
   onSelectCharacter,
 }) => {
-  const [selected, setSelected] = useState<CharacterType>('fox');
+  const [selected, setSelected] = useState<CharacterType>('sham');
 
   useEffect(() => {
-    const savedCharacter = localStorage.getItem('soroban_companion') as CharacterType;
-    if (savedCharacter && ['fox', 'owl', 'panda', 'rabbit'].includes(savedCharacter)) {
-      setSelected(savedCharacter);
+    const saved = localStorage.getItem('soroban_companion');
+
+    if (!saved) {
+      setSelected('sham');
+      return;
+    }
+
+    if (
+      ['sham', 'rayan', 'bana', 'aya'].includes(saved)
+    ) {
+      setSelected(saved as CharacterType);
+      return;
+    }
+
+    // توافق مع الإصدارات القديمة
+    if (LEGACY_CHARACTER_MAP[saved]) {
+      const migrated = LEGACY_CHARACTER_MAP[saved];
+      setSelected(migrated);
+      localStorage.setItem('soroban_companion', migrated);
     }
   }, []);
 
   const handleSelect = (characterId: CharacterType) => {
     setSelected(characterId);
     localStorage.setItem('soroban_companion', characterId);
-
-    if (onSelectCharacter) {
-      onSelectCharacter(characterId);
-    }
+    onSelectCharacter?.(characterId);
   };
 
   return (
-    <div dir="rtl" className="w-full max-w-2xl mx-auto p-4 select-none">
-      <div className="text-center mb-6">
+    <div dir="rtl" className="w-full max-w-4xl mx-auto p-2 sm:p-4 select-none">
+      <div className="text-center mb-7">
+        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-violet-100 text-violet-700 text-xs font-black mb-3">
+          <Sparkles className="w-4 h-4" />
+          أبطال SorobanMind
+        </div>
+
         <h2 className="text-2xl sm:text-3xl font-black text-slate-800 mb-2">
-          اختر رفيقك المفضل! 🌟
+          اختر بطلك المرافق 🌟
         </h2>
+
         <p className="text-slate-600 text-sm sm:text-base font-semibold">
-          سيرافقك صديقك في رحلتك ويتعلم معك السوروبان
+          سيشاركك بطلُك رحلة تعلّم السوروبان والحساب الذهني
         </p>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
         {CHARACTERS.map((char) => {
           const isSelected = selected === char.id;
           const AvatarComponent = char.Component;
@@ -94,29 +131,38 @@ export const CharacterSelector: React.FC<CharacterSelectorProps> = ({
           return (
             <button
               key={char.id}
+              type="button"
               onClick={() => handleSelect(char.id)}
-              className={`relative flex flex-col items-center p-4 rounded-3xl transition-all duration-300 transform border-4 outline-none ${char.bgColor} ${
+              aria-pressed={isSelected}
+              className={`group relative flex flex-col items-center p-4 sm:p-5 rounded-[2rem] transition-all duration-300 border-4 outline-none ${
+                char.bgColor
+              } ${
                 isSelected
-                  ? `${char.borderColor} scale-105 shadow-xl ring-4 ring-amber-300/50`
-                  : 'border-transparent hover:scale-105 opacity-75 hover:opacity-100 shadow-md'
+                  ? `${char.borderColor} scale-[1.03] shadow-2xl ring-4 ring-amber-300/50`
+                  : 'border-transparent hover:border-white hover:scale-[1.02] opacity-85 hover:opacity-100 shadow-lg'
               }`}
             >
               {isSelected && (
-                <div className="absolute top-2 right-2 bg-emerald-500 text-white rounded-full p-1 shadow-md">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
-                  </svg>
+                <div className="absolute top-3 right-3 w-8 h-8 bg-emerald-500 text-white rounded-full flex items-center justify-center shadow-lg">
+                  <Check className="w-5 h-5" strokeWidth={3} />
                 </div>
               )}
 
-              <div className="my-2">
-                <AvatarComponent className="w-20 h-20 sm:w-24 sm:h-24 filter drop-shadow-md" />
+              <div className="mb-3 transition-transform duration-300 group-hover:-translate-y-2">
+                <AvatarComponent className="w-28 h-28 sm:w-32 sm:h-32 drop-shadow-xl" />
               </div>
 
-              <h3 className="text-lg font-black text-slate-800 mb-1">{char.name}</h3>
-              <span className="text-xs font-bold text-slate-500 text-center">
+              <h3 className="text-xl font-black text-slate-800 mb-1">
+                {char.name}
+              </h3>
+
+              <span className={`text-sm font-black ${char.accentColor}`}>
                 {char.title}
               </span>
+
+              <p className="mt-2 text-[11px] leading-relaxed text-slate-500 font-semibold text-center">
+                {char.description}
+              </p>
             </button>
           );
         })}
