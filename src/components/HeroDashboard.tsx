@@ -65,7 +65,7 @@ const CHARACTER_INFO: Record<
     lightColor: 'text-violet-300',
   },
   rayan: {
-    name: 'ريان',
+    name: 'جود',
     title: 'البطل السريع',
     message: 'هل أنت مستعد لتحدٍ جديد؟ هيا نبدأ!',
     color: 'from-blue-500 to-indigo-700',
