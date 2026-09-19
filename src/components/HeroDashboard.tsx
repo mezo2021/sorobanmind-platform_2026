@@ -78,7 +78,7 @@ const CHARACTER_INFO: Record<
     color: 'from-teal-400 to-emerald-700',
     lightColor: 'text-teal-300',
   },
-  aya: {
+  joud: {
     name: 'آية',
     title: 'البطلة النشيطة',
     message: 'هيا! لدينا مغامرة حسابية جديدة!',
@@ -166,7 +166,7 @@ const BADGE_GRADIENTS: Record<string, string> = {
 const LEGACY_CHARACTER_MAP: Record<string, CharacterType> = {
   fox: 'sham',
   owl: 'bana',
-  panda: 'aya',
+  panda: 'joud',
   rabbit: 'rayan',
 };
 
@@ -314,7 +314,7 @@ export function HeroDashboard({
         'sham',
         'rayan',
         'bana',
-        'aya',
+        'joud'',
       ].includes(saved)
     ) {
       setCompanion(saved as CharacterType);
