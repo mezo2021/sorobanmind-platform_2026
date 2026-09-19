@@ -30,15 +30,15 @@ export type AvatarId = CharacterType;
 export const CHARACTER_STORAGE_KEY = 'soroban_companion';
 
 /** قائمة الشخصيات الصالحة — تُستخدم للتحقق */
-export const VALID_CHARACTERS: readonly CharacterType[] = [
+export const VALID_CHARACTERS: CharacterType[] = [
   'sham',
   'rayan',
   'bana',
   'joud',
-] as const;
+];
 
 /** خريطة التوافق مع الإصدارات القديمة من localStorage */
-export const LEGACY_CHARACTER_MAP: Readonly<Record<string, CharacterType>> = {
+export const LEGACY_CHARACTER_MAP: Partial<Record<string, CharacterType>> = {
   fox: 'sham',
   owl: 'bana',
   rabbit: 'rayan',
