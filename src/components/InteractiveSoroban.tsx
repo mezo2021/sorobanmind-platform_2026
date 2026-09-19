@@ -90,6 +90,8 @@ interface InteractiveSorobanProps {
   onStepCorrect?: () => void;
   onStepWrong?: (message: string) => void;
   strictMode?: boolean;
+  /** القيمة التي يبدأ منها المعداد عند الخطوة الحالية */
+  initialValue?: number;
 }
 
 const InteractiveSoroban: React.FC<InteractiveSorobanProps> = ({
@@ -101,13 +103,23 @@ const InteractiveSoroban: React.FC<InteractiveSorobanProps> = ({
   onStepCorrect,
   onStepWrong,
   strictMode = false,
+  initialValue,
 }) => {
   const [digits, setDigits] = useState<number[]>(() =>
-    valueToDigits(value ?? 0, columns)
+    valueToDigits(initialValue ?? value ?? 0, columns)
   );
 
+  // إعادة تعيين المعداد عند تغيير القيمة الأولية (بداية خطوة جديدة)
   useEffect(() => {
-    if (value !== undefined) {
+    if (initialValue !== undefined) {
+      setDigits(valueToDigits(initialValue, columns));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialValue, columns]);
+
+  // تحديث القيمة من الخارج (عند التمرير)
+  useEffect(() => {
+    if (value !== undefined && initialValue === undefined) {
       setDigits(valueToDigits(value, columns));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
