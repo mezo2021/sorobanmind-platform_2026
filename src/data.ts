@@ -12,23 +12,73 @@ export const LEVELS: LevelNode[] = [
 ];
 
 export const LEARN_MODULES: LearnModule[] = [
-  {
-    id: 1, title: 'Meet the Soroban', titleAr: 'تعرف على السوروبان',
-    description: 'Discover the parts', descriptionAr: 'اكتشف أجزاء العداد الياباني',
-    status: 'available', beads: { upper: 0, lower: 0 }, value: 0,
-    concept: 'Soroban parts and finger rules', conceptAr: 'أجزاء السوروبان وقواعد الأصابع',
-    icon: 'Info',
-    audioText: 'مرحباً بك في عالم السوروبان! السوروبان عداد ياباني قديم. الإبهام يرفع خرزات الأرض، والسبابة تنزل خرزات الأرض وتحرك خرزة السماء.',
-    rule: 'Thumb up lower, index moves upper and lowers', ruleAr: 'الإبهام يرفع السفلية، والسبابة تنزل السفلية وتحريك العلوية',
-    story: 'بيت الخرزات السحري: المعداد منزل من دورين. الدور السفلي فيه 4 إخوة نرفعهم بالبصمة القوية (الإبهام). والدور العلوي تسكن فيه الجدة "خمسة" ونزورها بالسبابة.',
-    examples: [
-      { problemText: 'شاهد: المعداد فارغ (0)', answer: 0, ruleCategory: 'direct', steps: [], explanation: 'كل الخرزات بعيدة عن العارضة = 0' },
-      { problemText: 'مثّل 1', answer: 1, ruleCategory: 'direct', steps: [{ stepIndex: 1, instructionText: 'ارفع خرزة سفلية واحدة', fingerUsed: 'thumb', direction: 'up', targetColumn: 'units', beadsAffected: [1], expectedValueAfter: 1 }], explanation: '1 = خرزة سفلية واحدة', story: 'صعد أخ واحد الدرج بالإبهام' },
-      { problemText: 'مثّل 2', answer: 2, ruleCategory: 'direct', steps: [{ stepIndex: 1, instructionText: 'ارفع خرزتين سفليتين', fingerUsed: 'thumb', direction: 'up', targetColumn: 'units', beadsAffected: [1, 2], expectedValueAfter: 2 }], explanation: '2 = خرزتان سفليتان' },
-      { problemText: 'مثّل 5', answer: 5, ruleCategory: 'direct', steps: [{ stepIndex: 1, instructionText: 'أنزل الخرزة العلوية بالسبابة', fingerUsed: 'index', direction: 'down', targetColumn: 'units', beadsAffected: [5], expectedValueAfter: 5 }], explanation: '5 = الخرزة العلوية', story: 'نزلت الجدة 5 لتبدأ الحفلة!' },
-    ],
-  },
-  {
+  {{
+  id: 1, title: 'Meet the Soroban', titleAr: 'تعرف على السوروبان',
+  description: 'Discover the parts', descriptionAr: 'اكتشف أجزاء العداد الياباني',
+  status: 'available', beads: { upper: 0, lower: 0 }, value: 0,
+  concept: 'Soroban parts and finger rules', conceptAr: 'أجزاء السوروبان وقواعد الأصابع',
+  icon: 'Info',
+  audioText: 'مرحباً بك في عالم السوروبان! السوروبان عداد ياباني قديم. الإبهام يرفع خرزات الأرض، والسبابة تنزل خرزات الأرض وتحرك خرزة السماء.',
+  rule: 'Thumb up lower, index moves upper and lowers', ruleAr: 'الإبهام يرفع السفلية، والسبابة تنزل السفلية وتحريك العلوية',
+  story: 'بيت الخرزات السحري: المعداد منزل من دورين. الدور السفلي فيه 4 إخوة نرفعهم بالبصمة القوية (الإبهام). والدور العلوي تسكن فيه الجدة "خمسة" ونزورها بالسبابة.',
+  examples: [
+    {
+      problemText: 'مثّل 0 (المعداد فارغ)',
+      answer: 0,
+      ruleCategory: 'direct',
+      steps: [],
+      explanation: 'كل الخرزات بعيدة عن العارضة = 0'
+    },
+    {
+      problemText: 'مثّل 1',
+      answer: 1,
+      ruleCategory: 'direct',
+      steps: [
+        { stepIndex: 1, instructionText: 'ارفع خرزة سفلية واحدة بالإبهام', fingerUsed: 'thumb', direction: 'up', targetColumn: 'units', beadsAffected: [1], expectedValueAfter: 1 }
+      ],
+      explanation: '1 = خرزة سفلية واحدة'
+    },
+    {
+      problemText: 'مثّل 2',
+      answer: 2,
+      ruleCategory: 'direct',
+      steps: [
+        { stepIndex: 1, instructionText: 'ارفع خرزتين سفليتين بالإبهام', fingerUsed: 'thumb', direction: 'up', targetColumn: 'units', beadsAffected: [1, 2], expectedValueAfter: 2 }
+      ],
+      explanation: '2 = خرزتان سفليتان'
+    },
+    {
+      problemText: 'مثّل 5',
+      answer: 5,
+      ruleCategory: 'direct',
+      steps: [
+        { stepIndex: 1, instructionText: 'أنزل الخرزة العلوية بالسبابة', fingerUsed: 'index', direction: 'down', targetColumn: 'units', beadsAffected: [5], expectedValueAfter: 5 }
+      ],
+      explanation: '5 = الخرزة العلوية'
+    },
+    {
+      problemText: 'مثّل 6',
+      answer: 6,
+      ruleCategory: 'direct',
+      steps: [
+        { stepIndex: 1, instructionText: 'أنزل الخرزة العلوية (5) بالسبابة', fingerUsed: 'index', direction: 'down', targetColumn: 'units', beadsAffected: [5], expectedValueAfter: 5 },
+        { stepIndex: 2, instructionText: 'ارفع خرزة سفلية واحدة (1) بالإبهام', fingerUsed: 'thumb', direction: 'up', targetColumn: 'units', beadsAffected: [1], expectedValueAfter: 6 }
+      ],
+      explanation: '6 = 5 (علوية) + 1 (سفلية)'
+    },
+    {
+      problemText: 'مثّل 9',
+      answer: 9,
+      ruleCategory: 'direct',
+      steps: [
+        { stepIndex: 1, instructionText: 'أنزل الخرزة العلوية (5) بالسبابة', fingerUsed: 'index', direction: 'down', targetColumn: 'units', beadsAffected: [5], expectedValueAfter: 5 },
+        { stepIndex: 2, instructionText: 'ارفع 4 خرزات سفلية بالإبهام', fingerUsed: 'thumb', direction: 'up', targetColumn: 'units', beadsAffected: [1, 2, 3, 4], expectedValueAfter: 9 }
+      ],
+      explanation: '9 = 5 (علوية) + 4 (سفلية)'
+    }
+  ]
+},
+    
     id: 2, title: 'Direct Addition and Subtraction', titleAr: 'الجمع والطرح المباشر',
     description: 'Add/Remove beads directly', descriptionAr: 'أضف وأزل الخرزات مباشرة',
     status: 'available', beads: { upper: 0, lower: 4 }, value: 4,
