@@ -3,8 +3,8 @@ import { MessageCircle, Sparkles } from 'lucide-react';
 import { ShamAvatar } from './avatars/ShamAvatar';
 import { RayanAvatar } from './avatars/RayanAvatar';
 import { BanaAvatar } from './avatars/BanaAvatar';
-import { AyaAvatar } from './avatars/AyaAvatar';
-import type { CharacterType } from './CharacterSelector';
+import { JoudAvatar } from './avatars/JoudAvatar';
+import type { CharacterType } from '../types';
 
 interface CompanionProps {
   character?: CharacterType;
@@ -15,7 +15,7 @@ const CHARACTER_NAMES: Record<CharacterType, string> = {
   sham: 'شام',
   rayan: 'ريان',
   bana: 'بانة',
-  aya: 'آية',
+  joud: 'جود',
 };
 
 const MOTIVATIONAL_MESSAGES = [
@@ -80,8 +80,8 @@ export const Companion: React.FC<CompanionProps> = ({
       case 'bana':
         return <BanaAvatar className="w-28 h-32 sm:w-32 sm:h-36" />;
 
-      case 'aya':
-        return <AyaAvatar className="w-28 h-32 sm:w-32 sm:h-36" />;
+      case 'joud':
+        return <JoudAvatar className="w-28 h-32 sm:w-32 sm:h-36" />;
 
       case 'sham':
       default:
