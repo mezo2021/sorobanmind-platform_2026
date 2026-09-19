@@ -9,6 +9,8 @@ export const LEVELS: LevelNode[] = [
   { id: 6, name: 'Anzan', nameAr: 'التصور الذهني', status: 'locked', icon: 'Eye', xpRequired: 1500 },
   { id: 7, name: 'Multiplication', nameAr: 'الضرب', status: 'locked', icon: 'X', xpRequired: 2000 },
   { id: 8, name: 'Division', nameAr: 'القسمة', status: 'locked', icon: 'Divide', xpRequired: 3000 },
+  { id: 9, name: 'Tens Friends (50)', nameAr: 'أصدقاء العشرات 50', status: 'locked', icon: 'Sigma', xpRequired: 4000 },
+  { id: 10, name: 'Hundreds Friends (100)', nameAr: 'أصدقاء المئات 100', status: 'locked', icon: 'Sigma', xpRequired: 5000 },
 ];
 
 export const LEARN_MODULES: LearnModule[] = [
@@ -313,7 +315,148 @@ export const LEARN_MODULES: LearnModule[] = [
       { problemText: '15 ÷ 5 = ؟', answer: 3, ruleCategory: 'direct', steps: [{ stepIndex: 1, instructionText: 'مثّل 15', fingerUsed: 'both_pinch', direction: 'pinch_in', targetColumn: 'tens', beadsAffected: [1], expectedAbacusState: [5, 1, 0] }, { stepIndex: 2, instructionText: 'اقسم 15 ÷ 5 = 3. اكتب 3', fingerUsed: 'thumb', direction: 'up', targetColumn: 'units', beadsAffected: [1, 2, 3], expectedAbacusState: [3, 0, 0] }, { stepIndex: 3, instructionText: 'تحقق: 3 × 5 = 15. اطرح 15', fingerUsed: 'both_pinch', direction: 'pinch_out', targetColumn: 'tens', beadsAffected: [1, 5], expectedAbacusState: [3, 0, 0] }], explanation: '15 ÷ 5 = 3. الباقي: 0' },
       { problemText: '20 ÷ 5 = ؟', answer: 4, ruleCategory: 'direct', steps: [{ stepIndex: 1, instructionText: 'مثّل 20 (2 عشرات)', fingerUsed: 'thumb', direction: 'up', targetColumn: 'tens', beadsAffected: [1, 2], expectedAbacusState: [0, 2, 0] }, { stepIndex: 2, instructionText: 'اقسم 20 ÷ 5 = 4. اكتب 4', fingerUsed: 'thumb', direction: 'up', targetColumn: 'units', beadsAffected: [1, 2, 3, 4], expectedAbacusState: [4, 0, 0] }, { stepIndex: 3, instructionText: 'تحقق: 4 × 5 = 20. اطرح 20', fingerUsed: 'thumb', direction: 'down', targetColumn: 'tens', beadsAffected: [1, 2], expectedAbacusState: [4, 0, 0] }], explanation: '20 ÷ 5 = 4. الباقي: 0' },
       { problemText: '21 ÷ 7 = ؟', answer: 3, ruleCategory: 'direct', steps: [{ stepIndex: 1, instructionText: 'مثّل 21', fingerUsed: 'thumb', direction: 'up', targetColumn: 'tens', beadsAffected: [1, 2], expectedAbacusState: [1, 2, 0] }, { stepIndex: 2, instructionText: 'اقسم 21 ÷ 7 = 3. اكتب 3', fingerUsed: 'thumb', direction: 'up', targetColumn: 'units', beadsAffected: [1, 2, 3], expectedAbacusState: [3, 0, 0] }, { stepIndex: 3, instructionText: 'تحقق: 3 × 7 = 21. اطرح 21', fingerUsed: 'both_pinch', direction: 'pinch_out', targetColumn: 'tens', beadsAffected: [1, 2], expectedAbacusState: [3, 0, 0] }], explanation: '21 ÷ 7 = 3. الباقي: 0' },
-      { problemText: '18 ÷ 6 = ؟', answer: 3, ruleCategory: 'direct', steps: [{ stepIndex: 1, instructionText: 'مثّل 18 (1 عشرات، 8 آحاد)', fingerUsed: 'both_pinch', direction: 'pinch_in', targetColumn: 'tens', beadsAffected: [1], expectedAbacusState: [8, 1, 0] }, { stepIndex: 2, instructionText: 'اقسم 18 ÷ 6 = 3. اكتب 3', fingerUsed: 'thumb', direction: 'up', targetColumn: 'units', beadsAffected: [1, 2, 3], expectedAbacusState: [3, 0, 0] }, { stepIndex: 3, instructionText: 'تحقق: 3 × 6 = 18. اطرح 18', fingerUsed: 'both_pinch', direction: 'pinch_out', targetColumn: 'tens', beadsAffected: [1, 5, 1, 2, 3], expectedAbacusState: [3, 0, 0] }], explanation: '18 ÷ 6 = 3. الباقي: 0' }
+      { problemText: '18 ÷ 6 = ؟', answer: 3, ruleCategory: 'direct', steps: [{ stepIndex: 1, instructionText: 'مثّل 18 (1 عشرات، 8 آحاد)', fingerUsed: 'both_pinch', direction: 'pinch_in', targetColumn: 'tens', beadsAffected: [1], expectedAbacusState: [8, 1, 0] }, { stepIndex: 2, instructionText: 'اقسم 18 ÷ 6 = 3. اكتب 3', fingerUsed: 'thumb', direction: 'up', targetColumn: 'units', beadsAffected: [1, 2, 3], expectedAbacusState: [3, 0, 0] }, { stepIndex: 3, instructionText: 'تحقق: 3 × 6 = 18. اطرح 18', fingerUsed: 'both_pinch', direction: 'pinch_out', targetColumn: 'tens', beadsAffected: [1, 5, 1, 2, 3], expectedAbacusState: [3, 0, 0] } ], explanation: '18 ÷ 6 = 3. الباقي: 0' }
+    ]
+  },
+  {
+    id: 9, title: 'Tens Friends (50)', titleAr: 'أصدقاء العشرات (50)',
+    description: 'Carry and borrow across tens', descriptionAr: 'الحمل والاستلاف بين العشرات والمئات',
+    status: 'locked', beads: { upper: 1, lower: 4 }, value: 50,
+    concept: 'Tens Friends = 50 - N×10', conceptAr: 'صديق 50: القاعدة 50 - N×10',
+    icon: 'Sigma',
+    audioText: 'الآن نتعلم أصدقاء العشرات. عندما لا تكفي العشرات، نطرق باب الجار في المئات ونرفع خرزة (+100)، ثم نسحب صديق الرقم.',
+    rule: 'Add N×10 = add 50, subtract (50-N×10)', ruleAr: 'لجمع N×10: أضف 50، اطرح صديقه (50 - N×10)',
+    ruleTable: [
+      { formula: '+10', result: '+50 - 40' },
+      { formula: '+20', result: '+50 - 30' },
+      { formula: '+30', result: '+50 - 20' },
+      { formula: '+40', result: '+50 - 10' },
+      { formula: '-10', result: '-50 + 40' },
+      { formula: '-20', result: '-50 + 30' },
+      { formula: '-30', result: '-50 + 20' },
+      { formula: '-40', result: '-50 + 10' },
+    ],
+    story: 'الجار في المئات: عندما لا تكفي العشرات، نذهب للجار في المئات ونرفع خرزة (+100)، ثم نسحب صديق الرقم.',
+    examples: [
+      { problemText: '20 + 40 = ؟', answer: 60, ruleCategory: 'big_friends', steps: [
+        { stepIndex: 1, instructionText: 'مثّل 20: 2 عشرات', fingerUsed: 'thumb', direction: 'up', targetColumn: 'tens', beadsAffected: [1, 2], expectedValueAfter: 20 },
+        { stepIndex: 2, instructionText: 'نريد إضافة 40 (4 عشرات). العشرات لديها مكان! ارفع 4 عشرات', fingerUsed: 'thumb', direction: 'up', targetColumn: 'tens', beadsAffected: [3, 4, 5, 6], expectedValueAfter: 60 }
+      ], explanation: '20 + 40 = 60. الجمع مباشر في العشرات.' },
+      { problemText: '30 + 30 = ؟', answer: 60, ruleCategory: 'big_friends', steps: [
+        { stepIndex: 1, instructionText: 'مثّل 30: 3 عشرات', fingerUsed: 'thumb', direction: 'up', targetColumn: 'tens', beadsAffected: [1, 2, 3], expectedValueAfter: 30 },
+        { stepIndex: 2, instructionText: 'نريد إضافة 30 (3 عشرات). ارفع 3 عشرات', fingerUsed: 'thumb', direction: 'up', targetColumn: 'tens', beadsAffected: [4, 5, 6], expectedValueAfter: 60 }
+      ], explanation: '30 + 30 = 60.' },
+      { problemText: '40 + 40 = ؟', answer: 80, ruleCategory: 'big_friends', steps: [
+        { stepIndex: 1, instructionText: 'مثّل 40: 4 عشرات', fingerUsed: 'thumb', direction: 'up', targetColumn: 'tens', beadsAffected: [1, 2, 3, 4], expectedValueAfter: 40 },
+        { stepIndex: 2, instructionText: 'نريد إضافة 40 (4 عشرات). ارفع 4 عشرات', fingerUsed: 'thumb', direction: 'up', targetColumn: 'tens', beadsAffected: [5, 6, 7, 8], expectedValueAfter: 80 }
+      ], explanation: '40 + 40 = 80.' },
+      { problemText: '20 + 40 - 50 = ؟', answer: 10, ruleCategory: 'big_friends', steps: [
+        { stepIndex: 1, instructionText: 'مثّل 20: 2 عشرات', fingerUsed: 'thumb', direction: 'up', targetColumn: 'tens', beadsAffected: [1, 2], expectedValueAfter: 20 },
+        { stepIndex: 2, instructionText: 'أضف 40 (4 عشرات) = 60', fingerUsed: 'thumb', direction: 'up', targetColumn: 'tens', beadsAffected: [3, 4, 5, 6], expectedValueAfter: 60 },
+        { stepIndex: 3, instructionText: 'نريد طرح 50 (5 عشرات)، لكن العشرات 6 فقط. نستعير من الجار: أزل 1 مئات (-100)', fingerUsed: 'left_index', direction: 'down', targetColumn: 'hundreds', beadsAffected: [1], expectedValueAfter: -40 },
+        { stepIndex: 4, instructionText: 'نضيف صديق 50 (وهو 50). ارفع 5 عشرات', fingerUsed: 'thumb', direction: 'up', targetColumn: 'tens', beadsAffected: [1, 2, 3, 4, 5], expectedValueAfter: 10 }
+      ], explanation: '20 + 40 - 50 = 10. القاعدة: -50 = -100 + 50' },
+      { problemText: '30 + 30 - 40 = ؟', answer: 20, ruleCategory: 'big_friends', steps: [
+        { stepIndex: 1, instructionText: 'مثّل 30: 3 عشرات', fingerUsed: 'thumb', direction: 'up', targetColumn: 'tens', beadsAffected: [1, 2, 3], expectedValueAfter: 30 },
+        { stepIndex: 2, instructionText: 'أضف 30 (3 عشرات) = 60', fingerUsed: 'thumb', direction: 'up', targetColumn: 'tens', beadsAffected: [4, 5, 6], expectedValueAfter: 60 },
+        { stepIndex: 3, instructionText: 'نريد طرح 40 (4 عشرات). العشرات ممتلئة، نستعير من المئات: أزل 1 مئات (-100)', fingerUsed: 'left_index', direction: 'down', targetColumn: 'hundreds', beadsAffected: [1], expectedValueAfter: -40 },
+        { stepIndex: 4, instructionText: 'نضيف صديق 40 (وهو 60). ارفع 6 عشرات', fingerUsed: 'thumb', direction: 'up', targetColumn: 'tens', beadsAffected: [1, 2, 3, 4, 5, 6], expectedValueAfter: 20 }
+      ], explanation: '30 + 30 - 40 = 20. القاعدة: -40 = -100 + 60' },
+      { problemText: '10 + 40 - 20 = ؟', answer: 30, ruleCategory: 'big_friends', steps: [
+        { stepIndex: 1, instructionText: 'مثّل 10: 1 عشرات', fingerUsed: 'thumb', direction: 'up', targetColumn: 'tens', beadsAffected: [1], expectedValueAfter: 10 },
+        { stepIndex: 2, instructionText: 'أضف 40 (4 عشرات) = 50', fingerUsed: 'thumb', direction: 'up', targetColumn: 'tens', beadsAffected: [2, 3, 4, 5], expectedValueAfter: 50 },
+        { stepIndex: 3, instructionText: 'اطرح 20 (2 عشرات): أنزل 2 عشرات', fingerUsed: 'index', direction: 'down', targetColumn: 'tens', beadsAffected: [4, 5], expectedValueAfter: 30 }
+      ], explanation: '10 + 40 - 20 = 30.' },
+      { problemText: '40 - 20 = ؟', answer: 20, ruleCategory: 'big_friends', steps: [
+        { stepIndex: 1, instructionText: 'مثّل 40: 4 عشرات', fingerUsed: 'thumb', direction: 'up', targetColumn: 'tens', beadsAffected: [1, 2, 3, 4], expectedValueAfter: 40 },
+        { stepIndex: 2, instructionText: 'اطرح 20 (2 عشرات): أنزل 2 عشرات', fingerUsed: 'index', direction: 'down', targetColumn: 'tens', beadsAffected: [3, 4], expectedValueAfter: 20 }
+      ], explanation: '40 - 20 = 20.' },
+      { problemText: '50 - 30 = ؟', answer: 20, ruleCategory: 'big_friends', steps: [
+        { stepIndex: 1, instructionText: 'مثّل 50: أنزل الجدة 5 عشرات', fingerUsed: 'index', direction: 'down', targetColumn: 'tens', beadsAffected: [5], expectedValueAfter: 50 },
+        { stepIndex: 2, instructionText: 'اطرح 30 (3 عشرات): أنزل 3 عشرات', fingerUsed: 'index', direction: 'down', targetColumn: 'tens', beadsAffected: [3, 4, 5], expectedValueAfter: 20 }
+      ], explanation: '50 - 30 = 20.' }
+    ]
+  },
+  {
+    id: 10, title: 'Hundreds Friends (100)', titleAr: 'أصدقاء المئات (100)',
+    description: 'Carry and borrow across hundreds', descriptionAr: 'الحمل والاستلاف بين المئات والآلاف',
+    status: 'locked', beads: { upper: 1, lower: 4 }, value: 100,
+    concept: 'Hundreds Friends = 100 - N×10', conceptAr: 'صديق 100: القاعدة 100 - N×10',
+    icon: 'Sigma',
+    audioText: 'الآن نتعلم أصدقاء المئات. عندما لا تكفي المئات، نطرق باب الجار في الآلاف ونرفع خرزة (+1000)، ثم نسحب صديق الرقم.',
+    rule: 'Add N×10 = add 100, subtract (100-N×10)', ruleAr: 'لجمع N×10: أضف 100، اطرح صديقه (100 - N×10)',
+    ruleTable: [
+      { formula: '+10', result: '+100 - 90' },
+      { formula: '+20', result: '+100 - 80' },
+      { formula: '+30', result: '+100 - 70' },
+      { formula: '+40', result: '+100 - 60' },
+      { formula: '+50', result: '+100 - 50' },
+      { formula: '+60', result: '+100 - 40' },
+      { formula: '+70', result: '+100 - 30' },
+      { formula: '+80', result: '+100 - 20' },
+      { formula: '+90', result: '+100 - 10' },
+      { formula: '-10', result: '-100 + 90' },
+      { formula: '-20', result: '-100 + 80' },
+      { formula: '-30', result: '-100 + 70' },
+      { formula: '-40', result: '-100 + 60' },
+      { formula: '-50', result: '-100 + 50' },
+      { formula: '-60', result: '-100 + 40' },
+      { formula: '-70', result: '-100 + 30' },
+      { formula: '-80', result: '-100 + 20' },
+      { formula: '-90', result: '-100 + 10' },
+    ],
+    story: 'الجار في الآلاف: عندما لا تكفي المئات، نذهب للجار في الآلاف ونرفع خرزة (+1000)، ثم نسحب صديق الرقم.',
+    examples: [
+      { problemText: '50 + 50 = ؟', answer: 100, ruleCategory: 'big_friends', steps: [
+        { stepIndex: 1, instructionText: 'مثّل 50: أنزل الجدة 5 عشرات', fingerUsed: 'index', direction: 'down', targetColumn: 'tens', beadsAffected: [5], expectedValueAfter: 50 },
+        { stepIndex: 2, instructionText: 'نريد إضافة 50 (5 عشرات). العشرات ممتلئة! نستعير: ارفع 1 مئات (+100)', fingerUsed: 'thumb', direction: 'up', targetColumn: 'hundreds', beadsAffected: [1], expectedValueAfter: 150 },
+        { stepIndex: 3, instructionText: 'نسحب 50 (صديق 50). ارفع 5 عشرات', fingerUsed: 'index', direction: 'up', targetColumn: 'tens', beadsAffected: [5], expectedValueAfter: 100 }
+      ], explanation: '50 + 50 = 100. القاعدة: +50 = +100 - 50' },
+      { problemText: '60 + 50 = ؟', answer: 110, ruleCategory: 'big_friends', steps: [
+        { stepIndex: 1, instructionText: 'مثّل 60: 5 عشرات + 1 عشرات = 6 عشرات', fingerUsed: 'thumb', direction: 'up', targetColumn: 'tens', beadsAffected: [1, 2, 3, 4, 5, 6], expectedValueAfter: 60 },
+        { stepIndex: 2, instructionText: 'نريد إضافة 50. ارفع 1 مئات (+100)', fingerUsed: 'thumb', direction: 'up', targetColumn: 'hundreds', beadsAffected: [1], expectedValueAfter: 160 },
+        { stepIndex: 3, instructionText: 'نسحب 50 (صديق 50). ارفع 5 عشرات', fingerUsed: 'index', direction: 'up', targetColumn: 'tens', beadsAffected: [5], expectedValueAfter: 110 }
+      ], explanation: '60 + 50 = 110. القاعدة: +50 = +100 - 50' },
+      { problemText: '70 + 60 = ؟', answer: 130, ruleCategory: 'big_friends', steps: [
+        { stepIndex: 1, instructionText: 'مثّل 70: 5 عشرات + 2 عشرات', fingerUsed: 'both_pinch', direction: 'pinch_in', targetColumn: 'tens', beadsAffected: [5, 1, 2], expectedValueAfter: 70 },
+        { stepIndex: 2, instructionText: 'ارفع 1 مئات (+100)', fingerUsed: 'thumb', direction: 'up', targetColumn: 'hundreds', beadsAffected: [1], expectedValueAfter: 170 },
+        { stepIndex: 3, instructionText: 'نسحب 40 (صديق 60 = 40). أنزل 4 عشرات', fingerUsed: 'index', direction: 'down', targetColumn: 'tens', beadsAffected: [1, 2, 3, 4], expectedValueAfter: 130 }
+      ], explanation: '70 + 60 = 130. القاعدة: +60 = +100 - 40' },
+      { problemText: '80 + 70 = ؟', answer: 150, ruleCategory: 'big_friends', steps: [
+        { stepIndex: 1, instructionText: 'مثّل 80: 5 عشرات + 3 عشرات', fingerUsed: 'both_pinch', direction: 'pinch_in', targetColumn: 'tens', beadsAffected: [5, 1, 2, 3], expectedValueAfter: 80 },
+        { stepIndex: 2, instructionText: 'ارفع 1 مئات (+100)', fingerUsed: 'thumb', direction: 'up', targetColumn: 'hundreds', beadsAffected: [1], expectedValueAfter: 180 },
+        { stepIndex: 3, instructionText: 'نسحب 30 (صديق 70 = 30). أنزل 3 عشرات', fingerUsed: 'index', direction: 'down', targetColumn: 'tens', beadsAffected: [1, 2, 3], expectedValueAfter: 150 }
+      ], explanation: '80 + 70 = 150. القاعدة: +70 = +100 - 30' },
+      { problemText: '90 + 80 = ؟', answer: 170, ruleCategory: 'big_friends', steps: [
+        { stepIndex: 1, instructionText: 'مثّل 90: 5 عشرات + 4 عشرات', fingerUsed: 'both_pinch', direction: 'pinch_in', targetColumn: 'tens', beadsAffected: [5, 1, 2, 3, 4], expectedValueAfter: 90 },
+        { stepIndex: 2, instructionText: 'ارفع 1 مئات (+100)', fingerUsed: 'thumb', direction: 'up', targetColumn: 'hundreds', beadsAffected: [1], expectedValueAfter: 190 },
+        { stepIndex: 3, instructionText: 'نسحب 20 (صديق 80 = 20). أنزل 2 عشرات', fingerUsed: 'index', direction: 'down', targetColumn: 'tens', beadsAffected: [1, 2], expectedValueAfter: 170 }
+      ], explanation: '90 + 80 = 170. القاعدة: +80 = +100 - 20' },
+      { problemText: '100 - 30 = ؟', answer: 70, ruleCategory: 'big_friends', steps: [
+        { stepIndex: 1, instructionText: 'مثّل 100: ارفع 1 مئات', fingerUsed: 'thumb', direction: 'up', targetColumn: 'hundreds', beadsAffected: [1], expectedValueAfter: 100 },
+        { stepIndex: 2, instructionText: 'نريد طرح 30 (3 عشرات)، لكن العشرات فارغة. نستعير: أزل 1 مئات (-100)', fingerUsed: 'thumb', direction: 'down', targetColumn: 'hundreds', beadsAffected: [1], expectedValueAfter: 0 },
+        { stepIndex: 3, instructionText: 'نضيف صديق 30 (وهو 70). ارفع 7 عشرات', fingerUsed: 'thumb', direction: 'up', targetColumn: 'tens', beadsAffected: [1, 2, 3, 4, 5, 6, 7], expectedValueAfter: 70 }
+      ], explanation: '100 - 30 = 70. القاعدة: -30 = -100 + 70' },
+      { problemText: '120 - 40 = ؟', answer: 80, ruleCategory: 'big_friends', steps: [
+        { stepIndex: 1, instructionText: 'مثّل 120: 1 مئات + 2 عشرات', fingerUsed: 'both_pinch', direction: 'pinch_in', targetColumn: 'hundreds', beadsAffected: [1], expectedValueAfter: 120 },
+        { stepIndex: 2, instructionText: 'نريد طرح 40 (4 عشرات). نستعير: أزل 1 مئات (-100)', fingerUsed: 'thumb', direction: 'down', targetColumn: 'hundreds', beadsAffected: [1], expectedValueAfter: 20 },
+        { stepIndex: 3, instructionText: 'نضيف صديق 40 (وهو 60). ارفع 6 عشرات', fingerUsed: 'thumb', direction: 'up', targetColumn: 'tens', beadsAffected: [3, 4, 5, 6, 7, 8], expectedValueAfter: 80 }
+      ], explanation: '120 - 40 = 80. القاعدة: -40 = -100 + 60' },
+      { problemText: '150 - 70 = ؟', answer: 80, ruleCategory: 'big_friends', steps: [
+        { stepIndex: 1, instructionText: 'مثّل 150: 1 مئات + 5 عشرات', fingerUsed: 'both_pinch', direction: 'pinch_in', targetColumn: 'hundreds', beadsAffected: [1], expectedValueAfter: 150 },
+        { stepIndex: 2, instructionText: 'نريد طرح 70. نستعير: أزل 1 مئات (-100)', fingerUsed: 'thumb', direction: 'down', targetColumn: 'hundreds', beadsAffected: [1], expectedValueAfter: 50 },
+        { stepIndex: 3, instructionText: 'نضيف صديق 70 (وهو 30). ارفع 3 عشرات', fingerUsed: 'thumb', direction: 'up', targetColumn: 'tens', beadsAffected: [1, 2, 3], expectedValueAfter: 80 }
+      ], explanation: '150 - 70 = 80. القاعدة: -70 = -100 + 30' },
+      { problemText: '130 - 60 = ؟', answer: 70, ruleCategory: 'big_friends', steps: [
+        { stepIndex: 1, instructionText: 'مثّل 130: 1 مئات + 3 عشرات', fingerUsed: 'both_pinch', direction: 'pinch_in', targetColumn: 'hundreds', beadsAffected: [1], expectedValueAfter: 130 },
+        { stepIndex: 2, instructionText: 'نريد طرح 60. نستعير: أزل 1 مئات (-100)', fingerUsed: 'thumb', direction: 'down', targetColumn: 'hundreds', beadsAffected: [1], expectedValueAfter: 30 },
+        { stepIndex: 3, instructionText: 'نضيف صديق 60 (وهو 40). ارفع 4 عشرات', fingerUsed: 'thumb', direction: 'up', targetColumn: 'tens', beadsAffected: [4, 5, 6, 7], expectedValueAfter: 70 }
+      ], explanation: '130 - 60 = 70. القاعدة: -60 = -100 + 40' },
+      { problemText: '110 - 20 = ؟', answer: 90, ruleCategory: 'big_friends', steps: [
+        { stepIndex: 1, instructionText: 'مثّل 110: 1 مئات + 1 عشرات', fingerUsed: 'both_pinch', direction: 'pinch_in', targetColumn: 'hundreds', beadsAffected: [1], expectedValueAfter: 110 },
+        { stepIndex: 2, instructionText: 'نريد طرح 20. نستعير: أزل 1 مئات (-100)', fingerUsed: 'thumb', direction: 'down', targetColumn: 'hundreds', beadsAffected: [1], expectedValueAfter: 10 },
+        { stepIndex: 3, instructionText: 'نضيف صديق 20 (وهو 80). ارفع 8 عشرات', fingerUsed: 'thumb', direction: 'up', targetColumn: 'tens', beadsAffected: [1, 2, 3, 4, 5, 6, 7, 8], expectedValueAfter: 90 }
+      ], explanation: '110 - 20 = 90. القاعدة: -20 = -100 + 80' }
     ]
   },
 ];
