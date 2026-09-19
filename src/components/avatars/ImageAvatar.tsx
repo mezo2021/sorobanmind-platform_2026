@@ -19,34 +19,42 @@ export const ImageAvatar: React.FC<ImageAvatarProps> = ({
   const animations = {
     float: {
       animate: { y: [0, -6, 0] },
-      transition: { duration: 3, repeat: Infinity, ease: 'easeInOut' as const },
+      transition: {
+        duration: 3,
+        repeat: Infinity,
+        ease: 'easeInOut' as const,
+      },
     },
     breathe: {
       animate: { scale: [1, 1.04, 1] },
-      transition: { duration: 3.5, repeat: Infinity, ease: 'easeInOut' as const },
+      transition: {
+        duration: 3.5,
+        repeat: Infinity,
+        ease: 'easeInOut' as const,
+      },
     },
     sway: {
       animate: { rotate: [-2, 2, -2] },
-      transition: { duration: 4, repeat: Infinity, ease: 'easeInOut' as const },
+      transition: {
+        duration: 4,
+        repeat: Infinity,
+        ease: 'easeInOut' as const,
+      },
     },
   };
 
   const config = animations[motionType];
 
   return (
-    <motion.div
-      className={`relative flex items-center justify-center rounded-full bg-gradient-to-br from-white to-slate-100 shadow-inner ${className}`}
+    <motion.img
+      src={src}
+      alt={alt}
+      className={`object-contain select-none pointer-events-none ${className}`}
       animate={animated ? config.animate : undefined}
       transition={config.transition}
-      whileHover={animated ? { scale: 1.08 } : undefined}
-    >
-      <img
-        src={src}
-        alt={alt}
-        className="w-full h-full object-contain object-bottom select-none pointer-events-none p-1"
-        draggable={false}
-      />
-    </motion.div>
+      whileHover={animated ? { scale: 1.08, rotate: 2 } : undefined}
+      draggable={false}
+    />
   );
 };
 
