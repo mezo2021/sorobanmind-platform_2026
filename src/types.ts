@@ -47,6 +47,7 @@ export interface LessonExample {
   steps: LessonStep[];
   explanation: string;
   story?: string;
+  storyAudioText?: string;
 }
 
 export interface DivisionExample {
@@ -55,6 +56,8 @@ export interface DivisionExample {
   ruleCategory: RuleCategory;
   steps: DivisionStep[];
   explanation: string;
+  story?: string;
+  storyAudioText?: string;
 }
 
 export interface LearnModule {
@@ -74,6 +77,7 @@ export interface LearnModule {
   ruleAr: string;
   ruleTable?: { formula: string; result: string }[];
   story: string;
+  storyAudioText?: string;
   examples: (LessonExample | DivisionExample)[];
 }
 
