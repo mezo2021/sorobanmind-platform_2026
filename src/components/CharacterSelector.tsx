@@ -3,9 +3,9 @@ import { Check, Sparkles } from 'lucide-react';
 import { ShamAvatar } from './avatars/ShamAvatar';
 import { RayanAvatar } from './avatars/RayanAvatar';
 import { BanaAvatar } from './avatars/BanaAvatar';
-import { AyaAvatar } from './avatars/AyaAvatar';
+import { JoudAvatar } from './avatars/JoudAvatar';
 
-export type CharacterType = 'sham' | 'rayan' | 'bana' | 'aya';
+export type CharacterType = 'sham' | 'rayan' | 'bana' | 'joud';
 
 interface CharacterOption {
   id: CharacterType;
@@ -15,7 +15,7 @@ interface CharacterOption {
   bgColor: string;
   borderColor: string;
   accentColor: string;
-  Component: React.FC<{ className?: string }>;
+  Component: React.FC<{ className?: string; animated?: boolean }>;
 }
 
 const CHARACTERS: CharacterOption[] = [
@@ -50,23 +50,27 @@ const CHARACTERS: CharacterOption[] = [
     Component: BanaAvatar,
   },
   {
-    id: 'aya',
-    name: 'آية',
-    title: 'البطلة النشيطة',
-    description: 'تحب الحركة والمغامرة وحل المسائل.',
-    bgColor: 'bg-pink-50',
-    borderColor: 'border-pink-500',
-    accentColor: 'text-pink-700',
-    Component: AyaAvatar,
+    id: 'joud',
+    name: 'جود',
+    title: 'البطل الذكي',
+    description: 'يحب التفكير والتحليل ويتميز بحل المسائل.',
+    bgColor: 'bg-indigo-50',
+    borderColor: 'border-indigo-500',
+    accentColor: 'text-indigo-700',
+    Component: JoudAvatar,
   },
 ];
 
+// ✅ خريطة التوافق مع الإصدارات القديمة (بما في ذلك aya المحذوفة)
 const LEGACY_CHARACTER_MAP: Record<string, CharacterType> = {
   fox: 'sham',
   owl: 'bana',
-  panda: 'aya',
+  panda: 'joud',   // كانت aya → استبدلت بـ joud
   rabbit: 'rayan',
+  aya: 'joud',     // ← توافق مع من اختار "آية" سابقًا
 };
+
+const VALID_CHARACTERS: CharacterType[] = ['sham', 'rayan', 'bana', 'joud'];
 
 interface CharacterSelectorProps {
   onSelectCharacter?: (character: CharacterType) => void;
@@ -85,9 +89,8 @@ export const CharacterSelector: React.FC<CharacterSelectorProps> = ({
       return;
     }
 
-    if (
-      ['sham', 'rayan', 'bana', 'aya'].includes(saved)
-    ) {
+    // إذا كان الحفظ صالحًا مباشرة
+    if (VALID_CHARACTERS.includes(saved as CharacterType)) {
       setSelected(saved as CharacterType);
       return;
     }
@@ -97,7 +100,12 @@ export const CharacterSelector: React.FC<CharacterSelectorProps> = ({
       const migrated = LEGACY_CHARACTER_MAP[saved];
       setSelected(migrated);
       localStorage.setItem('soroban_companion', migrated);
+      return;
     }
+
+    // قيمة غير معروفة → العودة للافتراضي
+    setSelected('sham');
+    localStorage.setItem('soroban_companion', 'sham');
   }, []);
 
   const handleSelect = (characterId: CharacterType) => {
@@ -134,6 +142,7 @@ export const CharacterSelector: React.FC<CharacterSelectorProps> = ({
               type="button"
               onClick={() => handleSelect(char.id)}
               aria-pressed={isSelected}
+              aria-label={`اختر ${char.name} - ${char.title}`}
               className={`group relative flex flex-col items-center p-4 sm:p-5 rounded-[2rem] transition-all duration-300 border-4 outline-none ${
                 char.bgColor
               } ${
