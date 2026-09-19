@@ -20,12 +20,15 @@ type Level = 'beginner' | 'intermediate' | 'advanced' | 'expert' | 'master';
 const SPEED_MS: Record<Speed, number> = { slow: 1500, medium: 1000, fast: 700 };
 const SPEED_LABELS: Record<Speed, string> = { slow: 'بطيء', medium: 'متوسط', fast: 'سريع' };
 
+// ═══════════════════════════════════════════════════════════════
+// مستويات الأنزان الجديدة — مرتبطة بالدروس 3-8
+// ═══════════════════════════════════════════════════════════════
 const LEVEL_LABELS: Record<Level, string> = {
-  beginner: '🌱 مبتدئ (٣ عمليات)',
-  intermediate: '⭐ متوسط (٣ عمليات مختلطة)',
-  advanced: '🔥 متقدم (٤ عمليات مختلطة)',
-  expert: '💎 خبير (٥ عمليات مختلطة)',
-  master: '👑 محترف (٥ عمليات بمنزلتين)',
+  beginner: '🌱 مبتدئ — درس ٣ (مباشر)',
+  intermediate: '⭐ متوسط — درس ٤ (الجدة ٥)',
+  advanced: '🔥 متقدم — درس ٥ (عملاق ١٠)',
+  expert: '💎 خبير — درس ٦ (المركب)',
+  master: '👑 محترف — دروس ٧-٨ (سلاسل وأنزان)',
 };
 
 const LEVEL_ORDER: Level[] = ['beginner', 'intermediate', 'advanced', 'expert', 'master'];
@@ -83,108 +86,122 @@ function randomInt(min: number, max: number): number {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
+// ═══════════════════════════════════════════════════════════════
+// توليد التسلسل — محدّث ليتوافق مع قواعد الدروس الجديدة
+// ═══════════════════════════════════════════════════════════════
 function generateSequence(level: Level): SequenceData {
   const operations: Operation[] = [];
 
+  // 🌱 مبتدئ — درس ٣ (المباشر): ٣ عمليات آحاد، مجموع لا يتجاوز ٩
   if (level === 'beginner') {
     let current = 0;
     for (let i = 0; i < 3; i++) {
       const remaining = 9 - current;
       const max = Math.min(4, remaining);
-      const min = 1;
-      if (max < min) { operations.push({ value: 1, operator: '+' }); current += 1; continue; }
-      const value = randomInt(min, max);
+      if (max < 1) {
+        // اضطرار: طرح
+        const v = randomInt(1, Math.min(3, current));
+        operations.push({ value: v, operator: '-' });
+        current -= v;
+        continue;
+      }
+      const value = randomInt(1, max);
       operations.push({ value, operator: '+' });
       current += value;
     }
     return { operations, expectedResult: current };
   }
 
+  // ⭐ متوسط — درس ٤ (الجدة ٥): عمليات تجبر استخدام أصدقاء ٥
   if (level === 'intermediate') {
     let current = 0;
     for (let i = 0; i < 3; i++) {
       if (i === 0) {
-        const value = randomInt(2, 6);
+        // ابدأ بـ 4 أو 5 لتسهيل دخول الجدة لاحقاً
+        const value = randomInt(4, 5);
         operations.push({ value, operator: '+' });
         current += value;
         continue;
       }
-      const canSubtract = current > 0;
-      const canAdd = current < 9;
-      const useSubtract = canSubtract && (Math.random() < 0.5 || !canAdd);
+      // نجبر إضافة أو طرح يستخدم الجدة 5
+      const canSubtract = current >= 1;
+      const useSubtract = canSubtract && Math.random() < 0.5;
       if (useSubtract) {
-        const value = randomInt(1, Math.min(5, current));
+        // اطرح رقماً بحيث الناتج يبقى في النطاق
+        const maxSub = Math.min(4, current);
+        const value = randomInt(1, maxSub);
         operations.push({ value, operator: '-' });
         current -= value;
-      } else if (canAdd) {
-        const value = randomInt(1, Math.min(4, 9 - current));
-        operations.push({ value, operator: '+' });
-        current += value;
       } else {
-        operations.push({ value: 1, operator: '-' });
-        current -= 1;
+        // أضف رقماً يجبر استخدام صديق 5 (مثلاً إذا كان لدينا 4 ونضيف 4)
+        const room = 9 - current;
+        if (room >= 1) {
+          const value = randomInt(1, Math.min(4, room));
+          operations.push({ value, operator: '+' });
+          current += value;
+        } else {
+          const v = randomInt(1, Math.min(3, current));
+          operations.push({ value: v, operator: '-' });
+          current -= v;
+        }
       }
     }
     return { operations, expectedResult: current };
   }
 
+  // 🔥 متقدم — درس ٥ (عملاق ١٠): ٣ عمليات آحاد تتجاوز 9 للإجبار على +10
   if (level === 'advanced') {
+    let current = 0;
+    for (let i = 0; i < 3; i++) {
+      if (i === 0) {
+        const value = randomInt(6, 9);
+        operations.push({ value, operator: '+' });
+        current += value;
+        continue;
+      }
+      const canSubtract = current >= 1;
+      const useSubtract = canSubtract && Math.random() < 0.5;
+      if (useSubtract) {
+        const value = randomInt(1, Math.min(5, current));
+        operations.push({ value, operator: '-' });
+        current -= value;
+      } else {
+        // اجبر تجاوز 9 → استخدام عملاق 10
+        const value = randomInt(3, 9);
+        operations.push({ value, operator: '+' });
+        current += value;
+      }
+    }
+    return { operations, expectedResult: current };
+  }
+
+  // 💎 خبير — درس ٦ (المركب): ٤ عمليات مركبة بآحاد
+  if (level === 'expert') {
     let current = 0;
     for (let i = 0; i < 4; i++) {
       if (i === 0) {
-        const value = randomInt(2, 6);
+        const value = randomInt(4, 8);
         operations.push({ value, operator: '+' });
         current += value;
         continue;
       }
-      const canSubtract = current > 0;
-      const canAdd = current < 9;
-      const useSubtract = canSubtract && (Math.random() < 0.5 || !canAdd);
+      const canSubtract = current >= 1;
+      const useSubtract = canSubtract && Math.random() < 0.45;
       if (useSubtract) {
-        const value = randomInt(1, Math.min(5, current));
+        const value = randomInt(1, Math.min(6, current));
         operations.push({ value, operator: '-' });
         current -= value;
-      } else if (canAdd) {
-        const value = randomInt(1, Math.min(4, 9 - current));
+      } else {
+        // اجبر القاعدة المركبة: أضف 6-9
+        const value = randomInt(6, 9);
         operations.push({ value, operator: '+' });
         current += value;
-      } else {
-        operations.push({ value: 1, operator: '-' });
-        current -= 1;
       }
     }
     return { operations, expectedResult: current };
   }
 
-  if (level === 'expert') {
-    let current = 0;
-    for (let i = 0; i < 5; i++) {
-      if (i === 0) {
-        const value = randomInt(2, 5);
-        operations.push({ value, operator: '+' });
-        current += value;
-        continue;
-      }
-      const canSubtract = current > 0;
-      const canAdd = current < 9;
-      const useSubtract = canSubtract && (Math.random() < 0.5 || !canAdd);
-      if (useSubtract) {
-        const value = randomInt(1, Math.min(4, current));
-        operations.push({ value, operator: '-' });
-        current -= value;
-      } else if (canAdd) {
-        const value = randomInt(1, Math.min(3, 9 - current));
-        operations.push({ value, operator: '+' });
-        current += value;
-      } else {
-        operations.push({ value: 1, operator: '-' });
-        current -= 1;
-      }
-    }
-    return { operations, expectedResult: current };
-  }
-
-  // master
+  // 👑 محترف — دروس ٧-٨ (سلاسل بمنزلتين وثلاث)
   let current = 0;
   for (let i = 0; i < 5; i++) {
     if (i === 0) {
@@ -205,8 +222,9 @@ function generateSequence(level: Level): SequenceData {
       operations.push({ value, operator: '+' });
       current += value;
     } else {
-      operations.push({ value: 5, operator: '-' });
-      current -= 5;
+      const v = randomInt(5, Math.min(15, current));
+      operations.push({ value: v, operator: '-' });
+      current -= v;
     }
   }
   return { operations, expectedResult: current };
@@ -223,11 +241,8 @@ export function AnzanScreen({ onBack, playSound, onXP, burst }: AnzanScreenProps
   const [speed, setSpeed] = useState<Speed>('slow');
   const [showSettings, setShowSettings] = useState(false);
 
-  // عدد المحاولات في الجولة الحالية
   const [attempt, setAttempt] = useState(1);
-  // هل خفّضنا المستوى في هذه الجولة؟
   const [levelWasEased, setLevelWasEased] = useState(false);
-  // هل نعرض الإجابة (بعد المحاولة الثانية)
   const [showAnswer, setShowAnswer] = useState(false);
 
   const [sequence, setSequence] = useState<SequenceData>(() => generateSequence('beginner'));
@@ -259,7 +274,6 @@ export function AnzanScreen({ onBack, playSound, onXP, burst }: AnzanScreenProps
     playSound('click');
   }, [playSound, level]);
 
-  // إعادة عرض نفس التسلسل (بعد الخطأ الأول)
   const replaySequence = useCallback((slowerSpeed: boolean) => {
     setPhase('flashing');
     setFlashIndex(-1);
@@ -290,10 +304,8 @@ export function AnzanScreen({ onBack, playSound, onXP, burst }: AnzanScreenProps
     setLastAttemptCorrect(isCorrect);
 
     if (isCorrect) {
-      // ✅ إجابة صحيحة
       playSound('success');
       setScore((s) => s + 1);
-      // XP مخفف إذا كانت المحاولة الثانية
       onXP(attempt === 1 ? 25 : 10);
       burst(0.5, 0.4);
       setPhase('result');
@@ -305,17 +317,13 @@ export function AnzanScreen({ onBack, playSound, onXP, burst }: AnzanScreenProps
         totalCorrect: stats.totalCorrect + 1,
       });
     } else {
-      // ❌ إجابة خاطئة
       playSound('error');
 
       if (attempt === 1) {
-        // المحاولة الأولى: لا نكشف الإجابة، نعيد التسلسل بسرعة أبطأ
         setAttempt(2);
         setShowAnswer(false);
-        // تخفيف الصعوبة: إعادة العرض بسرعة "بطيء"
         setPhase('retry');
       } else {
-        // المحاولة الثانية: نكشف الإجابة ونخفف المستوى
         setShowAnswer(true);
         const easierLevel = getEasierLevel(level);
         if (easierLevel !== level) {
@@ -335,15 +343,12 @@ export function AnzanScreen({ onBack, playSound, onXP, burst }: AnzanScreenProps
   };
 
   const handleRetry = () => {
-    // إعادة عرض التسلسل بسرعة أبطأ
     setSpeed('slow');
     replaySequence(true);
   };
 
   const nextRound = () => {
     setRound((r) => r + 1);
-    // إذا كان المستوى قد خُفّض، نبقى على المستوى الجديد
-    // إذا لا، نعود للمستوى الأصلي
     startGame(true);
   };
 
@@ -390,7 +395,7 @@ export function AnzanScreen({ onBack, playSound, onXP, burst }: AnzanScreenProps
             className="glass-card p-4 sm:p-5 mb-4 overflow-hidden"
           >
             <div className="mb-4">
-              <p className="text-sm text-white/60 font-body mb-2">المستوى</p>
+              <p className="text-sm text-white/60 font-body mb-2">المستوى (مرتبط بالدروس)</p>
               <div className="grid grid-cols-1 gap-2">
                 {(['beginner', 'intermediate', 'advanced', 'expert', 'master'] as Level[]).map((l) => (
                   <button
