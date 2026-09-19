@@ -31,6 +31,7 @@ interface LearnScreenProps {
 type LessonMode = 'watch' | 'try';
 
 const COMPLETED_STORAGE_KEY = 'soroban-completed-lessons';
+const PROGRESS_STORAGE_KEY = 'soroban-lesson-progress';
 
 function getColumnsForValue(value: number): number {
   if (value < 10) return 1;
@@ -114,6 +115,15 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
       return [];
     }
   });
+  const [lessonProgress, setLessonProgress] = useState<Record<number, number[]>>(() => {
+    try {
+      const saved = localStorage.getItem(PROGRESS_STORAGE_KEY);
+      return saved ? JSON.parse(saved) : {};
+    } catch {
+      return {};
+    }
+  });
+
   const [mode, setMode] = useState<LessonMode>('watch');
   const [currentExample, setCurrentExample] = useState(0);
   const [currentStep, setCurrentStep] = useState(0);
@@ -129,7 +139,19 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
     } catch { /* ignore */ }
   }, [completed]);
 
+  useEffect(() => {
+    try {
+      localStorage.setItem(PROGRESS_STORAGE_KEY, JSON.stringify(lessonProgress));
+    } catch { /* ignore */ }
+  }, [lessonProgress]);
+
   useEffect(() => { return () => { stop(); }; }, [stop]);
+
+  // التحقق من إتمام جميع أمثلة درس معين
+  const isLessonFullyCompleted = (moduleId: number, examplesCount: number): boolean => {
+    const solved = lessonProgress[moduleId] || [];
+    return solved.length >= examplesCount;
+  };
 
   const handleOpen = (mod: LearnModule, isLocked: boolean) => {
     if (isLocked) return;
@@ -138,7 +160,9 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
     setMode('watch');
     setCurrentExample(0);
     setCurrentStep(0);
-    setSolvedExamples([]);
+    // استرجاع الأمثلة المحلولة سابقاً لهذا الدرس
+    const savedSolved = lessonProgress[mod.id] || [];
+    setSolvedExamples(savedSolved);
     setShowSteps(false);
     setWrongMessage('');
     setTimeout(() => speak(mod.audioText), 300);
@@ -148,6 +172,10 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
 
   const handleComplete = () => {
     if (!selected) return;
+    // لا يكتمل الدرس إلا إذا حُلّت جميع الأمثلة
+    if (solvedExamples.length < selected.examples.length) {
+      return;
+    }
     playSound('success');
     if (!completed.includes(selected.id)) {
       setCompleted([...completed, selected.id]);
@@ -162,14 +190,25 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
     setMode(m);
     setCurrentExample(0);
     setCurrentStep(0);
-    setSolvedExamples([]);
+    // استرجاع الأمثلة المحلولة عند العودة
+    if (selected) {
+      const savedSolved = lessonProgress[selected.id] || [];
+      setSolvedExamples(savedSolved);
+    }
     setShowSteps(false);
     setWrongMessage('');
   };
 
   const handleExampleSolved = () => {
+    if (!selected) return;
     if (!solvedExamples.includes(currentExample)) {
-      setSolvedExamples([...solvedExamples, currentExample]);
+      const newSolved = [...solvedExamples, currentExample];
+      setSolvedExamples(newSolved);
+      // حفظ التقدم
+      setLessonProgress({
+        ...lessonProgress,
+        [selected.id]: newSolved,
+      });
       playSound('success');
     }
   };
@@ -199,7 +238,7 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
   const isSolved = solvedExamples.includes(currentExample);
   const isLastExample = selected ? currentExample + 1 === selected.examples.length : false;
   const isFirstExample = currentExample === 0;
-  const allExamplesSolved = selected && solvedExamples.length === selected.examples.length;
+  const allExamplesSolved = selected ? solvedExamples.length === selected.examples.length : false;
 
   const nextStep = () => {
     if (!currentEx) return;
@@ -231,6 +270,9 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
           const isFirstLesson = mod.id === 1;
           const previousCompleted = completed.includes(mod.id - 1);
           const isLocked = !isDone && !isFirstLesson && !previousCompleted;
+          const solvedCount = (lessonProgress[mod.id] || []).length;
+          const totalCount = mod.examples.length;
+          const progressPct = totalCount > 0 ? Math.round((solvedCount / totalCount) * 100) : 0;
 
           return (
             <motion.button
@@ -265,7 +307,26 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
               </div>
               <h3 className="text-lg font-extrabold font-display text-white mb-1">{mod.titleAr}</h3>
               <p className="text-xs text-white/40 font-body mb-2">{mod.title}</p>
-              <p className="text-sm text-white/60 font-body leading-snug">{mod.descriptionAr}</p>
+              <p className="text-sm text-white/60 font-body leading-snug mb-2">{mod.descriptionAr}</p>
+
+              {/* شريط التقدم */}
+              {!isLocked && totalCount > 0 && (
+                <div className="mt-2">
+                  <div className="flex items-center gap-2 mb-1">
+                    <div className="flex-1 h-1.5 rounded-full bg-white/10 overflow-hidden">
+                      <motion.div
+                        className="h-full rounded-full bg-gradient-to-r from-emerald2-400 to-electric-400"
+                        initial={{ width: 0 }}
+                        animate={{ width: `${progressPct}%` }}
+                        transition={{ duration: 0.5 }}
+                      />
+                    </div>
+                    <span className="text-[10px] text-white/40 font-body whitespace-nowrap">
+                      {toArabicNumber(solvedCount)}/{toArabicNumber(totalCount)}
+                    </span>
+                  </div>
+                </div>
+              )}
             </motion.button>
           );
         })}
@@ -530,11 +591,11 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
 
               <button
                 onClick={handleComplete}
-                disabled={mode === 'try' && !allExamplesSolved}
+                disabled={!allExamplesSolved}
                 className="btn-primary w-full disabled:opacity-40"
               >
                 <CheckCircle2 className="w-5 h-5" />
-                {mode === 'watch' || allExamplesSolved
+                {allExamplesSolved
                   ? `أكملت الدرس +${toArabicNumber(30)} XP`
                   : `حل ${toArabicNumber(selected.examples.length - solvedExamples.length)} أمثلة إضافية`}
               </button>
