@@ -129,7 +129,7 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
   const [currentStep, setCurrentStep] = useState(0);
   const [solvedExamples, setSolvedExamples] = useState<number[]>([]);
   const [showSteps, setShowSteps] = useState(false);
-  const [wrongMessage, setWrongMessage] = useState('');
+  const [abacusValue, setAbacusValue] = useState(0);
 
   const { speak, stop, isSpeaking, isSupported } = useSpeech();
 
@@ -154,10 +154,10 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
     setMode('watch');
     setCurrentExample(0);
     setCurrentStep(0);
+    setAbacusValue(0);
     const savedSolved = lessonProgress[mod.id] || [];
     setSolvedExamples(savedSolved);
     setShowSteps(false);
-    setWrongMessage('');
     setTimeout(() => speak(mod.audioText), 300);
   };
 
@@ -180,12 +180,12 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
     setMode(m);
     setCurrentExample(0);
     setCurrentStep(0);
+    setAbacusValue(0);
     if (selected) {
       const savedSolved = lessonProgress[selected.id] || [];
       setSolvedExamples(savedSolved);
     }
     setShowSteps(false);
-    setWrongMessage('');
   };
 
   const handleExampleSolved = () => {
@@ -206,8 +206,8 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
     if (currentExample + 1 < selected.examples.length) {
       setCurrentExample(currentExample + 1);
       setCurrentStep(0);
+      setAbacusValue(0);
       setShowSteps(false);
-      setWrongMessage('');
       playSound('click');
     }
   };
@@ -216,8 +216,8 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
     if (currentExample > 0) {
       setCurrentExample(currentExample - 1);
       setCurrentStep(0);
+      setAbacusValue(0);
       setShowSteps(false);
-      setWrongMessage('');
       playSound('click');
     }
   };
@@ -236,17 +236,6 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
     } else {
       setShowSteps(false);
     }
-  };
-
-  // حساب القيمة الأولية للمعداد عند الخطوة الحالية
-  const getInitialValue = (): number => {
-    if (!currentEx || currentEx.steps.length === 0) return 0;
-    if (currentStep === 0) return 0;
-    const prevStep = currentEx.steps[currentStep - 1];
-    if ('expectedValueAfter' in prevStep) {
-      return (prevStep as LessonStep).expectedValueAfter;
-    }
-    return 0;
   };
 
   return (
@@ -431,63 +420,25 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
                         <Soroban value={currentEx.answer} columns={getColumnsForValue(currentEx.answer)} />
                       </motion.div>
                     ) : (
-                      <motion.div key={`try-${currentExample}-${currentStep}`} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col items-center gap-3">
-                        {currentEx.steps.length > 0 && currentStep < currentEx.steps.length && (
-                          <div className="w-full p-3 rounded-2xl bg-electric-500/10 border border-electric-400/30">
-                            <p className="text-xs text-electric-200 font-bold mb-1">
-                              الخطوة {toArabicNumber(currentStep + 1)} من {toArabicNumber(currentEx.steps.length)}:
-                            </p>
-                            <p className="text-sm text-white/80 font-body">
-                              {currentEx.steps[currentStep].instructionText}
-                            </p>
-                            <div className="flex items-center gap-2 mt-2 flex-wrap">
-                              <span className="text-xs font-bold text-gold-300">
-                                {getFingerLabel(currentEx.steps[currentStep].fingerUsed)}
-                              </span>
-                              <span className="text-xs font-bold text-electric-300">
-                                {getDirectionLabel(currentEx.steps[currentStep].direction)}
-                              </span>
-                              <span className="text-xs text-purple-300">
-                                ({getColumnLabel(currentEx.steps[currentStep].targetColumn)})
-                              </span>
-                            </div>
-                          </div>
-                        )}
-
+                      <motion.div key={`try-${currentExample}`} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col items-center gap-3">
                         <InteractiveSoroban
                           columns={getColumnsForValue(currentEx.answer)}
-                          initialValue={getInitialValue()}
-                          strictMode={currentEx.steps.length > 0}
-                          expectedStep={currentEx.steps.length > 0 ? currentEx.steps[currentStep] : undefined}
-                          onStepCorrect={() => {
-                            setWrongMessage('');
-                            if (currentStep + 1 < currentEx.steps.length) {
-                              playSound('success');
-                              setTimeout(() => setCurrentStep(currentStep + 1), 400);
-                            } else {
-                              handleExampleSolved();
-                            }
-                          }}
-                          onStepWrong={(msg) => {
-                            playSound('error');
-                            setWrongMessage(msg);
-                          }}
+                          value={abacusValue}
                           onValueChange={(v) => {
-                            if (v === currentEx.answer && currentEx.steps.length === 0 && !isSolved) {
+                            setAbacusValue(v);
+                            if (v === currentEx.answer && !isSolved) {
                               handleExampleSolved();
                             }
                           }}
                         />
-
-                        {wrongMessage && (
-                          <motion.p initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} className="text-xs text-red-300 font-body text-center bg-red-500/10 border border-red-400/20 rounded-xl p-2">
-                            ⚠️ {wrongMessage}
-                          </motion.p>
-                        )}
-
-                        {currentStep >= currentEx.steps.length && (
+                        {isSolved && (
                           <p className="text-sm text-emerald2-300 font-bold font-body">
-                            ✅ أحسنت! أكملت جميع الخطوات
+                            ✅ أحسنت! وصلت للقيمة {toArabicNumber(currentEx.answer)}
+                          </p>
+                        )}
+                        {!isSolved && (
+                          <p className="text-xs text-white/40 font-body">
+                            حرّك الخرزات لتصل إلى القيمة {toArabicNumber(currentEx.answer)}
                           </p>
                         )}
                       </motion.div>
@@ -576,16 +527,6 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
                 <button onClick={prevExample} disabled={isFirstExample} className="btn-ghost flex-1 !py-2 !text-sm disabled:opacity-30">السابق</button>
                 <button onClick={nextExample} disabled={isLastExample} className={`flex-1 !py-2 !text-sm ${!isLastExample ? 'btn-primary' : 'btn-ghost opacity-30'}`}>التالي</button>
               </div>
-
-              {mode === 'try' && (
-                <div className="text-center mb-4">
-                  {isSolved ? (
-                    <p className="text-sm text-emerald2-300 font-bold font-body">✅ أحسنت! وصلت للقيمة الصحيحة</p>
-                  ) : currentEx && currentEx.steps.length === 0 ? (
-                    <p className="text-xs text-white/40 font-body">حرّك الخرزات لتصل إلى القيمة {toArabicNumber(currentEx?.answer || 0)}</p>
-                  ) : null}
-                </div>
-              )}
 
               <button
                 onClick={handleComplete}
