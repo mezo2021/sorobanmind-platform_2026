@@ -77,26 +77,125 @@ export const LEARN_MODULES: LearnModule[] = [
       explanation: '9 = 5 (علوية) + 4 (سفلية)'
     }
   ]
+{
+  id: 2, title: 'Direct Addition and Subtraction', titleAr: 'الجمع والطرح المباشر',
+  description: 'Add/Remove beads directly', descriptionAr: 'أضف وأزل الخرزات مباشرة',
+  status: 'available', beads: { upper: 0, lower: 4 }, value: 4,
+  concept: 'Direct operations without friends', conceptAr: 'عمليات مباشرة بدون قواعد',
+  icon: 'Plus',
+  audioText: 'الآن نتعلم الجمع والطرح المباشر. عندما تكون الخرزات كافية، نرفع بالإبهام أو ننزل بالسبابة.',
+  rule: 'Thumb raises for addition, index lowers for subtraction', ruleAr: 'الإبهام يرفع عند الجمع، والسبابة تنزل عند الطرح',
+  story: 'صعود وهبوط الأصدقاء: صعد صديقان الدرج (2)، ثم نزل صديق واحد (1)، فبقي 1.',
+  examples: [
+    {
+      problemText: '1 + 2 = ؟',
+      answer: 3,
+      ruleCategory: 'direct',
+      steps: [
+        { stepIndex: 1, instructionText: 'ارفع خرزة للإشارة إلى 1 (بالإبهام)', fingerUsed: 'thumb', direction: 'up', targetColumn: 'units', beadsAffected: [1], expectedValueAfter: 1 },
+        { stepIndex: 2, instructionText: 'ارفع خرزتين إضافيتين (بالإبهام)', fingerUsed: 'thumb', direction: 'up', targetColumn: 'units', beadsAffected: [2, 3], expectedValueAfter: 3 }
+      ],
+      explanation: '1 + 2 = 3. الجمع المباشر.'
+    },
+    {
+      problemText: '2 + 2 = ؟',
+      answer: 4,
+      ruleCategory: 'direct',
+      steps: [
+        { stepIndex: 1, instructionText: 'ارفع خرزتين (بالإبهام)', fingerUsed: 'thumb', direction: 'up', targetColumn: 'units', beadsAffected: [1, 2], expectedValueAfter: 2 },
+        { stepIndex: 2, instructionText: 'ارفع خرزتين أخريين (بالإبهام)', fingerUsed: 'thumb', direction: 'up', targetColumn: 'units', beadsAffected: [3, 4], expectedValueAfter: 4 }
+      ],
+      explanation: '2 + 2 = 4. الجمع المباشر.'
+    },
+    {
+      problemText: '5 + 3 = ؟',
+      answer: 8,
+      ruleCategory: 'direct',
+      steps: [
+        { stepIndex: 1, instructionText: 'أنزل الخرزة العلوية (5) بالسبابة', fingerUsed: 'index', direction: 'down', targetColumn: 'units', beadsAffected: [5], expectedValueAfter: 5 },
+        { stepIndex: 2, instructionText: 'ارفع 3 خرزات سفلية (بالإبهام)', fingerUsed: 'thumb', direction: 'up', targetColumn: 'units', beadsAffected: [1, 2, 3], expectedValueAfter: 8 }
+      ],
+      explanation: '5 + 3 = 8. علوية + 3.'
+    },
+    {
+      problemText: '6 + 2 = ؟',
+      answer: 8,
+      ruleCategory: 'direct',
+      steps: [
+        { stepIndex: 1, instructionText: 'أنزل العلوية (5) بالسبابة', fingerUsed: 'index', direction: 'down', targetColumn: 'units', beadsAffected: [5], expectedValueAfter: 5 },
+        { stepIndex: 2, instructionText: 'ارفع خرزة (1) بالإبهام', fingerUsed: 'thumb', direction: 'up', targetColumn: 'units', beadsAffected: [1], expectedValueAfter: 6 },
+        { stepIndex: 3, instructionText: 'ارفع خرزتين إضافيتين (بالإبهام)', fingerUsed: 'thumb', direction: 'up', targetColumn: 'units', beadsAffected: [2, 3], expectedValueAfter: 8 }
+      ],
+      explanation: '6 + 2 = 8. علوية + 1 + 2.'
+    },
+    {
+      problemText: '4 - 1 = ؟',
+      answer: 3,
+      ruleCategory: 'direct',
+      steps: [
+        { stepIndex: 1, instructionText: 'ارفع 4 خرزات سفلية (بالإبهام)', fingerUsed: 'thumb', direction: 'up', targetColumn: 'units', beadsAffected: [1, 2, 3, 4], expectedValueAfter: 4 },
+        { stepIndex: 2, instructionText: 'أنزل خرزة واحدة (بالسبابة)', fingerUsed: 'index', direction: 'down', targetColumn: 'units', beadsAffected: [1], expectedValueAfter: 3 }
+      ],
+      explanation: '4 - 1 = 3. الطرح المباشر.'
+    },
+    {
+      problemText: '8 - 3 = ؟',
+      answer: 5,
+      ruleCategory: 'direct',
+      steps: [
+        { stepIndex: 1, instructionText: 'أنزل العلوية (5) بالسبابة', fingerUsed: 'index', direction: 'down', targetColumn: 'units', beadsAffected: [5], expectedValueAfter: 5 },
+        { stepIndex: 2, instructionText: 'ارفع 3 خرزات سفلية (بالإبهام)', fingerUsed: 'thumb', direction: 'up', targetColumn: 'units', beadsAffected: [1, 2, 3], expectedValueAfter: 8 },
+        { stepIndex: 3, instructionText: 'أنزل 3 خرزات سفلية (بالسبابة)', fingerUsed: 'index', direction: 'down', targetColumn: 'units', beadsAffected: [1, 2, 3], expectedValueAfter: 5 }
+      ],
+      explanation: '8 - 3 = 5. نطرح 3 سفلية.'
+    },
+    {
+      problemText: '9 - 5 = ؟',
+      answer: 4,
+      ruleCategory: 'direct',
+      steps: [
+        { stepIndex: 1, instructionText: 'أنزل العلوية (5) بالسبابة', fingerUsed: 'index', direction: 'down', targetColumn: 'units', beadsAffected: [5], expectedValueAfter: 5 },
+        { stepIndex: 2, instructionText: 'ارفع 4 خرزات سفلية (بالإبهام)', fingerUsed: 'thumb', direction: 'up', targetColumn: 'units', beadsAffected: [1, 2, 3, 4], expectedValueAfter: 9 },
+        { stepIndex: 3, instructionText: 'ارفع العلوية (5) بالسبابة لطرحها', fingerUsed: 'index', direction: 'up', targetColumn: 'units', beadsAffected: [5], expectedValueAfter: 4 }
+      ],
+      explanation: '9 - 5 = 4. نطرح العلوية.'
+    },
+    {
+      problemText: '7 - 2 = ؟',
+      answer: 5,
+      ruleCategory: 'direct',
+      steps: [
+        { stepIndex: 1, instructionText: 'أنزل العلوية (5) بالسبابة', fingerUsed: 'index', direction: 'down', targetColumn: 'units', beadsAffected: [5], expectedValueAfter: 5 },
+        { stepIndex: 2, instructionText: 'ارفع خرزتين (بالإبهام)', fingerUsed: 'thumb', direction: 'up', targetColumn: 'units', beadsAffected: [1, 2], expectedValueAfter: 7 },
+        { stepIndex: 3, instructionText: 'أنزل خرزتين (بالسبابة)', fingerUsed: 'index', direction: 'down', targetColumn: 'units', beadsAffected: [1, 2], expectedValueAfter: 5 }
+      ],
+      explanation: '7 - 2 = 5. نطرح 2 سفلية.'
+    },
+    {
+      problemText: '9 - 2 = ؟',
+      answer: 7,
+      ruleCategory: 'direct',
+      steps: [
+        { stepIndex: 1, instructionText: 'أنزل العلوية (5) بالسبابة', fingerUsed: 'index', direction: 'down', targetColumn: 'units', beadsAffected: [5], expectedValueAfter: 5 },
+        { stepIndex: 2, instructionText: 'ارفع 4 خرزات سفلية (بالإبهام)', fingerUsed: 'thumb', direction: 'up', targetColumn: 'units', beadsAffected: [1, 2, 3, 4], expectedValueAfter: 9 },
+        { stepIndex: 3, instructionText: 'أنزل خرزتين (بالسبابة)', fingerUsed: 'index', direction: 'down', targetColumn: 'units', beadsAffected: [1, 2], expectedValueAfter: 7 }
+      ],
+      explanation: '9 - 2 = 7. نطرح 2 سفلية.'
+    },
+    {
+      problemText: '5 - 4 = ؟',
+      answer: 1,
+      ruleCategory: 'direct',
+      steps: [
+        { stepIndex: 1, instructionText: 'أنزل العلوية (5) بالسبابة', fingerUsed: 'index', direction: 'down', targetColumn: 'units', beadsAffected: [5], expectedValueAfter: 5 },
+        { stepIndex: 2, instructionText: 'ارفع 4 خرزات سفلية (بالإبهام) لتمثيل 9', fingerUsed: 'thumb', direction: 'up', targetColumn: 'units', beadsAffected: [1, 2, 3, 4], expectedValueAfter: 9 },
+        { stepIndex: 3, instructionText: 'أنزل 3 خرزات (بالسبابة) لطرح 4', fingerUsed: 'index', direction: 'down', targetColumn: 'units', beadsAffected: [1, 2, 3], expectedValueAfter: 5 },
+        { stepIndex: 4, instructionText: 'أنزل خرزة أخيرة (بالسبابة)', fingerUsed: 'index', direction: 'down', targetColumn: 'units', beadsAffected: [1], expectedValueAfter: 1 }
+      ],
+      explanation: '5 - 4 = 1. نطرح 4 من 5.'
+    }
+  ]
 },
-    
-    id: 2, title: 'Direct Addition and Subtraction', titleAr: 'الجمع والطرح المباشر',
-    description: 'Add/Remove beads directly', descriptionAr: 'أضف وأزل الخرزات مباشرة',
-    status: 'available', beads: { upper: 0, lower: 4 }, value: 4,
-    concept: 'Direct operations without friends', conceptAr: 'عمليات مباشرة بدون قواعد',
-    icon: 'Plus',
-    audioText: 'الآن نتعلم الجمع والطرح المباشر. عندما تكون الخرزات كافية، نرفع بالإبهام أو ننزل بالسبابة.',
-    rule: 'Thumb raises for addition, index lowers for subtraction', ruleAr: 'الإبهام يرفع عند الجمع، والسبابة تنزل عند الطرح',
-    story: 'صعود وهبوط الأصدقاء: صعد صديقان الدرج (2)، ثم نزل صديق واحد (1)، فبقي 1.',
-    examples: [
-      { problemText: '1 + 2 = ؟', answer: 3, ruleCategory: 'direct', steps: [{ stepIndex: 1, instructionText: 'ارفع خرزة للإشارة إلى 1', fingerUsed: 'thumb', direction: 'up', targetColumn: 'units', beadsAffected: [1], expectedValueAfter: 1 }, { stepIndex: 2, instructionText: 'ارفع خرزتين إضافيتين', fingerUsed: 'thumb', direction: 'up', targetColumn: 'units', beadsAffected: [2, 3], expectedValueAfter: 3 }], explanation: '1 + 2 = 3' },
-      { problemText: '2 + 2 = ؟', answer: 4, ruleCategory: 'direct', steps: [{ stepIndex: 1, instructionText: 'ارفع خرزتين', fingerUsed: 'thumb', direction: 'up', targetColumn: 'units', beadsAffected: [1, 2], expectedValueAfter: 2 }, { stepIndex: 2, instructionText: 'ارفع خرزتين أخريين', fingerUsed: 'thumb', direction: 'up', targetColumn: 'units', beadsAffected: [3, 4], expectedValueAfter: 4 }], explanation: '2 + 2 = 4' },
-      { problemText: '5 + 3 = ؟', answer: 8, ruleCategory: 'direct', steps: [{ stepIndex: 1, instructionText: 'أنزل العلوية = 5', fingerUsed: 'index', direction: 'down', targetColumn: 'units', beadsAffected: [5], expectedValueAfter: 5 }, { stepIndex: 2, instructionText: 'ارفع 3 سفليّة', fingerUsed: 'thumb', direction: 'up', targetColumn: 'units', beadsAffected: [1, 2, 3], expectedValueAfter: 8 }], explanation: '5 + 3 = 8' },
-      { problemText: '4 - 1 = ؟', answer: 3, ruleCategory: 'direct', steps: [{ stepIndex: 1, instructionText: 'ارفع 4 سفليّة', fingerUsed: 'thumb', direction: 'up', targetColumn: 'units', beadsAffected: [1, 2, 3, 4], expectedValueAfter: 4 }, { stepIndex: 2, instructionText: 'أنزل خرزة واحدة', fingerUsed: 'index', direction: 'down', targetColumn: 'units', beadsAffected: [1], expectedValueAfter: 3 }], explanation: '4 - 1 = 3' },
-      { problemText: '9 - 5 = ؟', answer: 4, ruleCategory: 'direct', steps: [{ stepIndex: 1, instructionText: 'مثّل 9 (علوية + 4)', fingerUsed: 'both_pinch', direction: 'pinch_in', targetColumn: 'units', beadsAffected: [5, 1, 2, 3, 4], expectedValueAfter: 9 }, { stepIndex: 2, instructionText: 'ارفع العلوية (اطرح 5)', fingerUsed: 'index', direction: 'up', targetColumn: 'units', beadsAffected: [5], expectedValueAfter: 4 }], explanation: '9 - 5 = 4' },
-      { problemText: '8 - 3 = ؟', answer: 5, ruleCategory: 'direct', steps: [{ stepIndex: 1, instructionText: 'مثّل 8 (علوية + 3)', fingerUsed: 'both_pinch', direction: 'pinch_in', targetColumn: 'units', beadsAffected: [5, 1, 2, 3], expectedValueAfter: 8 }, { stepIndex: 2, instructionText: 'أنزل 3 سفليّة', fingerUsed: 'index', direction: 'down', targetColumn: 'units', beadsAffected: [1, 2, 3], expectedValueAfter: 5 }], explanation: '8 - 3 = 5' },
-    ],
-  },
-  {
     id: 3, title: 'Small Friends (5)', titleAr: 'أصدقاء العدد 5',
     description: 'Use upper bead to add/remove', descriptionAr: 'استخدام الخرزة العلوية للجمع والطرح',
     status: 'locked', beads: { upper: 1, lower: 4 }, value: 9,
