@@ -1154,7 +1154,10 @@ export const QUESTS: Quest[] = [
   { id: 8, title: 'Division Expert', titleAr: 'خبير القسمة', description: '5 divisions', descriptionAr: '٥ مسائل قسمة', xpReward: 100, progress: 0, target: 5, icon: 'Divide', color: 'from-gold-400 to-gold-600', type: 'division' },
   { id: 9, title: 'Anzan Expert', titleAr: 'خبير الأنزان', description: 'Score 50', descriptionAr: '٥٠ نقطة في الأنزان', xpReward: 150, progress: 0, target: 50, icon: 'Eye', color: 'from-emerald2-400 to-emerald2-600', type: 'anzanHighScore' },
 ];
-══════════════════════════════════════════════════════════
+// 
+// ═══════════════════════════════════════════════════════════
+// PRACTICE QUESTIONS — موحّدة مع lessonId
+// ═══════════════════════════════════════════════════════════
 export const PRACTICE_QUESTIONS: PracticeQuestion[] = [
   { question: '1 + 2', answer: 3, choices: [2, 3, 4, 5], type: 'direct', lessonId: 3 },
   { question: '2 + 2', answer: 4, choices: [3, 4, 5, 6], type: 'direct', lessonId: 3 },
