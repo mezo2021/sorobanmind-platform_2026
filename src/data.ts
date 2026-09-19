@@ -59,6 +59,16 @@ export const LEARN_MODULES: LearnModule[] = [
     icon: 'Combine',
     audioText: 'الآن نتعلم أصدقاء العدد 5. صديق الرقم هو ما نطرحه لإكماله إلى 5.',
     rule: 'Adding N = add 5, subtract (5-N)', ruleAr: 'لجمع N: أضف 5، اطرح صديقه (5 - N)',
+    ruleTable: [
+  { formula: '+1', result: '+5 - 4' },
+  { formula: '+2', result: '+5 - 3' },
+  { formula: '+3', result: '+5 - 2' },
+  { formula: '+4', result: '+5 - 1' },
+  { formula: '-1', result: '-5 + 4' },
+  { formula: '-2', result: '-5 + 3' },
+  { formula: '-3', result: '-5 + 2' },
+  { formula: '-4', result: '-5 + 1' },
+],
     story: 'نزّل الجدة 5، واطرُد صديق الرقم.',
     examples: [
       { problemText: '1 + 4 = ؟', answer: 5, ruleCategory: 'small_friends', steps: [{ stepIndex: 1, instructionText: 'ارفع 1 بالإبهام', fingerUsed: 'thumb', direction: 'up', targetColumn: 'units', beadsAffected: [1], expectedValueAfter: 1 }, { stepIndex: 2, instructionText: 'أنزل 5 وأنزل 1 (السبابة)', fingerUsed: 'index', direction: 'down', targetColumn: 'units', beadsAffected: [5, 1], expectedValueAfter: 5 }], explanation: '1 + 4 = 5. صديق 4 هو 1' },
@@ -82,6 +92,26 @@ export const LEARN_MODULES: LearnModule[] = [
     icon: 'Sigma',
     audioText: 'الآن نتعلم أصدقاء العدد 10. عندما يتجاوز الجمع 9، نحمل 10 إلى العشرات.',
     rule: 'Add N = add 10, subtract (10-N)', ruleAr: 'لجمع N: أضف 10، اطرح صديقه (10 - N)',
+    ruleTable: [
+  { formula: '+1', result: '+10 - 9' },
+  { formula: '+2', result: '+10 - 8' },
+  { formula: '+3', result: '+10 - 7' },
+  { formula: '+4', result: '+10 - 6' },
+  { formula: '+5', result: '+10 - 5' },
+  { formula: '+6', result: '+10 - 4' },
+  { formula: '+7', result: '+10 - 3' },
+  { formula: '+8', result: '+10 - 2' },
+  { formula: '+9', result: '+10 - 1' },
+  { formula: '-1', result: '-10 + 9' },
+  { formula: '-2', result: '-10 + 8' },
+  { formula: '-3', result: '-10 + 7' },
+  { formula: '-4', result: '-10 + 6' },
+  { formula: '-5', result: '-10 + 5' },
+  { formula: '-6', result: '-10 + 4' },
+  { formula: '-7', result: '-10 + 3' },
+  { formula: '-8', result: '-10 + 2' },
+  { formula: '-9', result: '-10 + 1' },
+],
     story: 'طرق باب الجار الكريم: البيت ممتلئ، نذهب للجار في عمود العشرات ونرفع خرزة (+10).',
     examples: [
       { problemText: '9 + 4 = ؟', answer: 13, ruleCategory: 'big_friends', steps: [{ stepIndex: 1, instructionText: 'أنزل 5 وارفع 4 = 9', fingerUsed: 'both_pinch', direction: 'pinch_in', targetColumn: 'units', beadsAffected: [5, 1, 2, 3, 4], expectedValueAfter: 9 }, { stepIndex: 2, instructionText: 'ارفع 1 في العشرات (+10)', fingerUsed: 'left_index', direction: 'up', targetColumn: 'tens', beadsAffected: [1], expectedValueAfter: 19 }, { stepIndex: 3, instructionText: 'أزل 6 من الآحاد (أنزل 5 وأنزل 1)', fingerUsed: 'both_pinch', direction: 'pinch_out', targetColumn: 'units', beadsAffected: [5, 1], expectedValueAfter: 13 }], explanation: '9 + 4 = 13. صديق 4 هو 6' },
@@ -104,7 +134,18 @@ export const LEARN_MODULES: LearnModule[] = [
     icon: 'Brain',
     audioText: 'القواعد المركبة تجمع بين صديق 5 وصديق 10. لجمع 6: نضيف 10، ثم ننزل 5، ثم نرفع 1.',
     rule: '+N = +10 - 5 + (N-5)', ruleAr: 'لجمع N: أضف 10، اطرح 5، أضف (N - 5)',
-    story: 'حفلة التبادل الكبرى: نريد إضافة 6، لكن الخرزات السفلية غير كافية.',
+ruleTable: [
+  { formula: '+6', result: '+10 - 5 + 1' },
+  { formula: '+7', result: '+10 - 5 + 2' },
+  { formula: '+8', result: '+10 - 5 + 3' },
+  { formula: '+9', result: '+10 - 5 + 4' },
+  { formula: '-6', result: '-10 + 5 - 1' },
+  { formula: '-7', result: '-10 + 5 - 2' },
+  { formula: '-8', result: '-10 + 5 - 3' },
+  { formula: '-9', result: '-10 + 5 - 4' },
+],
+story:
+    'حفلة التبادل الكبرى: نريد إضافة 6، لكن الخرزات السفلية غير كافية.',
     examples: [
       { problemText: '15 + 6 = ؟', answer: 21, ruleCategory: 'combined', steps: [{ stepIndex: 1, instructionText: 'مثّل 15 (1 عشرات، 5 آحاد)', fingerUsed: 'both_pinch', direction: 'pinch_in', targetColumn: 'tens', beadsAffected: [1], expectedValueAfter: 15 }, { stepIndex: 2, instructionText: 'ارفع 1 في العشرات (+10)', fingerUsed: 'left_index', direction: 'up', targetColumn: 'tens', beadsAffected: [2], expectedValueAfter: 25 }, { stepIndex: 3, instructionText: 'أنزل 5 (اطرح 5)', fingerUsed: 'index', direction: 'down', targetColumn: 'units', beadsAffected: [5], expectedValueAfter: 20 }, { stepIndex: 4, instructionText: 'ارفع 1 (أضف 1)', fingerUsed: 'thumb', direction: 'up', targetColumn: 'units', beadsAffected: [1], expectedValueAfter: 21 }], explanation: '15 + 6 = 21. +10 - 5 + 1' },
       { problemText: '7 + 6 = ؟', answer: 13, ruleCategory: 'combined', steps: [{ stepIndex: 1, instructionText: 'مثّل 7 (علوية + 2)', fingerUsed: 'both_pinch', direction: 'pinch_in', targetColumn: 'units', beadsAffected: [5, 1, 2], expectedValueAfter: 7 }, { stepIndex: 2, instructionText: 'ارفع 1 في العشرات (+10)', fingerUsed: 'left_index', direction: 'up', targetColumn: 'tens', beadsAffected: [1], expectedValueAfter: 17 }, { stepIndex: 3, instructionText: 'أنزل 5 (اطرح 5)', fingerUsed: 'index', direction: 'down', targetColumn: 'units', beadsAffected: [5], expectedValueAfter: 12 }, { stepIndex: 4, instructionText: 'ارفع 1 (أضف 1)', fingerUsed: 'thumb', direction: 'up', targetColumn: 'units', beadsAffected: [1], expectedValueAfter: 13 }], explanation: '7 + 6 = 13. +10 - 5 + 1' },
@@ -175,7 +216,6 @@ export const LEARN_MODULES: LearnModule[] = [
     ]
   },
 ];
-
 export const QUESTS: Quest[] = [
   { id: 1, title: 'Daily Practice', titleAr: 'التدريب اليومي', description: 'Complete 10', descriptionAr: 'أكمل ١٠ مسائل', xpReward: 50, progress: 0, target: 10, icon: 'Swords', color: 'from-purple-500 to-electric-500', type: 'practice' },
   { id: 2, title: 'Anzan Apprentice', titleAr: 'متدرب الأنزان', description: 'Score 20', descriptionAr: 'احصل على ٢٠ نقطة', xpReward: 80, progress: 0, target: 20, icon: 'Eye', color: 'from-electric-500 to-emerald2-500', type: 'anzan' },
