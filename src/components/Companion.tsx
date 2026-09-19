@@ -4,7 +4,7 @@ import { ImageAvatar } from './avatars/ImageAvatar';
 import shamImg from '../assets/avatars/sham.png';
 import rayanImg from '../assets/avatars/rayan.png';
 import banaImg from '../assets/avatars/bana.png';
-import joudImg from '../assets/avatars/joud.png';
+import joudImg from '../assets/avatars/joud2.png';
 import type { CharacterType } from '../types';
 
 interface CompanionProps {
