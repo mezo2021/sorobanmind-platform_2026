@@ -4,17 +4,18 @@ import { ShamAvatar } from './avatars/ShamAvatar';
 import { RayanAvatar } from './avatars/RayanAvatar';
 import { BanaAvatar } from './avatars/BanaAvatar';
 import { JoudAvatar } from './avatars/JoudAvatar';
+import {
+  CharacterType,
+  CharacterInfo,
+  CHARACTER_STORAGE_KEY,
+  VALID_CHARACTERS,
+  LEGACY_CHARACTER_MAP,
+} from '../types';
 
-export type CharacterType = 'sham' | 'rayan' | 'bana' | 'joud';
-
-interface CharacterOption {
-  id: CharacterType;
-  name: string;
-  title: string;
-  description: string;
-  bgColor: string;
-  borderColor: string;
-  accentColor: string;
+// ------------------------------------------------------------
+// نوع محلي: معلومات الشخصية + مكوّن الأفاتار
+// ------------------------------------------------------------
+interface CharacterOption extends CharacterInfo {
   Component: React.FC<{ className?: string; animated?: boolean }>;
 }
 
@@ -61,56 +62,51 @@ const CHARACTERS: CharacterOption[] = [
   },
 ];
 
-// ✅ خريطة التوافق مع الإصدارات القديمة (بما في ذلك aya المحذوفة)
-const LEGACY_CHARACTER_MAP: Record<string, CharacterType> = {
-  fox: 'sham',
-  owl: 'bana',
-  panda: 'joud',   // كانت aya → استبدلت بـ joud
-  rabbit: 'rayan',
-  aya: 'joud',     // ← توافق مع من اختار "آية" سابقًا
-};
-
-const VALID_CHARACTERS: CharacterType[] = ['sham', 'rayan', 'bana', 'joud'];
-
+// ------------------------------------------------------------
+// Props
+// ------------------------------------------------------------
 interface CharacterSelectorProps {
   onSelectCharacter?: (character: CharacterType) => void;
 }
 
+// ------------------------------------------------------------
+// المكوّن
+// ------------------------------------------------------------
 export const CharacterSelector: React.FC<CharacterSelectorProps> = ({
   onSelectCharacter,
 }) => {
   const [selected, setSelected] = useState<CharacterType>('sham');
 
   useEffect(() => {
-    const saved = localStorage.getItem('soroban_companion');
+    const saved = localStorage.getItem(CHARACTER_STORAGE_KEY);
 
     if (!saved) {
       setSelected('sham');
       return;
     }
 
-    // إذا كان الحفظ صالحًا مباشرة
-    if (VALID_CHARACTERS.includes(saved as CharacterType)) {
+    // قيمة صالحة مباشرة
+    if ((VALID_CHARACTERS as readonly string[]).includes(saved)) {
       setSelected(saved as CharacterType);
       return;
     }
 
     // توافق مع الإصدارات القديمة
-    if (LEGACY_CHARACTER_MAP[saved]) {
-      const migrated = LEGACY_CHARACTER_MAP[saved];
+    const migrated = LEGACY_CHARACTER_MAP[saved];
+    if (migrated) {
       setSelected(migrated);
-      localStorage.setItem('soroban_companion', migrated);
+      localStorage.setItem(CHARACTER_STORAGE_KEY, migrated);
       return;
     }
 
-    // قيمة غير معروفة → العودة للافتراضي
+    // قيمة غير معروفة → الافتراضي
     setSelected('sham');
-    localStorage.setItem('soroban_companion', 'sham');
+    localStorage.setItem(CHARACTER_STORAGE_KEY, 'sham');
   }, []);
 
   const handleSelect = (characterId: CharacterType) => {
     setSelected(characterId);
-    localStorage.setItem('soroban_companion', characterId);
+    localStorage.setItem(CHARACTER_STORAGE_KEY, characterId);
     onSelectCharacter?.(characterId);
   };
 
