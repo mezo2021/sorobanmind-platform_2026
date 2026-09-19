@@ -1,4 +1,3 @@
-
 import type { LearnModule, LevelNode, Quest, ProgressData, PracticeQuestion } from './types';
 
 export const LEVELS: LevelNode[] = [
@@ -19,16 +18,16 @@ export const LEARN_MODULES: LearnModule[] = [
     status: 'available', beads: { upper: 0, lower: 0 }, value: 0,
     concept: 'Soroban parts and finger rules', conceptAr: 'أجزاء السوروبان وقواعد الأصابع',
     icon: 'Info',
-    audioText: 'مرحباً بك في عالم السوروبان! الإبهام يرفع خرزات الأرض، والسبابة تنزل خرزات الأرض وتحرك خرزة السماء.',
+    audioText: 'مرحباً بك في عالم السوروبان! الإبهام يرفع خرزات الأرض، والسبابة تنزل خرزات الأرض وتحريك خرزة السماء.',
     rule: 'Thumb up lower, index moves upper and lowers', ruleAr: 'الإبهام يرفع السفلية، والسبابة تنزل السفلية وتحريك العلوية',
     story: 'بيت الخرزات السحري: المعداد منزل من دورين. الدور السفلي فيه 4 إخوة نرفعهم بالإبهام. والدور العلوي تسكن فيه الجدة "خمسة" ونزورها بالسبابة.',
     examples: [
       { problemText: 'مثّل 0 (المعداد فارغ)', answer: 0, ruleCategory: 'direct', steps: [], explanation: 'كل الخرزات بعيدة عن العارضة = 0' },
       { problemText: 'مثّل 1', answer: 1, ruleCategory: 'direct', steps: [{ stepIndex: 1, instructionText: 'ارفع خرزة سفلية واحدة بالإبهام', fingerUsed: 'thumb', direction: 'up', targetColumn: 'units', beadsAffected: [1], expectedValueAfter: 1 }], explanation: '1 = خرزة سفلية واحدة' },
       { problemText: 'مثّل 2', answer: 2, ruleCategory: 'direct', steps: [{ stepIndex: 1, instructionText: 'ارفع خرزتين سفليتين بالإبهام', fingerUsed: 'thumb', direction: 'up', targetColumn: 'units', beadsAffected: [1, 2], expectedValueAfter: 2 }], explanation: '2 = خرزتان سفليتان' },
-      { problemText: 'مثّل 5', answer: 5, ruleCategory: 'direct', steps: [{ stepIndex: 1, instructionText: 'أنزل الخرزة العلوية بالسبابة', fingerUsed: 'index', direction: 'down', targetColumn: 'units', beadsAffected: [5], expectedValueAfter: 5 }], explanation: '5 = الخرزة العلوية' },
-      { problemText: 'مثّل 6', answer: 6, ruleCategory: 'direct', steps: [{ stepIndex: 1, instructionText: 'أنزل العلوية (5) بالسبابة', fingerUsed: 'index', direction: 'down', targetColumn: 'units', beadsAffected: [5], expectedValueAfter: 5 }, { stepIndex: 2, instructionText: 'ارفع خرزة سفلية (1) بالإبهام', fingerUsed: 'thumb', direction: 'up', targetColumn: 'units', beadsAffected: [1], expectedValueAfter: 6 }], explanation: '6 = 5 + 1' },
-      { problemText: 'مثّل 9', answer: 9, ruleCategory: 'direct', steps: [{ stepIndex: 1, instructionText: 'أنزل العلوية (5) بالسبابة', fingerUsed: 'index', direction: 'down', targetColumn: 'units', beadsAffected: [5], expectedValueAfter: 5 }, { stepIndex: 2, instructionText: 'ارفع 4 خرزات سفلية بالإبهام', fingerUsed: 'thumb', direction: 'up', targetColumn: 'units', beadsAffected: [1, 2, 3, 4], expectedValueAfter: 9 }], explanation: '9 = 5 + 4' }
+      { problemText: 'مثّل 5', answer: 5, ruleCategory: 'direct', steps: [{ stepIndex: 1, instructionText: 'أنزل الخرزة العلوية بالسبابة (الجدة 5)', fingerUsed: 'index', direction: 'down', targetColumn: 'units', beadsAffected: [5], expectedValueAfter: 5 }], explanation: '5 = الجدة العلوية' },
+      { problemText: 'مثّل 6', answer: 6, ruleCategory: 'direct', steps: [{ stepIndex: 1, instructionText: 'أنزل الجدة 5 بالسبابة', fingerUsed: 'index', direction: 'down', targetColumn: 'units', beadsAffected: [5], expectedValueAfter: 5 }, { stepIndex: 2, instructionText: 'ارفع خرزة سفلية (1) بالإبهام', fingerUsed: 'thumb', direction: 'up', targetColumn: 'units', beadsAffected: [1], expectedValueAfter: 6 }], explanation: '6 = 5 + 1' },
+      { problemText: 'مثّل 9', answer: 9, ruleCategory: 'direct', steps: [{ stepIndex: 1, instructionText: 'أنزل الجدة 5 بالسبابة', fingerUsed: 'index', direction: 'down', targetColumn: 'units', beadsAffected: [5], expectedValueAfter: 5 }, { stepIndex: 2, instructionText: 'ارفع 4 خرزات سفلية بالإبهام', fingerUsed: 'thumb', direction: 'up', targetColumn: 'units', beadsAffected: [1, 2, 3, 4], expectedValueAfter: 9 }], explanation: '9 = 5 + 4' }
     ]
   },
   {
@@ -41,14 +40,13 @@ export const LEARN_MODULES: LearnModule[] = [
     rule: 'Thumb raises for addition, index lowers for subtraction', ruleAr: 'الإبهام يرفع عند الجمع، والسبابة تنزل عند الطرح',
     story: 'صعود وهبوط الأصدقاء: صعد صديقان الدرج (2)، ثم نزل صديق واحد (1)، فبقي 1.',
     examples: [
-      { problemText: '1 + 2 = ؟', answer: 3, ruleCategory: 'direct', steps: [{ stepIndex: 1, instructionText: 'ارفع خرزة (1) بالإبهام', fingerUsed: 'thumb', direction: 'up', targetColumn: 'units', beadsAffected: [1], expectedValueAfter: 1 }, { stepIndex: 2, instructionText: 'ارفع خرزتين (2,3) بالإبهام', fingerUsed: 'thumb', direction: 'up', targetColumn: 'units', beadsAffected: [2, 3], expectedValueAfter: 3 }], explanation: '1 + 2 = 3' },
-      { problemText: '2 + 2 = ؟', answer: 4, ruleCategory: 'direct', steps: [{ stepIndex: 1, instructionText: 'ارفع خرزتين (1,2) بالإبهام', fingerUsed: 'thumb', direction: 'up', targetColumn: 'units', beadsAffected: [1, 2], expectedValueAfter: 2 }, { stepIndex: 2, instructionText: 'ارفع خرزتين (3,4) بالإبهام', fingerUsed: 'thumb', direction: 'up', targetColumn: 'units', beadsAffected: [3, 4], expectedValueAfter: 4 }], explanation: '2 + 2 = 4' },
-      { problemText: '5 + 3 = ؟', answer: 8, ruleCategory: 'direct', steps: [{ stepIndex: 1, instructionText: 'أنزل العلوية (5) بالسبابة', fingerUsed: 'index', direction: 'down', targetColumn: 'units', beadsAffected: [5], expectedValueAfter: 5 }, { stepIndex: 2, instructionText: 'ارفع 3 خرزات (1,2,3) بالإبهام', fingerUsed: 'thumb', direction: 'up', targetColumn: 'units', beadsAffected: [1, 2, 3], expectedValueAfter: 8 }], explanation: '5 + 3 = 8' },
-      { problemText: '6 + 2 = ؟', answer: 8, ruleCategory: 'direct', steps: [{ stepIndex: 1, instructionText: 'أنزل العلوية (5) بالسبابة', fingerUsed: 'index', direction: 'down', targetColumn: 'units', beadsAffected: [5], expectedValueAfter: 5 }, { stepIndex: 2, instructionText: 'ارفع خرزة (1) بالإبهام', fingerUsed: 'thumb', direction: 'up', targetColumn: 'units', beadsAffected: [1], expectedValueAfter: 6 }, { stepIndex: 3, instructionText: 'ارفع خرزتين (2,3) بالإبهام', fingerUsed: 'thumb', direction: 'up', targetColumn: 'units', beadsAffected: [2, 3], expectedValueAfter: 8 }], explanation: '6 + 2 = 8' },
-      { problemText: '4 - 1 = ؟', answer: 3, ruleCategory: 'direct', steps: [{ stepIndex: 1, instructionText: 'ارفع 4 خرزات (1-4) بالإبهام', fingerUsed: 'thumb', direction: 'up', targetColumn: 'units', beadsAffected: [1, 2, 3, 4], expectedValueAfter: 4 }, { stepIndex: 2, instructionText: 'أنزل خرزة (1) بالسبابة', fingerUsed: 'index', direction: 'down', targetColumn: 'units', beadsAffected: [1], expectedValueAfter: 3 }], explanation: '4 - 1 = 3' },
-      { problemText: '8 - 3 = ؟', answer: 5, ruleCategory: 'direct', steps: [{ stepIndex: 1, instructionText: 'أنزل العلوية وارفع 3 = 8', fingerUsed: 'both_pinch', direction: 'pinch_in', targetColumn: 'units', beadsAffected: [5, 1, 2, 3], expectedValueAfter: 8 }, { stepIndex: 2, instructionText: 'أنزل 3 خرزات (1,2,3) بالسبابة', fingerUsed: 'index', direction: 'down', targetColumn: 'units', beadsAffected: [1, 2, 3], expectedValueAfter: 5 }], explanation: '8 - 3 = 5' },
-      { problemText: '9 - 5 = ؟', answer: 4, ruleCategory: 'direct', steps: [{ stepIndex: 1, instructionText: 'أنزل العلوية وارفع 4 = 9', fingerUsed: 'both_pinch', direction: 'pinch_in', targetColumn: 'units', beadsAffected: [5, 1, 2, 3, 4], expectedValueAfter: 9 }, { stepIndex: 2, instructionText: 'ارفع العلوية (اطرح 5) بالسبابة', fingerUsed: 'index', direction: 'up', targetColumn: 'units', beadsAffected: [5], expectedValueAfter: 4 }], explanation: '9 - 5 = 4' },
-      { problemText: '7 - 2 = ؟', answer: 5, ruleCategory: 'direct', steps: [{ stepIndex: 1, instructionText: 'أنزل العلوية وارفع 2 = 7', fingerUsed: 'both_pinch', direction: 'pinch_in', targetColumn: 'units', beadsAffected: [5, 1, 2], expectedValueAfter: 7 }, { stepIndex: 2, instructionText: 'أنزل خرزتين (1,2) بالسبابة', fingerUsed: 'index', direction: 'down', targetColumn: 'units', beadsAffected: [1, 2], expectedValueAfter: 5 }], explanation: '7 - 2 = 5' }
+      { problemText: '1 + 2 = ؟', answer: 3, ruleCategory: 'direct', steps: [{ stepIndex: 1, instructionText: 'ارفع خرزة (1) بالإبهام', fingerUsed: 'thumb', direction: 'up', targetColumn: 'units', beadsAffected: [1], expectedValueAfter: 1 }, { stepIndex: 2, instructionText: 'ارفع خرزتين إضافيتين بالإبهام', fingerUsed: 'thumb', direction: 'up', targetColumn: 'units', beadsAffected: [2, 3], expectedValueAfter: 3 }], explanation: '1 + 2 = 3' },
+      { problemText: '2 + 2 = ؟', answer: 4, ruleCategory: 'direct', steps: [{ stepIndex: 1, instructionText: 'ارفع خرزتين بالإبهام', fingerUsed: 'thumb', direction: 'up', targetColumn: 'units', beadsAffected: [1, 2], expectedValueAfter: 2 }, { stepIndex: 2, instructionText: 'ارفع خرزتين أخريين بالإبهام', fingerUsed: 'thumb', direction: 'up', targetColumn: 'units', beadsAffected: [3, 4], expectedValueAfter: 4 }], explanation: '2 + 2 = 4' },
+      { problemText: '5 + 3 = ؟', answer: 8, ruleCategory: 'direct', steps: [{ stepIndex: 1, instructionText: 'أنزل الجدة 5 بالسبابة', fingerUsed: 'index', direction: 'down', targetColumn: 'units', beadsAffected: [5], expectedValueAfter: 5 }, { stepIndex: 2, instructionText: 'ارفع 3 خرزات سفلية بالإبهام', fingerUsed: 'thumb', direction: 'up', targetColumn: 'units', beadsAffected: [1, 2, 3], expectedValueAfter: 8 }], explanation: '5 + 3 = 8. الجمع مباشر.' },
+      { problemText: '4 - 1 = ؟', answer: 3, ruleCategory: 'direct', steps: [{ stepIndex: 1, instructionText: 'ارفع 4 خرزات سفلية بالإبهام', fingerUsed: 'thumb', direction: 'up', targetColumn: 'units', beadsAffected: [1, 2, 3, 4], expectedValueAfter: 4 }, { stepIndex: 2, instructionText: 'أنزل خرزة واحدة بالسبابة', fingerUsed: 'index', direction: 'down', targetColumn: 'units', beadsAffected: [1], expectedValueAfter: 3 }], explanation: '4 - 1 = 3' },
+      { problemText: '8 - 3 = ؟', answer: 5, ruleCategory: 'direct', steps: [{ stepIndex: 1, instructionText: 'أنزل الجدة 5 وارفع 3 = 8', fingerUsed: 'both_pinch', direction: 'pinch_in', targetColumn: 'units', beadsAffected: [5, 1, 2, 3], expectedValueAfter: 8 }, { stepIndex: 2, instructionText: 'أنزل 3 خرزات سفلية بالسبابة (اطرح 3)', fingerUsed: 'index', direction: 'down', targetColumn: 'units', beadsAffected: [1, 2, 3], expectedValueAfter: 5 }], explanation: '8 - 3 = 5' },
+      { problemText: '9 - 5 = ؟', answer: 4, ruleCategory: 'direct', steps: [{ stepIndex: 1, instructionText: 'أنزل الجدة 5 وارفع 4 = 9', fingerUsed: 'both_pinch', direction: 'pinch_in', targetColumn: 'units', beadsAffected: [5, 1, 2, 3, 4], expectedValueAfter: 9 }, { stepIndex: 2, instructionText: 'ارفع الجدة 5 (اطرح 5) بالسبابة', fingerUsed: 'index', direction: 'up', targetColumn: 'units', beadsAffected: [5], expectedValueAfter: 4 }], explanation: '9 - 5 = 4' },
+      { problemText: '7 - 2 = ؟', answer: 5, ruleCategory: 'direct', steps: [{ stepIndex: 1, instructionText: 'أنزل الجدة 5 وارفع 2 = 7', fingerUsed: 'both_pinch', direction: 'pinch_in', targetColumn: 'units', beadsAffected: [5, 1, 2], expectedValueAfter: 7 }, { stepIndex: 2, instructionText: 'أنزل خرزتين بالسبابة', fingerUsed: 'index', direction: 'down', targetColumn: 'units', beadsAffected: [1, 2], expectedValueAfter: 5 }], explanation: '7 - 2 = 5' }
     ]
   },
   {
@@ -57,31 +55,70 @@ export const LEARN_MODULES: LearnModule[] = [
     status: 'locked', beads: { upper: 1, lower: 4 }, value: 9,
     concept: 'Small Friends = 5 - N', conceptAr: 'صديق 5: القاعدة 5 - N',
     icon: 'Combine',
-    audioText: 'الآن نتعلم أصدقاء العدد 5. صديق الرقم هو ما نطرحه لإكماله إلى 5.',
+    audioText: 'الآن نتعلم أصدقاء العدد 5. صديق الرقم هو ما نطرحه لإكماله إلى 5. عندما لا يوجد مكان كافٍ، تستعين الجدة 5 وتسحب معها صديق الرقم.',
     rule: 'Adding N = add 5, subtract (5-N)', ruleAr: 'لجمع N: أضف 5، اطرح صديقه (5 - N)',
     ruleTable: [
-  { formula: '+1', result: '+5 - 4' },
-  { formula: '+2', result: '+5 - 3' },
-  { formula: '+3', result: '+5 - 2' },
-  { formula: '+4', result: '+5 - 1' },
-  { formula: '-1', result: '-5 + 4' },
-  { formula: '-2', result: '-5 + 3' },
-  { formula: '-3', result: '-5 + 2' },
-  { formula: '-4', result: '-5 + 1' },
-],
-    story: 'نزّل الجدة 5، واطرُد صديق الرقم.',
+      { formula: '+1', result: '+5 - 4' },
+      { formula: '+2', result: '+5 - 3' },
+      { formula: '+3', result: '+5 - 2' },
+      { formula: '+4', result: '+5 - 1' },
+      { formula: '-1', result: '-5 + 4' },
+      { formula: '-2', result: '-5 + 3' },
+      { formula: '-3', result: '-5 + 2' },
+      { formula: '-4', result: '-5 + 1' },
+    ],
+    story: 'قصة الجدة 5: عندما لا يجد الأصدقاء مكاناً، تنزل الجدة 5 لتساعد، وتأخذ معها صديق الرقم.',
     examples: [
-      { problemText: '1 + 4 = ؟', answer: 5, ruleCategory: 'small_friends', steps: [{ stepIndex: 1, instructionText: 'ارفع 1 بالإبهام', fingerUsed: 'thumb', direction: 'up', targetColumn: 'units', beadsAffected: [1], expectedValueAfter: 1 }, { stepIndex: 2, instructionText: 'أنزل 5 وأنزل 1 (السبابة)', fingerUsed: 'index', direction: 'down', targetColumn: 'units', beadsAffected: [5, 1], expectedValueAfter: 5 }], explanation: '1 + 4 = 5. صديق 4 هو 1' },
-      { problemText: '2 + 3 = ؟', answer: 5, ruleCategory: 'small_friends', steps: [{ stepIndex: 1, instructionText: 'ارفع 2 بالإبهام', fingerUsed: 'thumb', direction: 'up', targetColumn: 'units', beadsAffected: [1, 2], expectedValueAfter: 2 }, { stepIndex: 2, instructionText: 'أنزل 5 وأنزل 2 (السبابة)', fingerUsed: 'index', direction: 'down', targetColumn: 'units', beadsAffected: [5, 1, 2], expectedValueAfter: 5 }], explanation: '2 + 3 = 5. صديق 3 هو 2' },
-      { problemText: '3 + 2 = ؟', answer: 5, ruleCategory: 'small_friends', steps: [{ stepIndex: 1, instructionText: 'ارفع 3 بالإبهام', fingerUsed: 'thumb', direction: 'up', targetColumn: 'units', beadsAffected: [1, 2, 3], expectedValueAfter: 3 }, { stepIndex: 2, instructionText: 'أنزل 5 وأنزل 3 (السبابة)', fingerUsed: 'index', direction: 'down', targetColumn: 'units', beadsAffected: [5, 1, 2, 3], expectedValueAfter: 5 }], explanation: '3 + 2 = 5. صديق 2 هو 3' },
-      { problemText: '4 + 1 = ؟', answer: 5, ruleCategory: 'small_friends', steps: [{ stepIndex: 1, instructionText: 'ارفع 4 بالإبهام', fingerUsed: 'thumb', direction: 'up', targetColumn: 'units', beadsAffected: [1, 2, 3, 4], expectedValueAfter: 4 }, { stepIndex: 2, instructionText: 'أنزل 5 وأنزل 4 (السبابة)', fingerUsed: 'index', direction: 'down', targetColumn: 'units', beadsAffected: [5, 1, 2, 3, 4], expectedValueAfter: 5 }], explanation: '4 + 1 = 5. صديق 1 هو 4' },
-      { problemText: '2 + 4 = ؟', answer: 6, ruleCategory: 'small_friends', steps: [{ stepIndex: 1, instructionText: 'ارفع 2 بالإبهام', fingerUsed: 'thumb', direction: 'up', targetColumn: 'units', beadsAffected: [1, 2], expectedValueAfter: 2 }, { stepIndex: 2, instructionText: 'أنزل 5 وأنزل 1 (السبابة)', fingerUsed: 'index', direction: 'down', targetColumn: 'units', beadsAffected: [5, 1], expectedValueAfter: 6 }], explanation: '2 + 4 = 6. صديق 4 هو 1' },
-      { problemText: '3 + 3 = ؟', answer: 6, ruleCategory: 'small_friends', steps: [{ stepIndex: 1, instructionText: 'ارفع 3 بالإبهام', fingerUsed: 'thumb', direction: 'up', targetColumn: 'units', beadsAffected: [1, 2, 3], expectedValueAfter: 3 }, { stepIndex: 2, instructionText: 'أنزل 5 وأنزل 2 (السبابة)', fingerUsed: 'index', direction: 'down', targetColumn: 'units', beadsAffected: [5, 1, 2], expectedValueAfter: 6 }], explanation: '3 + 3 = 6. صديق 3 هو 2' },
-      { problemText: '5 - 1 = ؟', answer: 4, ruleCategory: 'small_friends', steps: [{ stepIndex: 1, instructionText: 'أنزل 5 بالسبابة', fingerUsed: 'index', direction: 'down', targetColumn: 'units', beadsAffected: [5], expectedValueAfter: 5 }, { stepIndex: 2, instructionText: 'ارفع 5 وارفع 4 (القبض)', fingerUsed: 'both_pinch', direction: 'pinch_out', targetColumn: 'units', beadsAffected: [5, 1, 2, 3, 4], expectedValueAfter: 4 }], explanation: '5 - 1 = 4. صديق 1 هو 4' },
-      { problemText: '5 - 2 = ؟', answer: 3, ruleCategory: 'small_friends', steps: [{ stepIndex: 1, instructionText: 'أنزل 5 بالسبابة', fingerUsed: 'index', direction: 'down', targetColumn: 'units', beadsAffected: [5], expectedValueAfter: 5 }, { stepIndex: 2, instructionText: 'ارفع 5 وارفع 3 (القبض)', fingerUsed: 'both_pinch', direction: 'pinch_out', targetColumn: 'units', beadsAffected: [5, 1, 2, 3], expectedValueAfter: 3 }], explanation: '5 - 2 = 3. صديق 2 هو 3' },
-      { problemText: '6 - 2 = ؟', answer: 4, ruleCategory: 'small_friends', steps: [{ stepIndex: 1, instructionText: 'أنزل 5 وارفع 1 (القبض)', fingerUsed: 'both_pinch', direction: 'pinch_in', targetColumn: 'units', beadsAffected: [5, 1], expectedValueAfter: 6 }, { stepIndex: 2, instructionText: 'ارفع 5 وارفع 3 (القبض)', fingerUsed: 'both_pinch', direction: 'pinch_out', targetColumn: 'units', beadsAffected: [5, 1, 2, 3], expectedValueAfter: 4 }], explanation: '6 - 2 = 4' },
-      { problemText: '7 - 3 = ؟', answer: 4, ruleCategory: 'small_friends', steps: [{ stepIndex: 1, instructionText: 'أنزل 5 وارفع 2 (القبض)', fingerUsed: 'both_pinch', direction: 'pinch_in', targetColumn: 'units', beadsAffected: [5, 1, 2], expectedValueAfter: 7 }, { stepIndex: 2, instructionText: 'ارفع 5 وارفع 2 (القبض)', fingerUsed: 'both_pinch', direction: 'pinch_out', targetColumn: 'units', beadsAffected: [5, 1, 2], expectedValueAfter: 4 }], explanation: '7 - 3 = 4' },
-      { problemText: '8 - 4 = ؟', answer: 4, ruleCategory: 'small_friends', steps: [{ stepIndex: 1, instructionText: 'أنزل 5 وارفع 3 (القبض)', fingerUsed: 'both_pinch', direction: 'pinch_in', targetColumn: 'units', beadsAffected: [5, 1, 2, 3], expectedValueAfter: 8 }, { stepIndex: 2, instructionText: 'ارفع 5 وارفع 1 (القبض)', fingerUsed: 'both_pinch', direction: 'pinch_out', targetColumn: 'units', beadsAffected: [5, 1], expectedValueAfter: 4 }], explanation: '8 - 4 = 4' }
+      { problemText: '1 + 4 = ؟', answer: 5, ruleCategory: 'small_friends', steps: [
+        { stepIndex: 1, instructionText: 'مثّل 1: ارفع خرزة بالإبهام', fingerUsed: 'thumb', direction: 'up', targetColumn: 'units', beadsAffected: [1], expectedValueAfter: 1 },
+        { stepIndex: 2, instructionText: 'نريد إضافة 4، لكن لا يوجد مكان كافٍ. الجدة 5 تأتي! أنزل 5 بالسبابة', fingerUsed: 'index', direction: 'down', targetColumn: 'units', beadsAffected: [5], expectedValueAfter: 6 },
+        { stepIndex: 3, instructionText: '5 أكبر من 4، لذا نسحب (نطرح) صديق 4 (وهو 1). أنزل خرزة', fingerUsed: 'index', direction: 'down', targetColumn: 'units', beadsAffected: [1], expectedValueAfter: 5 }
+      ], explanation: '1 + 4 = 5. القاعدة: +4 = +5 - 1 (صديق 4 هو 1)' },
+      { problemText: '2 + 3 = ؟', answer: 5, ruleCategory: 'small_friends', steps: [
+        { stepIndex: 1, instructionText: 'مثّل 2: ارفع خرزتين بالإبهام', fingerUsed: 'thumb', direction: 'up', targetColumn: 'units', beadsAffected: [1, 2], expectedValueAfter: 2 },
+        { stepIndex: 2, instructionText: 'نريد إضافة 3، لكن لا يوجد سوى مكانين. الجدة 5 تأتي! أنزل 5 بالسبابة', fingerUsed: 'index', direction: 'down', targetColumn: 'units', beadsAffected: [5], expectedValueAfter: 7 },
+        { stepIndex: 3, instructionText: 'نسحب (نطرح) صديق 3 (وهو 2). أنزل خرزتين', fingerUsed: 'index', direction: 'down', targetColumn: 'units', beadsAffected: [1, 2], expectedValueAfter: 5 }
+      ], explanation: '2 + 3 = 5. القاعدة: +3 = +5 - 2 (صديق 3 هو 2)' },
+      { problemText: '3 + 2 = ؟', answer: 5, ruleCategory: 'small_friends', steps: [
+        { stepIndex: 1, instructionText: 'مثّل 3: ارفع 3 خرزات بالإبهام', fingerUsed: 'thumb', direction: 'up', targetColumn: 'units', beadsAffected: [1, 2, 3], expectedValueAfter: 3 },
+        { stepIndex: 2, instructionText: 'نريد إضافة 2، لكن لا يوجد مكان كافٍ. الجدة 5 تأتي! أنزل 5 بالسبابة', fingerUsed: 'index', direction: 'down', targetColumn: 'units', beadsAffected: [5], expectedValueAfter: 8 },
+        { stepIndex: 3, instructionText: 'نسحب (نطرح) صديق 2 (وهو 3). أنزل 3 خرزات', fingerUsed: 'index', direction: 'down', targetColumn: 'units', beadsAffected: [1, 2, 3], expectedValueAfter: 5 }
+      ], explanation: '3 + 2 = 5. القاعدة: +2 = +5 - 3 (صديق 2 هو 3)' },
+      { problemText: '4 + 1 = ؟', answer: 5, ruleCategory: 'small_friends', steps: [
+        { stepIndex: 1, instructionText: 'مثّل 4: ارفع 4 خرزات بالإبهام', fingerUsed: 'thumb', direction: 'up', targetColumn: 'units', beadsAffected: [1, 2, 3, 4], expectedValueAfter: 4 },
+        { stepIndex: 2, instructionText: 'نريد إضافة 1، لكن لا يوجد مكان كافٍ. الجدة 5 تأتي! أنزل 5 بالسبابة', fingerUsed: 'index', direction: 'down', targetColumn: 'units', beadsAffected: [5], expectedValueAfter: 9 },
+        { stepIndex: 3, instructionText: 'نسحب (نطرح) صديق 1 (وهو 4). أنزل 4 خرزات', fingerUsed: 'index', direction: 'down', targetColumn: 'units', beadsAffected: [1, 2, 3, 4], expectedValueAfter: 5 }
+      ], explanation: '4 + 1 = 5. القاعدة: +1 = +5 - 4 (صديق 1 هو 4)' },
+      { problemText: '2 + 4 = ؟', answer: 6, ruleCategory: 'small_friends', steps: [
+        { stepIndex: 1, instructionText: 'مثّل 2: ارفع خرزتين بالإبهام', fingerUsed: 'thumb', direction: 'up', targetColumn: 'units', beadsAffected: [1, 2], expectedValueAfter: 2 },
+        { stepIndex: 2, instructionText: 'نريد إضافة 4. الجدة 5 تأتي! أنزل 5 بالسبابة', fingerUsed: 'index', direction: 'down', targetColumn: 'units', beadsAffected: [5], expectedValueAfter: 7 },
+        { stepIndex: 3, instructionText: 'نسحب (نطرح) صديق 4 (وهو 1). أنزل خرزة', fingerUsed: 'index', direction: 'down', targetColumn: 'units', beadsAffected: [1], expectedValueAfter: 6 }
+      ], explanation: '2 + 4 = 6. القاعدة: +4 = +5 - 1 (صديق 4 هو 1)' },
+      { problemText: '3 + 3 = ؟', answer: 6, ruleCategory: 'small_friends', steps: [
+        { stepIndex: 1, instructionText: 'مثّل 3: ارفع 3 خرزات بالإبهام', fingerUsed: 'thumb', direction: 'up', targetColumn: 'units', beadsAffected: [1, 2, 3], expectedValueAfter: 3 },
+        { stepIndex: 2, instructionText: 'نريد إضافة 3. الجدة 5 تأتي! أنزل 5 بالسبابة', fingerUsed: 'index', direction: 'down', targetColumn: 'units', beadsAffected: [5], expectedValueAfter: 8 },
+        { stepIndex: 3, instructionText: 'نسحب (نطرح) صديق 3 (وهو 2). أنزل خرزتين', fingerUsed: 'index', direction: 'down', targetColumn: 'units', beadsAffected: [1, 2], expectedValueAfter: 6 }
+      ], explanation: '3 + 3 = 6. القاعدة: +3 = +5 - 2 (صديق 3 هو 2)' },
+      { problemText: '5 - 1 = ؟', answer: 4, ruleCategory: 'small_friends', steps: [
+        { stepIndex: 1, instructionText: 'مثّل 5: أنزل الجدة 5 بالسبابة', fingerUsed: 'index', direction: 'down', targetColumn: 'units', beadsAffected: [5], expectedValueAfter: 5 },
+        { stepIndex: 2, instructionText: 'نريد طرح 1، لكن لا يوجد شيء لنطرحه. نرفع الجدة 5 (نطرح 5) ونرفع 4 (نضيف 4) - القبض', fingerUsed: 'both_pinch', direction: 'pinch_out', targetColumn: 'units', beadsAffected: [5, 1, 2, 3, 4], expectedValueAfter: 4 }
+      ], explanation: '5 - 1 = 4. القاعدة: -1 = -5 + 4' },
+      { problemText: '5 - 2 = ؟', answer: 3, ruleCategory: 'small_friends', steps: [
+        { stepIndex: 1, instructionText: 'مثّل 5: أنزل الجدة 5 بالسبابة', fingerUsed: 'index', direction: 'down', targetColumn: 'units', beadsAffected: [5], expectedValueAfter: 5 },
+        { stepIndex: 2, instructionText: 'نريد طرح 2، لكن لا يوجد شيء. نرفع 5 ونرفع 3 - القبض', fingerUsed: 'both_pinch', direction: 'pinch_out', targetColumn: 'units', beadsAffected: [5, 1, 2, 3], expectedValueAfter: 3 }
+      ], explanation: '5 - 2 = 3. القاعدة: -2 = -5 + 3' },
+      { problemText: '6 - 2 = ؟', answer: 4, ruleCategory: 'small_friends', steps: [
+        { stepIndex: 1, instructionText: 'مثّل 6: أنزل 5 وارفع 1 - القبض', fingerUsed: 'both_pinch', direction: 'pinch_in', targetColumn: 'units', beadsAffected: [5, 1], expectedValueAfter: 6 },
+        { stepIndex: 2, instructionText: 'نريد طرح 2. نرفع 5 ونرفع 3 - القبض', fingerUsed: 'both_pinch', direction: 'pinch_out', targetColumn: 'units', beadsAffected: [5, 1, 2, 3], expectedValueAfter: 4 }
+      ], explanation: '6 - 2 = 4. القاعدة: -2 = -5 + 3' },
+      { problemText: '7 - 3 = ؟', answer: 4, ruleCategory: 'small_friends', steps: [
+        { stepIndex: 1, instructionText: 'مثّل 7: أنزل 5 وارفع 2 - القبض', fingerUsed: 'both_pinch', direction: 'pinch_in', targetColumn: 'units', beadsAffected: [5, 1, 2], expectedValueAfter: 7 },
+        { stepIndex: 2, instructionText: 'نريد طرح 3. نرفع 5 ونرفع 2 - القبض', fingerUsed: 'both_pinch', direction: 'pinch_out', targetColumn: 'units', beadsAffected: [5, 1, 2], expectedValueAfter: 4 }
+      ], explanation: '7 - 3 = 4. القاعدة: -3 = -5 + 2' },
+      { problemText: '8 - 4 = ؟', answer: 4, ruleCategory: 'small_friends', steps: [
+        { stepIndex: 1, instructionText: 'مثّل 8: أنزل 5 وارفع 3 - القبض', fingerUsed: 'both_pinch', direction: 'pinch_in', targetColumn: 'units', beadsAffected: [5, 1, 2, 3], expectedValueAfter: 8 },
+        { stepIndex: 2, instructionText: 'نريد طرح 4. نرفع 5 ونرفع 1 - القبض', fingerUsed: 'both_pinch', direction: 'pinch_out', targetColumn: 'units', beadsAffected: [5, 1], expectedValueAfter: 4 }
+      ], explanation: '8 - 4 = 4. القاعدة: -4 = -5 + 1' }
     ]
   },
   {
@@ -90,40 +127,68 @@ export const LEARN_MODULES: LearnModule[] = [
     status: 'locked', beads: { upper: 1, lower: 4 }, value: 13,
     concept: 'Big Friends = 10 - N', conceptAr: 'صديق 10: القاعدة 10 - N',
     icon: 'Sigma',
-    audioText: 'الآن نتعلم أصدقاء العدد 10. عندما يتجاوز الجمع 9، نحمل 10 إلى العشرات.',
+    audioText: 'الآن نتعلم أصدقاء العدد 10. عندما يتجاوز الجمع 9، نطرق باب الجار في العشرات ونرفع خرزة (+10)، ثم نسحب صديق الرقم.',
     rule: 'Add N = add 10, subtract (10-N)', ruleAr: 'لجمع N: أضف 10، اطرح صديقه (10 - N)',
     ruleTable: [
-  { formula: '+1', result: '+10 - 9' },
-  { formula: '+2', result: '+10 - 8' },
-  { formula: '+3', result: '+10 - 7' },
-  { formula: '+4', result: '+10 - 6' },
-  { formula: '+5', result: '+10 - 5' },
-  { formula: '+6', result: '+10 - 4' },
-  { formula: '+7', result: '+10 - 3' },
-  { formula: '+8', result: '+10 - 2' },
-  { formula: '+9', result: '+10 - 1' },
-  { formula: '-1', result: '-10 + 9' },
-  { formula: '-2', result: '-10 + 8' },
-  { formula: '-3', result: '-10 + 7' },
-  { formula: '-4', result: '-10 + 6' },
-  { formula: '-5', result: '-10 + 5' },
-  { formula: '-6', result: '-10 + 4' },
-  { formula: '-7', result: '-10 + 3' },
-  { formula: '-8', result: '-10 + 2' },
-  { formula: '-9', result: '-10 + 1' },
-],
-    story: 'طرق باب الجار الكريم: البيت ممتلئ، نذهب للجار في عمود العشرات ونرفع خرزة (+10).',
+      { formula: '+1', result: '+10 - 9' }, { formula: '+2', result: '+10 - 8' }, { formula: '+3', result: '+10 - 7' },
+      { formula: '+4', result: '+10 - 6' }, { formula: '+5', result: '+10 - 5' }, { formula: '+6', result: '+10 - 4' },
+      { formula: '+7', result: '+10 - 3' }, { formula: '+8', result: '+10 - 2' }, { formula: '+9', result: '+10 - 1' },
+      { formula: '-1', result: '-10 + 9' }, { formula: '-2', result: '-10 + 8' }, { formula: '-3', result: '-10 + 7' },
+      { formula: '-4', result: '-10 + 6' }, { formula: '-5', result: '-10 + 5' }, { formula: '-6', result: '-10 + 4' },
+      { formula: '-7', result: '-10 + 3' }, { formula: '-8', result: '-10 + 2' }, { formula: '-9', result: '-10 + 1' },
+    ],
+    story: 'الجار الكريم في العشرات: عندما لا يجد الأصدقاء مكاناً في الآحاد، يطرقون باب الجار في العشرات ويرفعون خرزة (+10).',
     examples: [
-      { problemText: '9 + 4 = ؟', answer: 13, ruleCategory: 'big_friends', steps: [{ stepIndex: 1, instructionText: 'أنزل 5 وارفع 4 = 9', fingerUsed: 'both_pinch', direction: 'pinch_in', targetColumn: 'units', beadsAffected: [5, 1, 2, 3, 4], expectedValueAfter: 9 }, { stepIndex: 2, instructionText: 'ارفع 1 في العشرات (+10)', fingerUsed: 'left_index', direction: 'up', targetColumn: 'tens', beadsAffected: [1], expectedValueAfter: 19 }, { stepIndex: 3, instructionText: 'أزل 6 من الآحاد (أنزل 5 وأنزل 1)', fingerUsed: 'both_pinch', direction: 'pinch_out', targetColumn: 'units', beadsAffected: [5, 1], expectedValueAfter: 13 }], explanation: '9 + 4 = 13. صديق 4 هو 6' },
-      { problemText: '8 + 5 = ؟', answer: 13, ruleCategory: 'big_friends', steps: [{ stepIndex: 1, instructionText: 'أنزل 5 وارفع 3 = 8', fingerUsed: 'both_pinch', direction: 'pinch_in', targetColumn: 'units', beadsAffected: [5, 1, 2, 3], expectedValueAfter: 8 }, { stepIndex: 2, instructionText: 'ارفع 1 في العشرات (+10)', fingerUsed: 'left_index', direction: 'up', targetColumn: 'tens', beadsAffected: [1], expectedValueAfter: 18 }, { stepIndex: 3, instructionText: 'أزل 5 من الآحاد (ارفع العلوية)', fingerUsed: 'index', direction: 'up', targetColumn: 'units', beadsAffected: [5], expectedValueAfter: 13 }], explanation: '8 + 5 = 13. صديق 5 هو 5' },
-      { problemText: '7 + 5 = ؟', answer: 12, ruleCategory: 'big_friends', steps: [{ stepIndex: 1, instructionText: 'أنزل 5 وارفع 2 = 7', fingerUsed: 'both_pinch', direction: 'pinch_in', targetColumn: 'units', beadsAffected: [5, 1, 2], expectedValueAfter: 7 }, { stepIndex: 2, instructionText: 'ارفع 1 في العشرات (+10)', fingerUsed: 'left_index', direction: 'up', targetColumn: 'tens', beadsAffected: [1], expectedValueAfter: 17 }, { stepIndex: 3, instructionText: 'أزل 5 من الآحاد (ارفع العلوية)', fingerUsed: 'index', direction: 'up', targetColumn: 'units', beadsAffected: [5], expectedValueAfter: 12 }], explanation: '7 + 5 = 12' },
-      { problemText: '6 + 5 = ؟', answer: 11, ruleCategory: 'big_friends', steps: [{ stepIndex: 1, instructionText: 'أنزل 5 وارفع 1 = 6', fingerUsed: 'both_pinch', direction: 'pinch_in', targetColumn: 'units', beadsAffected: [5, 1], expectedValueAfter: 6 }, { stepIndex: 2, instructionText: 'ارفع 1 في العشرات (+10)', fingerUsed: 'left_index', direction: 'up', targetColumn: 'tens', beadsAffected: [1], expectedValueAfter: 16 }, { stepIndex: 3, instructionText: 'أزل 5 من الآحاد (ارفع العلوية)', fingerUsed: 'index', direction: 'up', targetColumn: 'units', beadsAffected: [5], expectedValueAfter: 11 }], explanation: '6 + 5 = 11' },
-      { problemText: '5 + 5 = ؟', answer: 10, ruleCategory: 'big_friends', steps: [{ stepIndex: 1, instructionText: 'أنزل 5 بالسبابة', fingerUsed: 'index', direction: 'down', targetColumn: 'units', beadsAffected: [5], expectedValueAfter: 5 }, { stepIndex: 2, instructionText: 'ارفع 1 في العشرات (+10)', fingerUsed: 'left_index', direction: 'up', targetColumn: 'tens', beadsAffected: [1], expectedValueAfter: 15 }, { stepIndex: 3, instructionText: 'أزل 5 من الآحاد (ارفع العلوية)', fingerUsed: 'index', direction: 'up', targetColumn: 'units', beadsAffected: [5], expectedValueAfter: 10 }], explanation: '5 + 5 = 10' },
-      { problemText: '12 - 5 = ؟', answer: 7, ruleCategory: 'big_friends', steps: [{ stepIndex: 1, instructionText: 'مثّل 12 (1 عشرات + 2 آحاد)', fingerUsed: 'both_pinch', direction: 'pinch_in', targetColumn: 'tens', beadsAffected: [1], expectedValueAfter: 12 }, { stepIndex: 2, instructionText: 'اطرح 10 (أزل 1 من العشرات)', fingerUsed: 'left_index', direction: 'down', targetColumn: 'tens', beadsAffected: [1], expectedValueAfter: 2 }, { stepIndex: 3, instructionText: 'أضف 5 (أنزل العلوية)', fingerUsed: 'index', direction: 'down', targetColumn: 'units', beadsAffected: [5], expectedValueAfter: 7 }], explanation: '12 - 5 = 7' },
-      { problemText: '15 - 7 = ؟', answer: 8, ruleCategory: 'big_friends', steps: [{ stepIndex: 1, instructionText: 'مثّل 15 (1 عشرات + 5 آحاد)', fingerUsed: 'both_pinch', direction: 'pinch_in', targetColumn: 'tens', beadsAffected: [1], expectedValueAfter: 15 }, { stepIndex: 2, instructionText: 'اطرح 10 (أزل 1 من العشرات)', fingerUsed: 'left_index', direction: 'down', targetColumn: 'tens', beadsAffected: [1], expectedValueAfter: 5 }, { stepIndex: 3, instructionText: 'أضف 3 (ارفع 3)', fingerUsed: 'thumb', direction: 'up', targetColumn: 'units', beadsAffected: [1, 2, 3], expectedValueAfter: 8 }], explanation: '15 - 7 = 8. صديق 7 هو 3' },
-      { problemText: '13 - 5 = ؟', answer: 8, ruleCategory: 'big_friends', steps: [{ stepIndex: 1, instructionText: 'مثّل 13 (1 عشرات + 3 آحاد)', fingerUsed: 'both_pinch', direction: 'pinch_in', targetColumn: 'tens', beadsAffected: [1], expectedValueAfter: 13 }, { stepIndex: 2, instructionText: 'اطرح 10 (أزل 1 من العشرات)', fingerUsed: 'left_index', direction: 'down', targetColumn: 'tens', beadsAffected: [1], expectedValueAfter: 3 }, { stepIndex: 3, instructionText: 'أضف 5 (أنزل العلوية)', fingerUsed: 'index', direction: 'down', targetColumn: 'units', beadsAffected: [5], expectedValueAfter: 8 }], explanation: '13 - 5 = 8' },
-      { problemText: '11 - 4 = ؟', answer: 7, ruleCategory: 'big_friends', steps: [{ stepIndex: 1, instructionText: 'مثّل 11 (1 عشرات + 1 آحاد)', fingerUsed: 'both_pinch', direction: 'pinch_in', targetColumn: 'tens', beadsAffected: [1], expectedValueAfter: 11 }, { stepIndex: 2, instructionText: 'اطرح 10 (أزل 1 من العشرات)', fingerUsed: 'left_index', direction: 'down', targetColumn: 'tens', beadsAffected: [1], expectedValueAfter: 1 }, { stepIndex: 3, instructionText: 'أضف 6 (أنزل 5 وارفع 1)', fingerUsed: 'both_pinch', direction: 'pinch_in', targetColumn: 'units', beadsAffected: [5, 1], expectedValueAfter: 7 }], explanation: '11 - 4 = 7. صديق 4 هو 6' },
-      { problemText: '10 - 3 = ؟', answer: 7, ruleCategory: 'big_friends', steps: [{ stepIndex: 1, instructionText: 'مثّل 10 (1 عشرات)', fingerUsed: 'left_index', direction: 'up', targetColumn: 'tens', beadsAffected: [1], expectedValueAfter: 10 }, { stepIndex: 2, instructionText: 'اطرح 10 (أزل 1 من العشرات)', fingerUsed: 'left_index', direction: 'down', targetColumn: 'tens', beadsAffected: [1], expectedValueAfter: 0 }, { stepIndex: 3, instructionText: 'أضف 7 (أنزل 5 وارفع 2)', fingerUsed: 'both_pinch', direction: 'pinch_in', targetColumn: 'units', beadsAffected: [5, 1, 2], expectedValueAfter: 7 }], explanation: '10 - 3 = 7. صديق 3 هو 7' }
+      { problemText: '9 + 4 = ؟', answer: 13, ruleCategory: 'big_friends', steps: [
+        { stepIndex: 1, instructionText: 'مثّل 9: أنزل 5 وارفع 4 - القبض', fingerUsed: 'both_pinch', direction: 'pinch_in', targetColumn: 'units', beadsAffected: [5, 1, 2, 3, 4], expectedValueAfter: 9 },
+        { stepIndex: 2, instructionText: 'نريد إضافة 4، لكن الآحاد ممتلئ. نطرق باب الجار! ارفع 1 في العشرات (+10)', fingerUsed: 'left_index', direction: 'up', targetColumn: 'tens', beadsAffected: [1], expectedValueAfter: 19 },
+        { stepIndex: 3, instructionText: 'نسحب (نطرح) صديق 4، وهو 6. أنزل 5 وأنزل 1', fingerUsed: 'both_pinch', direction: 'pinch_out', targetColumn: 'units', beadsAffected: [5, 1], expectedValueAfter: 13 }
+      ], explanation: '9 + 4 = 13. القاعدة: +4 = +10 - 6' },
+      { problemText: '8 + 5 = ؟', answer: 13, ruleCategory: 'big_friends', steps: [
+        { stepIndex: 1, instructionText: 'مثّل 8: أنزل 5 وارفع 3 - القبض', fingerUsed: 'both_pinch', direction: 'pinch_in', targetColumn: 'units', beadsAffected: [5, 1, 2, 3], expectedValueAfter: 8 },
+        { stepIndex: 2, instructionText: 'الآحاد ممتلئ. نطرق باب الجار! ارفع 1 في العشرات (+10)', fingerUsed: 'left_index', direction: 'up', targetColumn: 'tens', beadsAffected: [1], expectedValueAfter: 18 },
+        { stepIndex: 3, instructionText: 'نسحب صديق 5، وهو 5. ارفع الجدة 5', fingerUsed: 'index', direction: 'up', targetColumn: 'units', beadsAffected: [5], expectedValueAfter: 13 }
+      ], explanation: '8 + 5 = 13. القاعدة: +5 = +10 - 5' },
+      { problemText: '7 + 5 = ؟', answer: 12, ruleCategory: 'big_friends', steps: [
+        { stepIndex: 1, instructionText: 'مثّل 7: أنزل 5 وارفع 2 - القبض', fingerUsed: 'both_pinch', direction: 'pinch_in', targetColumn: 'units', beadsAffected: [5, 1, 2], expectedValueAfter: 7 },
+        { stepIndex: 2, instructionText: 'نطرق باب الجار! ارفع 1 في العشرات (+10)', fingerUsed: 'left_index', direction: 'up', targetColumn: 'tens', beadsAffected: [1], expectedValueAfter: 17 },
+        { stepIndex: 3, instructionText: 'نسحب صديق 5 (وهو 5). ارفع الجدة 5', fingerUsed: 'index', direction: 'up', targetColumn: 'units', beadsAffected: [5], expectedValueAfter: 12 }
+      ], explanation: '7 + 5 = 12. القاعدة: +5 = +10 - 5' },
+      { problemText: '6 + 5 = ؟', answer: 11, ruleCategory: 'big_friends', steps: [
+        { stepIndex: 1, instructionText: 'مثّل 6: أنزل 5 وارفع 1 - القبض', fingerUsed: 'both_pinch', direction: 'pinch_in', targetColumn: 'units', beadsAffected: [5, 1], expectedValueAfter: 6 },
+        { stepIndex: 2, instructionText: 'نطرق باب الجار! ارفع 1 في العشرات (+10)', fingerUsed: 'left_index', direction: 'up', targetColumn: 'tens', beadsAffected: [1], expectedValueAfter: 16 },
+        { stepIndex: 3, instructionText: 'نسحب صديق 5 (وهو 5). ارفع الجدة 5', fingerUsed: 'index', direction: 'up', targetColumn: 'units', beadsAffected: [5], expectedValueAfter: 11 }
+      ], explanation: '6 + 5 = 11. القاعدة: +5 = +10 - 5' },
+      { problemText: '5 + 5 = ؟', answer: 10, ruleCategory: 'big_friends', steps: [
+        { stepIndex: 1, instructionText: 'مثّل 5: أنزل الجدة 5 بالسبابة', fingerUsed: 'index', direction: 'down', targetColumn: 'units', beadsAffected: [5], expectedValueAfter: 5 },
+        { stepIndex: 2, instructionText: 'نطرق باب الجار! ارفع 1 في العشرات (+10)', fingerUsed: 'left_index', direction: 'up', targetColumn: 'tens', beadsAffected: [1], expectedValueAfter: 15 },
+        { stepIndex: 3, instructionText: 'نسحب صديق 5 (وهو 5). ارفع الجدة 5', fingerUsed: 'index', direction: 'up', targetColumn: 'units', beadsAffected: [5], expectedValueAfter: 10 }
+      ], explanation: '5 + 5 = 10. القاعدة: +5 = +10 - 5' },
+      { problemText: '12 - 5 = ؟', answer: 7, ruleCategory: 'big_friends', steps: [
+        { stepIndex: 1, instructionText: 'مثّل 12: ارفع 1 عشرات وارفع 2 آحاد - القبض', fingerUsed: 'both_pinch', direction: 'pinch_in', targetColumn: 'tens', beadsAffected: [1], expectedValueAfter: 12 },
+        { stepIndex: 2, instructionText: 'نريد طرح 5، لكن لا يمكن. نستعير من الجار: أزل 1 عشرات (-10)', fingerUsed: 'left_index', direction: 'down', targetColumn: 'tens', beadsAffected: [1], expectedValueAfter: 2 },
+        { stepIndex: 3, instructionText: 'نضيف صديق 5 (وهو 5). أنزل الجدة 5', fingerUsed: 'index', direction: 'down', targetColumn: 'units', beadsAffected: [5], expectedValueAfter: 7 }
+      ], explanation: '12 - 5 = 7. القاعدة: -5 = -10 + 5' },
+      { problemText: '15 - 7 = ؟', answer: 8, ruleCategory: 'big_friends', steps: [
+        { stepIndex: 1, instructionText: 'مثّل 15: ارفع 1 عشرات وارفع 5 آحاد - القبض', fingerUsed: 'both_pinch', direction: 'pinch_in', targetColumn: 'tens', beadsAffected: [1], expectedValueAfter: 15 },
+        { stepIndex: 2, instructionText: 'نستعير من الجار: أزل 1 عشرات (-10)', fingerUsed: 'left_index', direction: 'down', targetColumn: 'tens', beadsAffected: [1], expectedValueAfter: 5 },
+        { stepIndex: 3, instructionText: 'نضيف صديق 7 (وهو 3). ارفع 3 خرزات', fingerUsed: 'thumb', direction: 'up', targetColumn: 'units', beadsAffected: [1, 2, 3], expectedValueAfter: 8 }
+      ], explanation: '15 - 7 = 8. القاعدة: -7 = -10 + 3' },
+      { problemText: '13 - 5 = ؟', answer: 8, ruleCategory: 'big_friends', steps: [
+        { stepIndex: 1, instructionText: 'مثّل 13: ارفع 1 عشرات وارفع 3 آحاد - القبض', fingerUsed: 'both_pinch', direction: 'pinch_in', targetColumn: 'tens', beadsAffected: [1], expectedValueAfter: 13 },
+        { stepIndex: 2, instructionText: 'نستعير من الجار: أزل 1 عشرات (-10)', fingerUsed: 'left_index', direction: 'down', targetColumn: 'tens', beadsAffected: [1], expectedValueAfter: 3 },
+        { stepIndex: 3, instructionText: 'نضيف صديق 5 (وهو 5). أنزل الجدة 5', fingerUsed: 'index', direction: 'down', targetColumn: 'units', beadsAffected: [5], expectedValueAfter: 8 }
+      ], explanation: '13 - 5 = 8. القاعدة: -5 = -10 + 5' },
+      { problemText: '11 - 4 = ؟', answer: 7, ruleCategory: 'big_friends', steps: [
+        { stepIndex: 1, instructionText: 'مثّل 11: ارفع 1 عشرات وارفع 1 آحاد', fingerUsed: 'both_pinch', direction: 'pinch_in', targetColumn: 'tens', beadsAffected: [1], expectedValueAfter: 11 },
+        { stepIndex: 2, instructionText: 'نستعير من الجار: أزل 1 عشرات (-10)', fingerUsed: 'left_index', direction: 'down', targetColumn: 'tens', beadsAffected: [1], expectedValueAfter: 1 },
+        { stepIndex: 3, instructionText: 'نضيف صديق 4 (وهو 6). أنزل 5 وارفع 1 - القبض', fingerUsed: 'both_pinch', direction: 'pinch_in', targetColumn: 'units', beadsAffected: [5, 1], expectedValueAfter: 7 }
+      ], explanation: '11 - 4 = 7. القاعدة: -4 = -10 + 6' },
+      { problemText: '10 - 3 = ؟', answer: 7, ruleCategory: 'big_friends', steps: [
+        { stepIndex: 1, instructionText: 'مثّل 10: ارفع 1 عشرات', fingerUsed: 'left_index', direction: 'up', targetColumn: 'tens', beadsAffected: [1], expectedValueAfter: 10 },
+        { stepIndex: 2, instructionText: 'أزل 1 عشرات (-10)', fingerUsed: 'left_index', direction: 'down', targetColumn: 'tens', beadsAffected: [1], expectedValueAfter: 0 },
+        { stepIndex: 3, instructionText: 'نضيف صديق 3 (وهو 7). أنزل 5 وارفع 2 - القبض', fingerUsed: 'both_pinch', direction: 'pinch_in', targetColumn: 'units', beadsAffected: [5, 1, 2], expectedValueAfter: 7 }
+      ], explanation: '10 - 3 = 7. القاعدة: -3 = -10 + 7' }
     ]
   },
   {
@@ -132,29 +197,65 @@ export const LEARN_MODULES: LearnModule[] = [
     status: 'locked', beads: { upper: 1, lower: 4 }, value: 13,
     concept: 'Combined = +10 - 5 + 1', conceptAr: 'المركب: +10 - 5 + 1',
     icon: 'Brain',
-    audioText: 'القواعد المركبة تجمع بين صديق 5 وصديق 10. لجمع 6: نضيف 10، ثم ننزل 5، ثم نرفع 1.',
+    audioText: 'القواعد المركبة تجمع بين صديق 5 وصديق 10. لجمع 6: نضيف 10 (الجار)، ننزل 5 (الجدة)، ثم نرفع 1 (الفرق).',
     rule: '+N = +10 - 5 + (N-5)', ruleAr: 'لجمع N: أضف 10، اطرح 5، أضف (N - 5)',
-ruleTable: [
-  { formula: '+6', result: '+10 - 5 + 1' },
-  { formula: '+7', result: '+10 - 5 + 2' },
-  { formula: '+8', result: '+10 - 5 + 3' },
-  { formula: '+9', result: '+10 - 5 + 4' },
-  { formula: '-6', result: '-10 + 5 - 1' },
-  { formula: '-7', result: '-10 + 5 - 2' },
-  { formula: '-8', result: '-10 + 5 - 3' },
-  { formula: '-9', result: '-10 + 5 - 4' },
-],
-story:
-    'حفلة التبادل الكبرى: نريد إضافة 6، لكن الخرزات السفلية غير كافية.',
+    ruleTable: [
+      { formula: '+6', result: '+10 - 5 + 1' },
+      { formula: '+7', result: '+10 - 5 + 2' },
+      { formula: '+8', result: '+10 - 5 + 3' },
+      { formula: '+9', result: '+10 - 5 + 4' },
+      { formula: '-6', result: '-10 + 5 - 1' },
+      { formula: '-7', result: '-10 + 5 - 2' },
+      { formula: '-8', result: '-10 + 5 - 3' },
+      { formula: '-9', result: '-10 + 5 - 4' },
+    ],
+    story: 'حفلة التبادل الكبرى: نجمع الجار والجدة معاً! +10 (الجار) و -5 (الجدة) و (+1).',
     examples: [
-      { problemText: '15 + 6 = ؟', answer: 21, ruleCategory: 'combined', steps: [{ stepIndex: 1, instructionText: 'مثّل 15 (1 عشرات، 5 آحاد)', fingerUsed: 'both_pinch', direction: 'pinch_in', targetColumn: 'tens', beadsAffected: [1], expectedValueAfter: 15 }, { stepIndex: 2, instructionText: 'ارفع 1 في العشرات (+10)', fingerUsed: 'left_index', direction: 'up', targetColumn: 'tens', beadsAffected: [2], expectedValueAfter: 25 }, { stepIndex: 3, instructionText: 'أنزل 5 (اطرح 5)', fingerUsed: 'index', direction: 'down', targetColumn: 'units', beadsAffected: [5], expectedValueAfter: 20 }, { stepIndex: 4, instructionText: 'ارفع 1 (أضف 1)', fingerUsed: 'thumb', direction: 'up', targetColumn: 'units', beadsAffected: [1], expectedValueAfter: 21 }], explanation: '15 + 6 = 21. +10 - 5 + 1' },
-      { problemText: '7 + 6 = ؟', answer: 13, ruleCategory: 'combined', steps: [{ stepIndex: 1, instructionText: 'مثّل 7 (علوية + 2)', fingerUsed: 'both_pinch', direction: 'pinch_in', targetColumn: 'units', beadsAffected: [5, 1, 2], expectedValueAfter: 7 }, { stepIndex: 2, instructionText: 'ارفع 1 في العشرات (+10)', fingerUsed: 'left_index', direction: 'up', targetColumn: 'tens', beadsAffected: [1], expectedValueAfter: 17 }, { stepIndex: 3, instructionText: 'أنزل 5 (اطرح 5)', fingerUsed: 'index', direction: 'down', targetColumn: 'units', beadsAffected: [5], expectedValueAfter: 12 }, { stepIndex: 4, instructionText: 'ارفع 1 (أضف 1)', fingerUsed: 'thumb', direction: 'up', targetColumn: 'units', beadsAffected: [1], expectedValueAfter: 13 }], explanation: '7 + 6 = 13. +10 - 5 + 1' },
-      { problemText: '6 + 6 = ؟', answer: 12, ruleCategory: 'combined', steps: [{ stepIndex: 1, instructionText: 'مثّل 6 (علوية + 1)', fingerUsed: 'both_pinch', direction: 'pinch_in', targetColumn: 'units', beadsAffected: [5, 1], expectedValueAfter: 6 }, { stepIndex: 2, instructionText: 'ارفع 1 في العشرات (+10)', fingerUsed: 'left_index', direction: 'up', targetColumn: 'tens', beadsAffected: [1], expectedValueAfter: 16 }, { stepIndex: 3, instructionText: 'أنزل 5 (اطرح 5)', fingerUsed: 'index', direction: 'down', targetColumn: 'units', beadsAffected: [5], expectedValueAfter: 11 }, { stepIndex: 4, instructionText: 'ارفع 1 (أضف 1)', fingerUsed: 'thumb', direction: 'up', targetColumn: 'units', beadsAffected: [1], expectedValueAfter: 12 }], explanation: '6 + 6 = 12. +10 - 5 + 1' },
-      { problemText: '8 + 8 = ؟', answer: 16, ruleCategory: 'combined', steps: [{ stepIndex: 1, instructionText: 'مثّل 8 (علوية + 3)', fingerUsed: 'both_pinch', direction: 'pinch_in', targetColumn: 'units', beadsAffected: [5, 1, 2, 3], expectedValueAfter: 8 }, { stepIndex: 2, instructionText: 'ارفع 1 في العشرات (+10)', fingerUsed: 'left_index', direction: 'up', targetColumn: 'tens', beadsAffected: [1], expectedValueAfter: 18 }, { stepIndex: 3, instructionText: 'أنزل 5 وارفع 3 (اطرح 2)', fingerUsed: 'both_pinch', direction: 'pinch_out', targetColumn: 'units', beadsAffected: [5, 1, 2], expectedValueAfter: 16 }], explanation: '8 + 8 = 16. +10 - 2' },
-      { problemText: '7 + 7 = ؟', answer: 14, ruleCategory: 'combined', steps: [{ stepIndex: 1, instructionText: 'مثّل 7 (علوية + 2)', fingerUsed: 'both_pinch', direction: 'pinch_in', targetColumn: 'units', beadsAffected: [5, 1, 2], expectedValueAfter: 7 }, { stepIndex: 2, instructionText: 'ارفع 1 في العشرات (+10)', fingerUsed: 'left_index', direction: 'up', targetColumn: 'tens', beadsAffected: [1], expectedValueAfter: 17 }, { stepIndex: 3, instructionText: 'أنزل 5 وارفع 2 (اطرح 3)', fingerUsed: 'both_pinch', direction: 'pinch_out', targetColumn: 'units', beadsAffected: [5, 1, 2], expectedValueAfter: 14 }], explanation: '7 + 7 = 14. +10 - 3' },
-      { problemText: '9 + 9 = ؟', answer: 18, ruleCategory: 'combined', steps: [{ stepIndex: 1, instructionText: 'مثّل 9 (علوية + 4)', fingerUsed: 'both_pinch', direction: 'pinch_in', targetColumn: 'units', beadsAffected: [5, 1, 2, 3, 4], expectedValueAfter: 9 }, { stepIndex: 2, instructionText: 'ارفع 1 في العشرات (+10)', fingerUsed: 'left_index', direction: 'up', targetColumn: 'tens', beadsAffected: [1], expectedValueAfter: 19 }, { stepIndex: 3, instructionText: 'أنزل 1 (اطرح 1)', fingerUsed: 'index', direction: 'down', targetColumn: 'units', beadsAffected: [1], expectedValueAfter: 18 }], explanation: '9 + 9 = 18. +10 - 1' },
-      { problemText: '13 - 6 = ؟', answer: 7, ruleCategory: 'combined', steps: [{ stepIndex: 1, instructionText: 'مثّل 13 (1 عشرات، 3 آحاد)', fingerUsed: 'both_pinch', direction: 'pinch_in', targetColumn: 'tens', beadsAffected: [1], expectedValueAfter: 13 }, { stepIndex: 2, instructionText: 'أزل 1 من العشرات (-10)', fingerUsed: 'left_index', direction: 'down', targetColumn: 'tens', beadsAffected: [1], expectedValueAfter: 3 }, { stepIndex: 3, instructionText: 'أنزل 5 (أضف 5)', fingerUsed: 'index', direction: 'down', targetColumn: 'units', beadsAffected: [5], expectedValueAfter: 8 }, { stepIndex: 4, instructionText: 'أنزل 1 (اطرح 1)', fingerUsed: 'thumb', direction: 'down', targetColumn: 'units', beadsAffected: [1], expectedValueAfter: 7 }], explanation: '13 - 6 = 7. -10 + 5 - 1' },
-      { problemText: '12 - 7 = ؟', answer: 5, ruleCategory: 'combined', steps: [{ stepIndex: 1, instructionText: 'مثّل 12 (1 عشرات، 2 آحاد)', fingerUsed: 'both_pinch', direction: 'pinch_in', targetColumn: 'tens', beadsAffected: [1], expectedValueAfter: 12 }, { stepIndex: 2, instructionText: 'أزل 1 من العشرات (-10)', fingerUsed: 'left_index', direction: 'down', targetColumn: 'tens', beadsAffected: [1], expectedValueAfter: 2 }, { stepIndex: 3, instructionText: 'أنزل 5 (أضف 5)', fingerUsed: 'index', direction: 'down', targetColumn: 'units', beadsAffected: [5], expectedValueAfter: 7 }, { stepIndex: 4, instructionText: 'أنزل 2 (اطرح 2)', fingerUsed: 'index', direction: 'down', targetColumn: 'units', beadsAffected: [1, 2], expectedValueAfter: 5 }], explanation: '12 - 7 = 5. -10 + 5 - 2' }
+      { problemText: '15 + 6 = ؟', answer: 21, ruleCategory: 'combined', steps: [
+        { stepIndex: 1, instructionText: 'مثّل 15: 1 عشرات، 5 آحاد', fingerUsed: 'both_pinch', direction: 'pinch_in', targetColumn: 'tens', beadsAffected: [1], expectedValueAfter: 15 },
+        { stepIndex: 2, instructionText: 'نضيف 10 (الجار): ارفع 1 عشرات', fingerUsed: 'left_index', direction: 'up', targetColumn: 'tens', beadsAffected: [2], expectedValueAfter: 25 },
+        { stepIndex: 3, instructionText: 'ننزل 5 (الجدة): نطرح 5', fingerUsed: 'index', direction: 'down', targetColumn: 'units', beadsAffected: [5], expectedValueAfter: 20 },
+        { stepIndex: 4, instructionText: 'نضيف الفرق (+1): ارفع خرزة', fingerUsed: 'thumb', direction: 'up', targetColumn: 'units', beadsAffected: [1], expectedValueAfter: 21 }
+      ], explanation: '15 + 6 = 21. القاعدة: +6 = +10 - 5 + 1' },
+      { problemText: '7 + 6 = ؟', answer: 13, ruleCategory: 'combined', steps: [
+        { stepIndex: 1, instructionText: 'مثّل 7: أنزل 5 وارفع 2 - القبض', fingerUsed: 'both_pinch', direction: 'pinch_in', targetColumn: 'units', beadsAffected: [5, 1, 2], expectedValueAfter: 7 },
+        { stepIndex: 2, instructionText: 'نضيف 10 (الجار): ارفع 1 عشرات', fingerUsed: 'left_index', direction: 'up', targetColumn: 'tens', beadsAffected: [1], expectedValueAfter: 17 },
+        { stepIndex: 3, instructionText: 'ننزل 5 (الجدة)', fingerUsed: 'index', direction: 'down', targetColumn: 'units', beadsAffected: [5], expectedValueAfter: 12 },
+        { stepIndex: 4, instructionText: 'نضيف 1 (الفرق)', fingerUsed: 'thumb', direction: 'up', targetColumn: 'units', beadsAffected: [1], expectedValueAfter: 13 }
+      ], explanation: '7 + 6 = 13. القاعدة: +6 = +10 - 5 + 1' },
+      { problemText: '6 + 6 = ؟', answer: 12, ruleCategory: 'combined', steps: [
+        { stepIndex: 1, instructionText: 'مثّل 6: أنزل 5 وارفع 1 - القبض', fingerUsed: 'both_pinch', direction: 'pinch_in', targetColumn: 'units', beadsAffected: [5, 1], expectedValueAfter: 6 },
+        { stepIndex: 2, instructionText: 'نضيف 10 (الجار)', fingerUsed: 'left_index', direction: 'up', targetColumn: 'tens', beadsAffected: [1], expectedValueAfter: 16 },
+        { stepIndex: 3, instructionText: 'ننزل 5 (الجدة)', fingerUsed: 'index', direction: 'down', targetColumn: 'units', beadsAffected: [5], expectedValueAfter: 11 },
+        { stepIndex: 4, instructionText: 'نضيف 1 (الفرق)', fingerUsed: 'thumb', direction: 'up', targetColumn: 'units', beadsAffected: [1], expectedValueAfter: 12 }
+      ], explanation: '6 + 6 = 12. القاعدة: +6 = +10 - 5 + 1' },
+      { problemText: '8 + 8 = ؟', answer: 16, ruleCategory: 'combined', steps: [
+        { stepIndex: 1, instructionText: 'مثّل 8: أنزل 5 وارفع 3 - القبض', fingerUsed: 'both_pinch', direction: 'pinch_in', targetColumn: 'units', beadsAffected: [5, 1, 2, 3], expectedValueAfter: 8 },
+        { stepIndex: 2, instructionText: 'نضيف 10 (الجار)', fingerUsed: 'left_index', direction: 'up', targetColumn: 'tens', beadsAffected: [1], expectedValueAfter: 18 },
+        { stepIndex: 3, instructionText: 'نسحب 2 (صديق 8 = 2): ننزل 5 وارفع 3', fingerUsed: 'both_pinch', direction: 'pinch_out', targetColumn: 'units', beadsAffected: [5, 1, 2], expectedValueAfter: 16 }
+      ], explanation: '8 + 8 = 16. القاعدة: +8 = +10 - 2' },
+      { problemText: '7 + 7 = ؟', answer: 14, ruleCategory: 'combined', steps: [
+        { stepIndex: 1, instructionText: 'مثّل 7: أنزل 5 وارفع 2 - القبض', fingerUsed: 'both_pinch', direction: 'pinch_in', targetColumn: 'units', beadsAffected: [5, 1, 2], expectedValueAfter: 7 },
+        { stepIndex: 2, instructionText: 'نضيف 10 (الجار)', fingerUsed: 'left_index', direction: 'up', targetColumn: 'tens', beadsAffected: [1], expectedValueAfter: 17 },
+        { stepIndex: 3, instructionText: 'نسحب 3 (صديق 7 = 3): ننزل 5 وارفع 2', fingerUsed: 'both_pinch', direction: 'pinch_out', targetColumn: 'units', beadsAffected: [5, 1, 2], expectedValueAfter: 14 }
+      ], explanation: '7 + 7 = 14. القاعدة: +7 = +10 - 3' },
+      { problemText: '9 + 9 = ؟', answer: 18, ruleCategory: 'combined', steps: [
+        { stepIndex: 1, instructionText: 'مثّل 9: أنزل 5 وارفع 4 - القبض', fingerUsed: 'both_pinch', direction: 'pinch_in', targetColumn: 'units', beadsAffected: [5, 1, 2, 3, 4], expectedValueAfter: 9 },
+        { stepIndex: 2, instructionText: 'نضيف 10 (الجار)', fingerUsed: 'left_index', direction: 'up', targetColumn: 'tens', beadsAffected: [1], expectedValueAfter: 19 },
+        { stepIndex: 3, instructionText: 'نسحب 1 (صديق 9 = 1): أنزل خرزة', fingerUsed: 'index', direction: 'down', targetColumn: 'units', beadsAffected: [1], expectedValueAfter: 18 }
+      ], explanation: '9 + 9 = 18. القاعدة: +9 = +10 - 1' },
+      { problemText: '13 - 6 = ؟', answer: 7, ruleCategory: 'combined', steps: [
+        { stepIndex: 1, instructionText: 'مثّل 13: 1 عشرات، 3 آحاد', fingerUsed: 'both_pinch', direction: 'pinch_in', targetColumn: 'tens', beadsAffected: [1], expectedValueAfter: 13 },
+        { stepIndex: 2, instructionText: 'نستعير من الجار: أزل 1 عشرات (-10)', fingerUsed: 'left_index', direction: 'down', targetColumn: 'tens', beadsAffected: [1], expectedValueAfter: 3 },
+        { stepIndex: 3, instructionText: 'نضيف 5 (الجدة)', fingerUsed: 'index', direction: 'down', targetColumn: 'units', beadsAffected: [5], expectedValueAfter: 8 },
+        { stepIndex: 4, instructionText: 'نسحب 1 (الفرق): أنزل خرزة', fingerUsed: 'thumb', direction: 'down', targetColumn: 'units', beadsAffected: [1], expectedValueAfter: 7 }
+      ], explanation: '13 - 6 = 7. القاعدة: -6 = -10 + 5 - 1' },
+      { problemText: '12 - 7 = ؟', answer: 5, ruleCategory: 'combined', steps: [
+        { stepIndex: 1, instructionText: 'مثّل 12: 1 عشرات، 2 آحاد', fingerUsed: 'both_pinch', direction: 'pinch_in', targetColumn: 'tens', beadsAffected: [1], expectedValueAfter: 12 },
+        { stepIndex: 2, instructionText: 'نستعير من الجار: أزل 1 عشرات (-10)', fingerUsed: 'left_index', direction: 'down', targetColumn: 'tens', beadsAffected: [1], expectedValueAfter: 2 },
+        { stepIndex: 3, instructionText: 'نضيف 5 (الجدة)', fingerUsed: 'index', direction: 'down', targetColumn: 'units', beadsAffected: [5], expectedValueAfter: 7 },
+        { stepIndex: 4, instructionText: 'نسحب 2 (الفرق): أنزل خرزتين', fingerUsed: 'index', direction: 'down', targetColumn: 'units', beadsAffected: [1, 2], expectedValueAfter: 5 }
+      ], explanation: '12 - 7 = 5. القاعدة: -7 = -10 + 5 - 2' }
     ]
   },
   {
@@ -168,8 +269,8 @@ story:
     story: 'مغامرة في عالم الخيال: المعداد اختفى، لكن أصابعك تتذكره!',
     examples: [
       { problemText: 'تخيل: 2 + 3 = ؟', answer: 5, ruleCategory: 'anzan', steps: [{ stepIndex: 1, instructionText: 'تخيل رفع خرزتين', fingerUsed: 'thumb', direction: 'up', targetColumn: 'units', beadsAffected: [1, 2], expectedValueAfter: 2 }, { stepIndex: 2, instructionText: 'تخيل رفع 3 خرزات', fingerUsed: 'thumb', direction: 'up', targetColumn: 'units', beadsAffected: [3, 4, 5], expectedValueAfter: 5 }], explanation: '2 + 3 = 5 (بالتخيل)' },
-      { problemText: 'تخيل: 5 + 3 = ؟', answer: 8, ruleCategory: 'anzan', steps: [{ stepIndex: 1, instructionText: 'تخيل نزول العلوية', fingerUsed: 'index', direction: 'down', targetColumn: 'units', beadsAffected: [5], expectedValueAfter: 5 }, { stepIndex: 2, instructionText: 'تخيل رفع 3 سفليّة', fingerUsed: 'thumb', direction: 'up', targetColumn: 'units', beadsAffected: [1, 2, 3], expectedValueAfter: 8 }], explanation: '5 + 3 = 8 (بالتخيل)' },
-      { problemText: 'تخيل: 4 + 3 = ؟', answer: 7, ruleCategory: 'anzan', steps: [{ stepIndex: 1, instructionText: 'تخيل 4', fingerUsed: 'thumb', direction: 'up', targetColumn: 'units', beadsAffected: [1, 2, 3, 4], expectedValueAfter: 4 }, { stepIndex: 2, instructionText: 'تخيل +3 بصديق 5 (اطرح 2)', fingerUsed: 'both_pinch', direction: 'pinch_in', targetColumn: 'units', beadsAffected: [5, 1, 2], expectedValueAfter: 7 }], explanation: '4 + 3 = 7 (بالتخيل)' },
+      { problemText: 'تخيل: 5 + 3 = ؟', answer: 8, ruleCategory: 'anzan', steps: [{ stepIndex: 1, instructionText: 'تخيل نزول الجدة 5', fingerUsed: 'index', direction: 'down', targetColumn: 'units', beadsAffected: [5], expectedValueAfter: 5 }, { stepIndex: 2, instructionText: 'تخيل رفع 3 سفليّة', fingerUsed: 'thumb', direction: 'up', targetColumn: 'units', beadsAffected: [1, 2, 3], expectedValueAfter: 8 }], explanation: '5 + 3 = 8 (بالتخيل)' },
+      { problemText: 'تخيل: 4 + 3 = ؟', answer: 7, ruleCategory: 'anzan', steps: [{ stepIndex: 1, instructionText: 'تخيل 4', fingerUsed: 'thumb', direction: 'up', targetColumn: 'units', beadsAffected: [1, 2, 3, 4], expectedValueAfter: 4 }, { stepIndex: 2, instructionText: 'تخيل الجدة 5 (اطرح 2)', fingerUsed: 'both_pinch', direction: 'pinch_in', targetColumn: 'units', beadsAffected: [5, 1, 2], expectedValueAfter: 7 }], explanation: '4 + 3 = 7 (بالتخيل)' },
       { problemText: 'تخيل: 9 + 4 = ؟', answer: 13, ruleCategory: 'anzan', steps: [{ stepIndex: 1, instructionText: 'تخيل 9', fingerUsed: 'both_pinch', direction: 'pinch_in', targetColumn: 'units', beadsAffected: [5, 1, 2, 3, 4], expectedValueAfter: 9 }, { stepIndex: 2, instructionText: 'تخيل +10', fingerUsed: 'left_index', direction: 'up', targetColumn: 'tens', beadsAffected: [1], expectedValueAfter: 19 }, { stepIndex: 3, instructionText: 'تخيل إزالة 6', fingerUsed: 'both_pinch', direction: 'pinch_out', targetColumn: 'units', beadsAffected: [5, 1, 2, 3, 4], expectedValueAfter: 13 }], explanation: '9 + 4 = 13 (بالتخيل)' },
       { problemText: 'تخيل: 15 + 6 = ؟', answer: 21, ruleCategory: 'anzan', steps: [{ stepIndex: 1, instructionText: 'تخيل 15', fingerUsed: 'left_index', direction: 'up', targetColumn: 'tens', beadsAffected: [1], expectedValueAfter: 15 }, { stepIndex: 2, instructionText: 'تخيل +10', fingerUsed: 'left_index', direction: 'up', targetColumn: 'tens', beadsAffected: [2], expectedValueAfter: 25 }, { stepIndex: 3, instructionText: 'تخيل نزول 5 ورفع 1', fingerUsed: 'both_pinch', direction: 'pinch_out', targetColumn: 'units', beadsAffected: [5, 1], expectedValueAfter: 21 }], explanation: '15 + 6 = 21 (بالتخيل)' },
       { problemText: 'تخيل: 8 + 8 = ؟', answer: 16, ruleCategory: 'anzan', steps: [{ stepIndex: 1, instructionText: 'تخيل 8', fingerUsed: 'both_pinch', direction: 'pinch_in', targetColumn: 'units', beadsAffected: [5, 1, 2, 3], expectedValueAfter: 8 }, { stepIndex: 2, instructionText: 'تخيل +10', fingerUsed: 'left_index', direction: 'up', targetColumn: 'tens', beadsAffected: [1], expectedValueAfter: 18 }, { stepIndex: 3, instructionText: 'تخيل نزول 5 ورفع 3', fingerUsed: 'both_pinch', direction: 'pinch_out', targetColumn: 'units', beadsAffected: [5, 1, 2], expectedValueAfter: 16 }], explanation: '8 + 8 = 16 (بالتخيل)' }
@@ -216,6 +317,7 @@ story:
     ]
   },
 ];
+
 export const QUESTS: Quest[] = [
   { id: 1, title: 'Daily Practice', titleAr: 'التدريب اليومي', description: 'Complete 10', descriptionAr: 'أكمل ١٠ مسائل', xpReward: 50, progress: 0, target: 10, icon: 'Swords', color: 'from-purple-500 to-electric-500', type: 'practice' },
   { id: 2, title: 'Anzan Apprentice', titleAr: 'متدرب الأنزان', description: 'Score 20', descriptionAr: 'احصل على ٢٠ نقطة', xpReward: 80, progress: 0, target: 20, icon: 'Eye', color: 'from-electric-500 to-emerald2-500', type: 'anzan' },
