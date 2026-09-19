@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { MessageCircle, Sparkles } from 'lucide-react';
-import { ShamAvatar } from './avatars/ShamAvatar';
-import { RayanAvatar } from './avatars/RayanAvatar';
-import { BanaAvatar } from './avatars/BanaAvatar';
-import { JoudAvatar } from './avatars/JoudAvatar';
+import { ImageAvatar } from './avatars/ImageAvatar';
+import shamImg from '../assets/avatars/sham.png';
+import rayanImg from '../assets/avatars/rayan.png';
+import banaImg from '../assets/avatars/bana.png';
+import joudImg from '../assets/avatars/joud.png';
 import type { CharacterType } from '../types';
 
 interface CompanionProps {
@@ -11,11 +12,14 @@ interface CompanionProps {
   xp?: number;
 }
 
-const CHARACTER_NAMES: Record<CharacterType, string> = {
-  sham: 'شام',
-  rayan: 'ريان',
-  bana: 'بانة',
-  joud: 'جود',
+const CHARACTER_DATA: Record<
+  CharacterType,
+  { name: string; image: string }
+> = {
+  sham: { name: 'شام', image: shamImg },
+  rayan: { name: 'ريان', image: rayanImg },
+  bana: { name: 'بانة', image: banaImg },
+  joud: { name: 'جود', image: joudImg },
 };
 
 const MOTIVATIONAL_MESSAGES = [
@@ -36,19 +40,17 @@ export const Companion: React.FC<CompanionProps> = ({
   const [showBubble, setShowBubble] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
 
+  const data = CHARACTER_DATA[character] ?? CHARACTER_DATA.sham;
+
   const triggerAnimation = () => {
     setIsAnimating(true);
-
-    window.setTimeout(() => {
-      setIsAnimating(false);
-    }, 800);
+    window.setTimeout(() => setIsAnimating(false), 800);
   };
 
   const handleTap = () => {
     const randomIndex = Math.floor(
       Math.random() * MOTIVATIONAL_MESSAGES.length,
     );
-
     setCurrentMessage(MOTIVATIONAL_MESSAGES[randomIndex]);
     setShowBubble(true);
     triggerAnimation();
@@ -56,7 +58,6 @@ export const Companion: React.FC<CompanionProps> = ({
 
   useEffect(() => {
     if (xp <= 0) return;
-
     setCurrentMessage(`أحسنت! حصلت على +${xp} نقطة خبرة 🎉`);
     setShowBubble(true);
     triggerAnimation();
@@ -64,30 +65,9 @@ export const Companion: React.FC<CompanionProps> = ({
 
   useEffect(() => {
     if (!showBubble) return;
-
-    const timer = window.setTimeout(() => {
-      setShowBubble(false);
-    }, 4500);
-
+    const timer = window.setTimeout(() => setShowBubble(false), 4500);
     return () => window.clearTimeout(timer);
   }, [showBubble]);
-
-  const renderCharacter = () => {
-    switch (character) {
-      case 'rayan':
-        return <RayanAvatar className="w-28 h-32 sm:w-32 sm:h-36" />;
-
-      case 'bana':
-        return <BanaAvatar className="w-28 h-32 sm:w-32 sm:h-36" />;
-
-      case 'joud':
-        return <JoudAvatar className="w-28 h-32 sm:w-32 sm:h-36" />;
-
-      case 'sham':
-      default:
-        return <ShamAvatar className="w-28 h-32 sm:w-32 sm:h-36" />;
-    }
-  };
 
   return (
     <div
@@ -100,7 +80,6 @@ export const Companion: React.FC<CompanionProps> = ({
             <MessageCircle className="w-5 h-5 text-violet-500 shrink-0 mt-0.5" />
             <span>{currentMessage}</span>
           </div>
-
           <div className="absolute -bottom-2 right-5 w-0 h-0 border-l-[9px] border-l-transparent border-r-[9px] border-r-transparent border-t-[9px] border-t-white" />
         </div>
       )}
@@ -109,23 +88,24 @@ export const Companion: React.FC<CompanionProps> = ({
         type="button"
         onClick={handleTap}
         className={`relative group focus:outline-none transition-transform duration-300 active:scale-90 ${
-          isAnimating
-            ? 'animate-bounce'
-            : 'hover:scale-110'
+          isAnimating ? 'animate-bounce' : 'hover:scale-110'
         }`}
-        aria-label={`رفيقك ${CHARACTER_NAMES[character]}`}
+        aria-label={`رفيقك ${data.name}`}
       >
-        <div className="absolute -top-2 -right-1 w-7 h-7 rounded-full bg-amber-400 flex items-center justify-center shadow-lg opacity-0 group-hover:opacity-100 transition-opacity">
+        <div className="absolute -top-2 -right-1 w-7 h-7 rounded-full bg-amber-400 flex items-center justify-center shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-10">
           <Sparkles className="w-4 h-4 text-white" />
         </div>
 
-        <div className="filter drop-shadow-2xl">
-          {renderCharacter()}
-        </div>
+        <ImageAvatar
+          src={data.image}
+          alt={data.name}
+          className="w-28 h-32 sm:w-32 sm:h-36 drop-shadow-2xl"
+          motionType="breathe"
+        />
       </button>
 
       <div className="mt-0.5 px-3 py-1 rounded-full bg-slate-900/80 backdrop-blur text-white text-[10px] font-black shadow-lg">
-        {CHARACTER_NAMES[character]}
+        {data.name}
       </div>
     </div>
   );
