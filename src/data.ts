@@ -1417,3 +1417,17 @@ export const ADDITION_QUESTIONS = PRACTICE_QUESTIONS.filter((q) => q.question.in
 export const SUBTRACTION_QUESTIONS = PRACTICE_QUESTIONS.filter((q) => q.question.includes('-') && !q.question.includes('÷'));
 export const MULTIPLICATION_QUESTIONS = PRACTICE_QUESTIONS.filter((q) => q.question.includes('×'));
 export const DIVISION_QUESTIONS = PRACTICE_QUESTIONS.filter((q) => q.question.includes('÷'));
+
+// ═══════════════════════════════════════════════════════════
+// BADGES
+// ═══════════════════════════════════════════════════════════
+export const BADGES = [
+  { id: 'beginner', name: 'Beginner', nameAr: 'مبتدئ', xpRequired: 200, icon: 'Star' },
+  { id: 'trainee', name: 'Trainee', nameAr: 'متدرب', xpRequired: 500, icon: 'Target' },
+  { id: 'anzan-master', name: 'Anzan Master', nameAr: 'سيد الأنزان', xpRequired: 750, icon: 'Eye' },
+  { id: 'skilled', name: 'Skilled', nameAr: 'ماهر', xpRequired: 1250, icon: 'Award' },
+  { id: 'soroban-expert', name: 'Soroban Expert', nameAr: 'خبير السوروبان', xpRequired: 2000, icon: 'Award' },
+  { id: 'professional', name: 'Professional', nameAr: 'محترف', xpRequired: 3500, icon: 'Diamond' },
+  { id: 'legend', name: 'Legend', nameAr: 'أسطورة', xpRequired: 5000, icon: 'Crown' },
+  { id: 'eternal-legend', name: 'Eternal Legend', nameAr: 'أسطورة خالدة', xpRequired: 10000, icon: 'Crown' },
+];
