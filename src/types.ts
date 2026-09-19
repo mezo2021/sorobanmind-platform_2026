@@ -72,6 +72,7 @@ export interface LearnModule {
   audioText: string;
   rule: string;
   ruleAr: string;
+  ruleTable?: { formula: string; result: string }[];
   story: string;
   examples: (LessonExample | DivisionExample)[];
 }
@@ -135,7 +136,6 @@ export interface ProgressData {
   weeklyXP: { day: string; xp: number }[];
 }
 
-// تتبع تقدم كل درس: كم مثالاً تم حله
 export interface LessonProgress {
-  [lessonId: number]: number[]; // مصفوفة معرفات الأمثلة المحلولة
+  [lessonId: number]: number[];
 }
