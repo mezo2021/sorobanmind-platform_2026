@@ -1,191 +1,170 @@
-import React from 'react';
+import React, { useId } from 'react';
+import { motion } from 'framer-motion';
 
 interface AvatarProps {
   className?: string;
+  animated?: boolean;
 }
 
 export const RayanAvatar: React.FC<AvatarProps> = ({
-  className = 'w-24 h-24',
-}) => (
-  <svg
-    viewBox="0 0 160 180"
-    className={className}
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
-    aria-label="ريان"
-  >
-    <defs>
-      <linearGradient id="rayan-hair" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stopColor="#2B1E1A" />
-        <stop offset="100%" stopColor="#15100E" />
-      </linearGradient>
-      <linearGradient id="rayan-top" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stopColor="#60A5FA" />
-        <stop offset="100%" stopColor="#2563EB" />
-      </linearGradient>
-      <linearGradient id="rayan-shorts" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stopColor="#1E293B" />
-        <stop offset="100%" stopColor="#0F172A" />
-      </linearGradient>
-      <radialGradient id="rayan-cheek" cx="0.5" cy="0.5" r="0.5">
-        <stop offset="0%" stopColor="#F97316" stopOpacity="0.4" />
-        <stop offset="100%" stopColor="#F97316" stopOpacity="0" />
-      </radialGradient>
-    </defs>
+  className = 'w-32 h-32',
+  animated = true,
+}) => {
+  const uid = useId().replace(/:/g, '');
+  const jacketId = `rayanJacket-${uid}`;
+  const skinId = `rayanSkin-${uid}`;
 
-    {/* الشعر الخلفي */}
-    <path
-      d="M46 66 Q48 30 80 28 Q112 30 114 66 L112 78 Q106 60 100 56 Q92 48 80 50 Q68 48 60 56 Q54 60 48 78Z"
-      fill="url(#rayan-hair)"
-    />
+  const infinite = animated ? { repeat: Infinity } : { repeat: 0 };
 
-    {/* الرقبة */}
-    <path
-      d="M70 108 L70 122 Q80 128 90 122 L90 108Z"
-      fill="#C98F68"
-    />
-    <path
-      d="M70 118 Q80 124 90 118 Q80 122 70 118Z"
-      fill="#A1704E"
-      opacity="0.5"
-    />
-
-    {/* الوجه */}
-    <ellipse cx="80" cy="78" rx="32" ry="39" fill="#C98F68" />
-
-    {/* ظل الذقن */}
-    <ellipse cx="80" cy="109" rx="18" ry="6" fill="#9B654A" opacity="0.35" />
-
-    {/* الأذنان */}
-    <ellipse cx="48" cy="80" rx="5.5" ry="8" fill="#C98F68" />
-    <ellipse cx="112" cy="80" rx="5.5" ry="8" fill="#C98F68" />
-
-    {/* الغرة الأمامية */}
-    <path
-      d="M46 68 Q48 30 80 28 Q112 30 114 68 Q108 52 100 48 Q92 42 80 46 Q68 42 60 48 Q52 52 46 68Z"
-      fill="url(#rayan-hair)"
-    />
-
-    {/* العينان */}
-    <ellipse cx="67" cy="79" rx="6" ry="7.5" fill="#FDFDFD" />
-    <ellipse cx="93" cy="79" rx="6" ry="7.5" fill="#FDFDFD" />
-    <ellipse cx="67" cy="79" rx="5" ry="6.5" fill="#241914" />
-    <ellipse cx="93" cy="79" rx="5" ry="6.5" fill="#241914" />
-    <circle cx="65.5" cy="77" r="2.2" fill="white" />
-    <circle cx="91.5" cy="77" r="2.2" fill="white" />
-    <circle cx="68" cy="81.5" r="0.9" fill="white" opacity="0.85" />
-    <circle cx="94" cy="81.5" r="0.9" fill="white" opacity="0.85" />
-
-    {/* الحاجبان */}
-    <path
-      d="M58 68 Q67 63 75 68"
-      stroke="#2B1E1A"
-      strokeWidth="3"
-      strokeLinecap="round"
-    />
-    <path
-      d="M85 68 Q93 63 102 68"
-      stroke="#2B1E1A"
-      strokeWidth="3"
-      strokeLinecap="round"
-    />
-
-    {/* الأنف */}
-    <path
-      d="M80 81 L76 90 Q80 92 84 90"
-      stroke="#9B654A"
-      strokeWidth="2"
-      strokeLinecap="round"
-    />
-
-    {/* الابتسامة الرياضية */}
-    <path
-      d="M68 98 Q80 107 92 98"
-      stroke="#673B35"
-      strokeWidth="2.8"
-      strokeLinecap="round"
-    />
-    <path
-      d="M72 99 Q80 104 88 99"
-      fill="#FDFDFD"
-      opacity="0.6"
-    />
-
-    {/* الخدان */}
-    <ellipse cx="56" cy="92" rx="8" ry="4" fill="url(#rayan-cheek)" />
-    <ellipse cx="104" cy="92" rx="8" ry="4" fill="url(#rayan-cheek)" />
-
-    {/* القميص الرياضي الأزرق */}
-    <path
-      d="M42 116 Q80 106 118 116 L124 158 H36Z"
-      fill="url(#rayan-top)"
-    />
-    {/* ظل القميص */}
-    <path
-      d="M42 116 Q60 111 80 112 Q100 111 118 116 Q100 118 80 119 Q60 118 42 116Z"
-      fill="#1D4ED8"
-      opacity="0.4"
-    />
-
-    {/* خطوط رياضية بيضاء على الكتفين */}
-    <path
-      d="M46 122 L56 122"
-      stroke="#FDFDFD"
-      strokeWidth="2"
-      strokeLinecap="round"
-    />
-    <path
-      d="M104 122 L114 122"
-      stroke="#FDFDFD"
-      strokeWidth="2"
-      strokeLinecap="round"
-    />
-
-    {/* رقم رياضي على الصدر */}
-    <circle cx="80" cy="134" r="8" fill="#FDFDFD" opacity="0.9" />
-    <text
-      x="80"
-      y="138"
-      textAnchor="middle"
-      fill="#2563EB"
-      fontSize="11"
-      fontWeight="900"
-      fontFamily="Arial, sans-serif"
+  return (
+    <motion.div
+      className={`relative flex items-center justify-center ${className}`}
+      whileHover={animated ? { scale: 1.05, rotate: -1 } : undefined}
+      transition={{ type: 'spring', stiffness: 300, damping: 15 }}
     >
-      1
-    </text>
+      <svg
+        viewBox="0 0 200 200"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        role="img"
+        aria-label="صورة رمزية لريان"
+        className="w-full h-full drop-shadow-xl overflow-visible"
+      >
+        <defs>
+          {/* تدرج السترة الخضراء */}
+          <linearGradient id={jacketId} x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#4D7C0F" />
+            <stop offset="100%" stopColor="#3F6212" />
+          </linearGradient>
 
-    {/* ياقة رياضية مدورة */}
-    <path
-      d="M68 114 Q80 126 92 114"
-      fill="#DBEAFE"
-      stroke="#93C5FD"
-      strokeWidth="1.2"
-    />
+          {/* تدرج البشرة */}
+          <linearGradient id={skinId} x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="#FEF3C7" />
+            <stop offset="100%" stopColor="#FDE68A" />
+          </linearGradient>
+        </defs>
 
-    {/* الحزام الرياضي */}
-    <rect x="55" y="155" width="50" height="5" rx="2" fill="#FBBF24" />
-    <rect x="76" y="154" width="8" height="7" rx="1.5" fill="#1E293B" />
+        {/* خلفية توهج خفيفة */}
+        <circle cx="100" cy="100" r="90" fill="#84CC16" fillOpacity="0.12" />
 
-    {/* الشورت الرياضي الداكن */}
-    <path
-      d="M48 160 L112 160 L118 180 H42Z"
-      fill="url(#rayan-shorts)"
-    />
-    {/* خط أبيض على الجانب */}
-    <path
-      d="M50 162 L48 180"
-      stroke="#FDFDFD"
-      strokeWidth="1.5"
-      opacity="0.7"
-    />
-    <path
-      d="M110 162 L112 180"
-      stroke="#FDFDFD"
-      strokeWidth="1.5"
-      opacity="0.7"
-    />
-  </svg>
-);
+        {/* حركة الرأس والشعر والملامح */}
+        <motion.g
+          animate={animated ? { y: [0, -3, 0] } : undefined}
+          transition={{ duration: 2.8, ease: 'easeInOut', ...infinite }}
+        >
+          {/* الشعر البني الكثيف */}
+          <path
+            d="M50 75C45 40 70 20 100 20C130 20 155 40 150 75C150 75 160 50 140 35C120 20 80 20 60 35C40 50 50 75 50 75Z"
+            fill="#78350F"
+          />
 
-export default RayanAvatar;
+          {/* الأذنان */}
+          <circle cx="56" cy="102" r="10" fill="#FDE68A" />
+          <circle cx="144" cy="102" r="10" fill="#FDE68A" />
+
+          {/* الوجه */}
+          <path
+            d="M60 88C60 60 80 50 100 50C120 50 140 60 140 88C140 122 122 138 100 138C78 138 60 122 60 88Z"
+            fill={`url(#${skinId})`}
+          />
+
+          {/* الشعر الأمامي السبايكي */}
+          <path
+            d="M62 60C70 45 90 42 100 48C110 42 130 45 138 60C125 50 110 52 100 55C90 52 75 50 62 60Z"
+            fill="#92400E"
+          />
+
+          {/* الحواجب */}
+          <path
+            d="M70 78C80 74 90 78 90 78"
+            stroke="#451A03"
+            strokeWidth="4"
+            strokeLinecap="round"
+          />
+          <path
+            d="M130 78C120 74 110 78 110 78"
+            stroke="#451A03"
+            strokeWidth="4"
+            strokeLinecap="round"
+          />
+
+          {/* العينان مع حركة إغماض دقيقة */}
+          <motion.g
+            style={{ transformBox: 'fill-box', transformOrigin: 'center' }}
+            animate={animated ? { scaleY: [1, 1, 0.1, 1, 1] } : undefined}
+            transition={{
+              duration: 3.5,
+              times: [0, 0.88, 0.92, 0.96, 1],
+              ...infinite,
+            }}
+          >
+            <circle cx="78" cy="92" r="9" fill="#451A03" />
+            <circle cx="122" cy="92" r="9" fill="#451A03" />
+            <circle cx="80" cy="90" r="3" fill="#FFFFFF" />
+            <circle cx="124" cy="90" r="3" fill="#FFFFFF" />
+          </motion.g>
+
+          {/* الغمازة والابتسامة */}
+          <path
+            d="M68 110C68 110 70 114 72 112"
+            stroke="#D97706"
+            strokeWidth="2"
+            strokeLinecap="round"
+          />
+          <path
+            d="M84 114C84 114 92 124 100 124C108 124 116 114 116 114"
+            stroke="#B45309"
+            strokeWidth="4"
+            strokeLinecap="round"
+          />
+        </motion.g>
+
+        {/* سترة البيسبول الخضراء */}
+        <path
+          d="M52 152C52 138 72 134 100 134C128 134 148 138 148 152L155 200H45L52 152Z"
+          fill={`url(#${jacketId})`}
+        />
+
+        {/* أكمام السترة البرتقالية */}
+        <path d="M45 160L32 190" stroke="#EA580C" strokeWidth="14" strokeLinecap="round" />
+        <path d="M155 160L168 190" stroke="#EA580C" strokeWidth="14" strokeLinecap="round" />
+
+        {/* حرف R على الصدر */}
+        <text
+          x="70"
+          y="172"
+          fill="#FFFFFF"
+          fontSize="20"
+          fontWeight="900"
+          fontFamily="sans-serif"
+        >
+          R
+        </text>
+
+        {/* التابلت */}
+        <motion.g
+          style={{ transformBox: 'fill-box', transformOrigin: 'center' }}
+          animate={animated ? { y: [0, -2, 0] } : undefined}
+          transition={{ duration: 2, ease: 'easeInOut', ...infinite }}
+        >
+          <rect
+            x="118"
+            y="140"
+            width="48"
+            height="55"
+            rx="6"
+            fill="#1E293B"
+            stroke="#94A3B8"
+            strokeWidth="2"
+          />
+          <rect x="122" y="145" width="40" height="40" rx="3" fill="#38BDF8" />
+          {/* شاشة التابلت */}
+          <line x1="130" y1="165" x2="154" y2="165" stroke="#FFFFFF" strokeWidth="3" />
+          <circle cx="135" cy="158" r="2.5" fill="#FACC15" />
+          <circle cx="142" cy="172" r="2.5" fill="#EF4444" />
+          <circle cx="149" cy="158" r="2.5" fill="#4ADE80" />
+        </motion.g>
+      </svg>
+    </motion.div>
+  );
+};
