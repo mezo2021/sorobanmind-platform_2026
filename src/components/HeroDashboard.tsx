@@ -309,14 +309,11 @@ export function HeroDashboard({
       localStorage.getItem('soroban_companion');
 
     if (
-      saved &&
-      [
-        'sham',
-        'rayan',
-        'bana',
-        ''joud'',
-      ].includes(saved)
-    ) {
+  saved === 'sham' ||
+  saved === 'rayan' ||
+  saved === 'bana' ||
+  saved === 'joud'
+) {
       setCompanion(saved as CharacterType);
     } else if (
       saved &&
