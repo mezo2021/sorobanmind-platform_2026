@@ -65,7 +65,7 @@ const CHARACTER_INFO: Record<
     lightColor: 'text-violet-300',
   },
   rayan: {
-    name: 'جود',
+    name: 'ريان',
     title: 'البطل السريع',
     message: 'هل أنت مستعد لتحدٍ جديد؟ هيا نبدأ!',
     color: 'from-blue-500 to-indigo-700',
@@ -79,7 +79,7 @@ const CHARACTER_INFO: Record<
     lightColor: 'text-teal-300',
   },
   joud: {
-    name: 'ريان',
+    name: 'جود',
     title: 'البطل الشجاع',
     message: 'هيا! لدينا مغامرة حسابية جديدة!',
     color: 'from-pink-500 to-rose-700',
