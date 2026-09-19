@@ -134,3 +134,8 @@ export interface ProgressData {
   anzanHighScore: number;
   weeklyXP: { day: string; xp: number }[];
 }
+
+// تتبع تقدم كل درس: كم مثالاً تم حله
+export interface LessonProgress {
+  [lessonId: number]: number[]; // مصفوفة معرفات الأمثلة المحلولة
+}
