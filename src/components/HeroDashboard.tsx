@@ -29,9 +29,8 @@ import {
 } from 'lucide-react';
 
 import { LEVELS, BADGES } from '@/data';
-import type { Screen, LevelNode } from '@/types';
+import type { Screen, LevelNode, CharacterType } from '@/types';
 import { Companion } from './Companion';
-import type { CharacterType } from './CharacterSelector';
 import { CharacterSelector } from './CharacterSelector';
 import { useQuests } from '@/hooks/useQuests';
 
@@ -80,10 +79,10 @@ const CHARACTER_INFO: Record<
   },
   joud: {
     name: 'جود',
-    title: 'البطل الشجاع',
-    message: 'هيا! لدينا مغامرة حسابية جديدة!',
-    color: 'from-pink-500 to-rose-700',
-    lightColor: 'text-pink-300',
+    title: 'البطل الذكي',
+    message: 'أحب التفكير والتحليل — هيا نحل معًا!',
+    color: 'from-indigo-500 to-purple-700',
+    lightColor: 'text-indigo-300',
   },
 };
 
@@ -309,11 +308,11 @@ export function HeroDashboard({
       localStorage.getItem('soroban_companion');
 
     if (
-  saved === 'sham' ||
-  saved === 'rayan' ||
-  saved === 'bana' ||
-  saved === 'joud'
-) {
+      saved === 'sham' ||
+      saved === 'rayan' ||
+      saved === 'bana' ||
+      saved === 'joud'
+    ) {
       setCompanion(saved as CharacterType);
     } else if (
       saved &&
