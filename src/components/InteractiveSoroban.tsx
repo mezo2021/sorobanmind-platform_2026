@@ -1,41 +1,35 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { getBeadClasses, valueToDigits } from './Soroban';
-import type { LessonStep, DivisionStep } from '@/types';
 
 interface InteractiveSorobanColumnProps {
   digit: number;
   onChange: (newDigit: number) => void;
-  disabled?: boolean;
 }
 
 const InteractiveSorobanColumn: React.FC<InteractiveSorobanColumnProps> = ({
   digit,
   onChange,
-  disabled = false,
 }) => {
   const upperActive = digit >= 5;
   const lowerActiveCount = digit % 5;
   const lowerInactiveCount = 4 - lowerActiveCount;
 
   const handleUpperClick = () => {
-    if (disabled) return;
     onChange(upperActive ? digit - 5 : digit + 5);
   };
 
   const handleActiveLowerClick = (index: number) => {
-    if (disabled) return;
     onChange((upperActive ? 5 : 0) + index);
   };
 
   const handleInactiveLowerClick = (index: number) => {
-    if (disabled) return;
     const newCount = Math.min(lowerActiveCount + index + 1, 4);
     onChange((upperActive ? 5 : 0) + newCount);
   };
 
   return (
-    <div className={`relative flex flex-col items-center w-10 sm:w-12 ${disabled ? 'opacity-40 pointer-events-none' : ''}`}>
+    <div className="relative flex flex-col items-center w-10 sm:w-12">
       <div className="absolute top-0 bottom-0 left-1/2 -translate-x-1/2 w-[3px] bg-amber-800/70" />
       <div className="relative z-10 flex flex-col w-full items-center h-[60px] sm:h-[68px]">
         <motion.button
@@ -86,12 +80,6 @@ interface InteractiveSorobanProps {
   value?: number;
   onValueChange?: (value: number) => void;
   className?: string;
-  expectedStep?: LessonStep | DivisionStep;
-  onStepCorrect?: () => void;
-  onStepWrong?: (message: string) => void;
-  strictMode?: boolean;
-  /** القيمة التي يبدأ منها المعداد عند الخطوة الحالية */
-  initialValue?: number;
 }
 
 const InteractiveSoroban: React.FC<InteractiveSorobanProps> = ({
@@ -99,105 +87,20 @@ const InteractiveSoroban: React.FC<InteractiveSorobanProps> = ({
   value,
   onValueChange,
   className = '',
-  expectedStep,
-  onStepCorrect,
-  onStepWrong,
-  strictMode = false,
-  initialValue,
 }) => {
   const [digits, setDigits] = useState<number[]>(() =>
-    valueToDigits(initialValue ?? value ?? 0, columns)
+    valueToDigits(value ?? 0, columns)
   );
 
-  // إعادة تعيين المعداد عند تغيير القيمة الأولية (بداية خطوة جديدة)
   useEffect(() => {
-    if (initialValue !== undefined) {
-      setDigits(valueToDigits(initialValue, columns));
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialValue, columns]);
-
-  // تحديث القيمة من الخارج (عند التمرير)
-  useEffect(() => {
-    if (value !== undefined && initialValue === undefined) {
+    if (value !== undefined) {
       setDigits(valueToDigits(value, columns));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value, columns]);
 
-  const isStepMatch = (
-    columnIndex: number,
-    oldDigit: number,
-    newDigit: number,
-    step: LessonStep | DivisionStep
-  ): boolean => {
-    const columnMap: Record<string, number> = {
-      units: 0,
-      tens: 1,
-      hundreds: 2,
-      thousands: 3,
-    };
-    const expectedColumnIndex = columnMap[step.targetColumn];
-    if (columnIndex !== expectedColumnIndex) return false;
-
-    const upperBefore = oldDigit >= 5;
-    const upperAfter = newDigit >= 5;
-    const lowerBefore = oldDigit % 5;
-    const lowerAfter = newDigit % 5;
-    const beads = step.beadsAffected;
-
-    if (beads.includes(5)) {
-      if (step.direction === 'down' && !upperBefore && upperAfter) return true;
-      if (step.direction === 'up' && upperBefore && !upperAfter) return true;
-    }
-
-    const lowerBeads = beads.filter((b) => b < 5);
-    if (lowerBeads.length > 0) {
-      if (step.direction === 'up' && lowerAfter > lowerBefore) return true;
-      if (step.direction === 'down' && lowerAfter < lowerBefore) return true;
-      if (step.direction === 'pinch_in' && lowerAfter > lowerBefore) return true;
-      if (step.direction === 'pinch_out' && lowerAfter < lowerBefore) return true;
-    }
-
-    return false;
-  };
-
-  const buildWrongMessage = (step: LessonStep | DivisionStep): string => {
-    const fingerMap: Record<string, string> = {
-      thumb: 'الإبهام 👍',
-      index: 'السبابة ☝️',
-      both_pinch: 'الإبهام + السبابة ✋',
-      left_index: 'سبابة اليد اليسرى ☝️',
-    };
-    const directionMap: Record<string, string> = {
-      up: 'ارفع',
-      down: 'أنزل',
-      pinch_in: 'اضم',
-      pinch_out: 'افتح',
-    };
-    const columnMap: Record<string, string> = {
-      units: 'الآحاد',
-      tens: 'العشرات',
-      hundreds: 'المئات',
-      thousands: 'الآلاف',
-    };
-    return `تذكّر! استخدم ${fingerMap[step.fingerUsed]} لكي ${directionMap[step.direction]} الخرزة في ${columnMap[step.targetColumn]}`;
-  };
-
   const updateDigit = (index: number, newDigit: number) => {
     const clamped = Math.max(0, Math.min(9, newDigit));
-    const oldDigit = digits[index];
-
-    if (strictMode && expectedStep) {
-      const matches = isStepMatch(index, oldDigit, clamped, expectedStep);
-      if (!matches) {
-        if (onStepWrong) {
-          onStepWrong(buildWrongMessage(expectedStep));
-        }
-        return;
-      }
-    }
-
     setDigits((prev) => {
       const next = [...prev];
       next[index] = clamped;
@@ -210,10 +113,6 @@ const InteractiveSoroban: React.FC<InteractiveSorobanProps> = ({
       }
       return next;
     });
-
-    if (strictMode && expectedStep && onStepCorrect) {
-      onStepCorrect();
-    }
   };
 
   return (
