@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowRight, Eye, Play, Zap, Trophy, RotateCcw, Settings2, Sparkles, Brain } from 'lucide-react';
+import { ArrowRight, Eye, Play, Zap, Trophy, RotateCcw, Settings2, Sparkles, Brain, Heart } from 'lucide-react';
 
 function toArabicNumber(value: number | string): string {
   return String(value).replace(/\d/g, (d) => '٠١٢٣٤٥٦٧٨٩'[Number(d)]);
@@ -13,19 +13,32 @@ interface AnzanScreenProps {
   burst: (x?: number, y?: number) => void;
 }
 
-type Phase = 'idle' | 'flashing' | 'answer' | 'result';
+type Phase = 'idle' | 'flashing' | 'answer' | 'result' | 'retry';
 type Speed = 'slow' | 'medium' | 'fast';
 type Level = 'beginner' | 'intermediate' | 'advanced' | 'expert' | 'master';
 
 const SPEED_MS: Record<Speed, number> = { slow: 1500, medium: 1000, fast: 700 };
 const SPEED_LABELS: Record<Speed, string> = { slow: 'بطيء', medium: 'متوسط', fast: 'سريع' };
+
 const LEVEL_LABELS: Record<Level, string> = {
-  beginner: 'مبتدئ (٣ عمليات)',
-  intermediate: 'متوسط (٣ عمليات مختلطة)',
-  advanced: 'متقدم (٤ عمليات مختلطة)',
-  expert: 'خبير (٥ عمليات مختلطة)',
-  master: 'محترف (٥ عمليات بمنزلتين)',
+  beginner: '🌱 مبتدئ (٣ عمليات)',
+  intermediate: '⭐ متوسط (٣ عمليات مختلطة)',
+  advanced: '🔥 متقدم (٤ عمليات مختلطة)',
+  expert: '💎 خبير (٥ عمليات مختلطة)',
+  master: '👑 محترف (٥ عمليات بمنزلتين)',
 };
+
+const LEVEL_ORDER: Level[] = ['beginner', 'intermediate', 'advanced', 'expert', 'master'];
+
+function getLevelIndex(level: Level): number {
+  return LEVEL_ORDER.indexOf(level);
+}
+
+function getEasierLevel(level: Level): Level {
+  const idx = getLevelIndex(level);
+  if (idx <= 0) return 'beginner';
+  return LEVEL_ORDER[idx - 1];
+}
 
 const ANZAN_STORAGE_KEY = 'soroban_anzan_stats';
 
@@ -56,10 +69,6 @@ function saveAnzanStats(stats: AnzanStats) {
   } catch { /* ignore */ }
 }
 
-// ============================================================
-// توليد تسلسل حسب المستوى
-// ============================================================
-
 interface Operation {
   value: number;
   operator: '+' | '-';
@@ -70,17 +79,14 @@ interface SequenceData {
   expectedResult: number;
 }
 
-// توليد رقم عشوائي بين min و max
 function randomInt(min: number, max: number): number {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-// توليد تسلسل حسب المستوى
 function generateSequence(level: Level): SequenceData {
   const operations: Operation[] = [];
 
   if (level === 'beginner') {
-    // 3 عمليات جمع، منزلة واحدة، الناتج ≤ 9
     let current = 0;
     for (let i = 0; i < 3; i++) {
       const remaining = 9 - current;
@@ -95,19 +101,14 @@ function generateSequence(level: Level): SequenceData {
   }
 
   if (level === 'intermediate') {
-    // 3 عمليات مختلطة (جمع وطرح)، منزلة واحدة، الناتج بين 0 و 9
     let current = 0;
     for (let i = 0; i < 3; i++) {
-      const isFirst = i === 0;
-      const isLast = i === 2;
-      // العملية الأولى: جمع دائماً
-      if (isFirst) {
+      if (i === 0) {
         const value = randomInt(2, 6);
         operations.push({ value, operator: '+' });
         current += value;
         continue;
       }
-      // العملية الثانية: عشوائي
       const canSubtract = current > 0;
       const canAdd = current < 9;
       const useSubtract = canSubtract && (Math.random() < 0.5 || !canAdd);
@@ -128,7 +129,6 @@ function generateSequence(level: Level): SequenceData {
   }
 
   if (level === 'advanced') {
-    // 4 عمليات مختلطة، منزلة واحدة، الناتج بين 0 و 9
     let current = 0;
     for (let i = 0; i < 4; i++) {
       if (i === 0) {
@@ -157,7 +157,6 @@ function generateSequence(level: Level): SequenceData {
   }
 
   if (level === 'expert') {
-    // 5 عمليات مختلطة، منزلة واحدة، الناتج بين 0 و 9
     let current = 0;
     for (let i = 0; i < 5; i++) {
       if (i === 0) {
@@ -185,7 +184,7 @@ function generateSequence(level: Level): SequenceData {
     return { operations, expectedResult: current };
   }
 
-  // master: 5 عمليات، أرقام بمنزلتين، الناتج ≤ 99
+  // master
   let current = 0;
   for (let i = 0; i < 5; i++) {
     if (i === 0) {
@@ -213,27 +212,29 @@ function generateSequence(level: Level): SequenceData {
   return { operations, expectedResult: current };
 }
 
-// ============================================================
-// المكون الرئيسي
-// ============================================================
-
 export function AnzanScreen({ onBack, playSound, onXP, burst }: AnzanScreenProps) {
   const [phase, setPhase] = useState<Phase>('idle');
   const [flashIndex, setFlashIndex] = useState(-1);
   const [userAnswer, setUserAnswer] = useState('');
-  const [correct, setCorrect] = useState(false);
+  const [lastAttemptCorrect, setLastAttemptCorrect] = useState(false);
   const [score, setScore] = useState(0);
   const [round, setRound] = useState(0);
   const [level, setLevel] = useState<Level>('beginner');
   const [speed, setSpeed] = useState<Speed>('slow');
   const [showSettings, setShowSettings] = useState(false);
 
+  // عدد المحاولات في الجولة الحالية
+  const [attempt, setAttempt] = useState(1);
+  // هل خفّضنا المستوى في هذه الجولة؟
+  const [levelWasEased, setLevelWasEased] = useState(false);
+  // هل نعرض الإجابة (بعد المحاولة الثانية)
+  const [showAnswer, setShowAnswer] = useState(false);
+
   const [sequence, setSequence] = useState<SequenceData>(() => generateSequence('beginner'));
 
   const total = sequence.expectedResult;
   const flashDuration = SPEED_MS[speed];
 
-  // القيمة التراكمية المعروضة
   const runningTotal = useMemo(() => {
     if (flashIndex < 0) return 0;
     let acc = 0;
@@ -244,14 +245,31 @@ export function AnzanScreen({ onBack, playSound, onXP, burst }: AnzanScreenProps
     return acc;
   }, [sequence, flashIndex]);
 
-  const startGame = useCallback(() => {
+  const startGame = useCallback((resetAttempts: boolean = true) => {
     const newSeq = generateSequence(level);
     setSequence(newSeq);
     setPhase('flashing');
     setFlashIndex(-1);
     setUserAnswer('');
+    if (resetAttempts) {
+      setAttempt(1);
+      setLevelWasEased(false);
+      setShowAnswer(false);
+    }
     playSound('click');
   }, [playSound, level]);
+
+  // إعادة عرض نفس التسلسل (بعد الخطأ الأول)
+  const replaySequence = useCallback((slowerSpeed: boolean) => {
+    setPhase('flashing');
+    setFlashIndex(-1);
+    setUserAnswer('');
+    setShowAnswer(false);
+    if (slowerSpeed) {
+      setSpeed('slow');
+    }
+    playSound('click');
+  }, [playSound]);
 
   useEffect(() => {
     if (phase !== 'flashing') return;
@@ -269,30 +287,64 @@ export function AnzanScreen({ onBack, playSound, onXP, burst }: AnzanScreenProps
   const submitAnswer = () => {
     const answer = parseInt(userAnswer, 10);
     const isCorrect = answer === total;
-    setCorrect(isCorrect);
-    setPhase('result');
-
-    const stats = loadAnzanStats();
-    const newStats: AnzanStats = {
-      highScore: isCorrect && score + 1 > stats.highScore ? score + 1 : stats.highScore,
-      totalRounds: stats.totalRounds + 1,
-      totalCorrect: stats.totalCorrect + (isCorrect ? 1 : 0),
-    };
-    saveAnzanStats(newStats);
+    setLastAttemptCorrect(isCorrect);
 
     if (isCorrect) {
+      // ✅ إجابة صحيحة
       playSound('success');
       setScore((s) => s + 1);
-      onXP(25);
+      // XP مخفف إذا كانت المحاولة الثانية
+      onXP(attempt === 1 ? 25 : 10);
       burst(0.5, 0.4);
+      setPhase('result');
+
+      const stats = loadAnzanStats();
+      saveAnzanStats({
+        highScore: score + 1 > stats.highScore ? score + 1 : stats.highScore,
+        totalRounds: stats.totalRounds + 1,
+        totalCorrect: stats.totalCorrect + 1,
+      });
     } else {
+      // ❌ إجابة خاطئة
       playSound('error');
+
+      if (attempt === 1) {
+        // المحاولة الأولى: لا نكشف الإجابة، نعيد التسلسل بسرعة أبطأ
+        setAttempt(2);
+        setShowAnswer(false);
+        // تخفيف الصعوبة: إعادة العرض بسرعة "بطيء"
+        setPhase('retry');
+      } else {
+        // المحاولة الثانية: نكشف الإجابة ونخفف المستوى
+        setShowAnswer(true);
+        const easierLevel = getEasierLevel(level);
+        if (easierLevel !== level) {
+          setLevel(easierLevel);
+          setLevelWasEased(true);
+        }
+        setPhase('result');
+
+        const stats = loadAnzanStats();
+        saveAnzanStats({
+          highScore: stats.highScore,
+          totalRounds: stats.totalRounds + 1,
+          totalCorrect: stats.totalCorrect,
+        });
+      }
     }
+  };
+
+  const handleRetry = () => {
+    // إعادة عرض التسلسل بسرعة أبطأ
+    setSpeed('slow');
+    replaySequence(true);
   };
 
   const nextRound = () => {
     setRound((r) => r + 1);
-    startGame();
+    // إذا كان المستوى قد خُفّض، نبقى على المستوى الجديد
+    // إذا لا، نعود للمستوى الأصلي
+    startGame(true);
   };
 
   const currentOp = flashIndex >= 0 && flashIndex < sequence.operations.length ? sequence.operations[flashIndex] : null;
@@ -314,7 +366,6 @@ export function AnzanScreen({ onBack, playSound, onXP, burst }: AnzanScreenProps
         )}
       </div>
 
-      {/* Score */}
       <div className="flex gap-3 mb-5 flex-wrap">
         <div className="badge bg-electric-500/15 border-electric-400/20">
           <Zap className="w-4 h-4 text-electric-300" />
@@ -330,7 +381,6 @@ export function AnzanScreen({ onBack, playSound, onXP, burst }: AnzanScreenProps
         </div>
       </div>
 
-      {/* Settings Panel */}
       <AnimatePresence>
         {showSettings && phase === 'idle' && (
           <motion.div
@@ -375,7 +425,6 @@ export function AnzanScreen({ onBack, playSound, onXP, burst }: AnzanScreenProps
         )}
       </AnimatePresence>
 
-      {/* Game Area */}
       <div className="glass-card p-6 sm:p-10 min-h-[360px] flex flex-col items-center justify-center relative overflow-hidden">
         <div className="absolute inset-0 bg-hero-grid bg-[size:20px_20px] opacity-30" />
 
@@ -389,7 +438,7 @@ export function AnzanScreen({ onBack, playSound, onXP, burst }: AnzanScreenProps
                 ستظهر {toArabicNumber(sequence.operations.length)} عمليات بسرعة {SPEED_LABELS[speed]}ة.
                 تخيل المعداد في عقلك واحسب الناتج!
               </p>
-              <button onClick={startGame} className="btn-primary">
+              <button onClick={() => startGame(true)} className="btn-primary">
                 <Play className="w-5 h-5" /> ابدأ التحدي
               </button>
             </motion.div>
@@ -434,7 +483,9 @@ export function AnzanScreen({ onBack, playSound, onXP, burst }: AnzanScreenProps
                 <Sparkles className="w-6 h-6 text-purple-300 mx-auto mb-2" />
                 <p className="text-white/70 font-body text-sm">تخيل المعداد في عقلك، واحسب الناتج</p>
               </div>
-              <p className="text-white/60 font-body mb-4">ما الناتج؟</p>
+              <p className="text-white/60 font-body mb-4">
+                {attempt === 1 ? 'ما الناتج؟' : 'المحاولة الثانية — ما الناتج؟'}
+              </p>
               <input
                 type="number"
                 autoFocus
@@ -449,25 +500,49 @@ export function AnzanScreen({ onBack, playSound, onXP, burst }: AnzanScreenProps
             </motion.div>
           )}
 
+          {phase === 'retry' && (
+            <motion.div key="retry" initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} className="relative text-center w-full">
+              <motion.div animate={{ scale: [1, 1.1, 1] }} transition={{ duration: 1.5, repeat: Infinity }} className="w-20 h-20 rounded-3xl bg-gold-400/20 border-2 border-gold-400/40 flex items-center justify-center mx-auto mb-5">
+                <Heart className="w-10 h-10 text-gold-300" />
+              </motion.div>
+              <p className="text-2xl font-extrabold font-display text-gold-300 mb-2">قريب جداً! 💪</p>
+              <p className="text-white/60 font-body mb-5 max-w-sm mx-auto">
+                لا بأس، دعنا نعيد عرض الأرقام معاً بسرعة أبطأ. ركّز جيداً!
+              </p>
+              <button onClick={handleRetry} className="btn-primary">
+                <RotateCcw className="w-5 h-5" /> أعد العرض
+              </button>
+            </motion.div>
+          )}
+
           {phase === 'result' && (
             <motion.div key="result" initial={{ opacity: 0, scale: 0.5 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'spring', stiffness: 250, damping: 15 }} className="relative text-center">
-              {correct ? (
+              {lastAttemptCorrect ? (
                 <>
                   <motion.div initial={{ scale: 0 }} animate={{ scale: 1, rotate: [0, 10, -10, 0] }} className="text-7xl mb-3">
                     <Trophy className="w-20 h-20 text-gold-400 mx-auto" />
                   </motion.div>
-                  <p className="text-3xl font-extrabold font-display text-emerald2-300 mb-2">رائع!</p>
+                  <p className="text-3xl font-extrabold font-display text-emerald2-300 mb-2">
+                    {attempt === 1 ? 'رائع! 🎉' : 'أحسنت! المحاولة الثانية 👏'}
+                  </p>
                   <p className="text-white/60 font-body mb-1">الإجابة الصحيحة: {toArabicNumber(total)}</p>
-                  <p className="text-gold-300 font-bold mb-5">+{toArabicNumber(25)} XP</p>
+                  <p className="text-gold-300 font-bold mb-5">
+                    +{toArabicNumber(attempt === 1 ? 25 : 10)} XP
+                  </p>
                 </>
               ) : (
                 <>
-                  <motion.div initial={{ scale: 0 }} animate={{ scale: 1, rotate: [0, -10, 10, 0] }} className="w-20 h-20 rounded-3xl bg-red-500/20 border-2 border-red-400/30 flex items-center justify-center mx-auto mb-3">
-                    <span className="text-4xl font-extrabold text-red-300">×</span>
+                  <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="w-20 h-20 rounded-3xl bg-electric-500/20 border-2 border-electric-400/30 flex items-center justify-center mx-auto mb-3">
+                    <Heart className="w-10 h-10 text-electric-300" />
                   </motion.div>
-                  <p className="text-2xl font-extrabold font-display text-red-300 mb-2">حاول مرة أخرى</p>
-                  <p className="text-white/60 font-body mb-1">الإجابة الصحيحة: {toArabicNumber(total)}</p>
-                  <p className="text-white/40 font-body text-sm mb-5">إجابتك: {userAnswer ? toArabicNumber(userAnswer) : '—'}</p>
+                  <p className="text-2xl font-extrabold font-display text-electric-300 mb-2">لا بأس! 💙</p>
+                  <p className="text-white/60 font-body mb-1">الإجابة الصحيحة: <span className="font-bold text-white">{toArabicNumber(total)}</span></p>
+                  <p className="text-white/40 font-body text-sm mb-3">إجابتك: {userAnswer ? toArabicNumber(userAnswer) : '—'}</p>
+                  {levelWasEased && (
+                    <p className="text-gold-300 font-body text-sm mb-3">
+                      🌱 سنتدرب أكثر في مستوى أسهل
+                    </p>
+                  )}
                 </>
               )}
               <div className="mb-4 p-3 rounded-2xl bg-white/5 border border-white/10">
