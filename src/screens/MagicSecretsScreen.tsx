@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowRight, Sparkles, X, Check, Grid3X3, Lock, Star } from 'lucide-react';
+import { ArrowRight, Sparkles, X, Check, Grid3X3, Lock, Star, Timer, Trophy } from 'lucide-react';
 
 // ===== بيانات الجدول المختصر (بدون تكرار) =====
 const SHORT_TABLE: Record<number, Array<{ a: number; b: number; r: number }>> = {};
@@ -11,7 +11,74 @@ for (let i = 1; i <= 9; i++) {
   }
 }
 
-// ===== بطاقات الأسرار =====
+// ===== توليد أسئلة كل سر =====
+type Question = { q: string; a: number };
+
+function generateQuestions(secretId: number): Question[] {
+  const questions: Question[] = [];
+  const shuffle = <T,>(arr: T[]) => arr.sort(() => Math.random() - 0.5);
+
+  if (secretId === 5) {
+    const nums = shuffle([3, 4, 6, 7, 8, 9, 12, 14, 16, 18]).slice(0, 5);
+    nums.forEach((n) => questions.push({ q: `5 × ${n}`, a: 5 * n }));
+  } else if (secretId === 6) {
+    const nums = shuffle([2, 4, 6, 8, 12, 14, 16, 18, 22, 24]).slice(0, 5);
+    nums.forEach((n) => questions.push({ q: `6 × ${n}`, a: 6 * n }));
+  } else if (secretId === 7) {
+    const nums = shuffle([2, 3, 4, 5, 6, 7, 8, 9]).slice(0, 5);
+    nums.forEach((n) => questions.push({ q: `7 × ${n}`, a: 7 * n }));
+  } else if (secretId === 8) {
+    const nums = shuffle([2, 3, 4, 5, 6, 7, 8, 9]).slice(0, 5);
+    nums.forEach((n) => questions.push({ q: `8 × ${n}`, a: 8 * n }));
+  } else if (secretId === 9) {
+    const nums = shuffle([2, 3, 4, 5, 6, 7, 8, 9]).slice(0, 5);
+    nums.forEach((n) => questions.push({ q: `9 × ${n}`, a: 9 * n }));
+  } else if (secretId === 10) {
+    // المضاعفة (4 و 8)
+    const nums = shuffle([3, 5, 6, 7, 9, 11, 12, 13]).slice(0, 5);
+    nums.forEach((n) => {
+      const is4 = Math.random() > 0.5;
+      if (is4) questions.push({ q: `${n} × 4`, a: n * 4 });
+      else questions.push({ q: `${n} × 8`, a: n * 8 });
+    });
+  } else if (secretId === 11) {
+    // الأصابع (6-9)
+    const pairs: [number, number][] = [];
+    for (let i = 6; i <= 9; i++) for (let j = 6; j <= 9; j++) pairs.push([i, j]);
+    shuffle(pairs).slice(0, 5).forEach(([a, b]) => {
+      questions.push({ q: `${a} × ${b}`, a: a * b });
+    });
+  } else if (secretId === 12) {
+    // الضرب في 11
+    const nums = shuffle([12, 23, 34, 45, 51, 62, 71, 82, 91, 153, 220]).slice(0, 5);
+    nums.forEach((n) => questions.push({ q: `${n} × 11`, a: n * 11 }));
+  } else if (secretId === 13) {
+    // الضرب في 99
+    const nums = shuffle([3, 5, 7, 12, 25, 34, 46, 55, 62, 78]).slice(0, 5);
+    nums.forEach((n) => questions.push({ q: `${n} × 99`, a: n * 99 }));
+  } else if (secretId === 14) {
+    // الضرب في 999
+    const nums = shuffle([2, 3, 5, 7, 12, 20, 45, 76, 33, 88]).slice(0, 5);
+    nums.forEach((n) => questions.push({ q: `${n} × 999`, a: n * 999 }));
+  } else if (secretId === 15) {
+    // أصدقاء العشرة (تحت 100)
+    const pairs: [number, number][] = [];
+    for (let i = 90; i <= 99; i++) for (let j = 90; j <= 99; j++) pairs.push([i, j]);
+    shuffle(pairs).slice(0, 5).forEach(([a, b]) => {
+      questions.push({ q: `${a} × ${b}`, a: a * b });
+    });
+  } else if (secretId === 16) {
+    // فوق 100
+    const pairs: [number, number][] = [];
+    for (let i = 101; i <= 108; i++) for (let j = 101; j <= 108; j++) pairs.push([i, j]);
+    shuffle(pairs).slice(0, 5).forEach(([a, b]) => {
+      questions.push({ q: `${a} × ${b}`, a: a * b });
+    });
+  }
+  return questions;
+}
+
+// ===== بطاقات الأسرار (12 سراً) =====
 const SECRETS = [
   {
     id: 5,
@@ -38,7 +105,7 @@ const SECRETS = [
       { q: '6 × 8', a: '48', steps: '8 زوجي → آحاد 8 | نصف 8 = 4 → 48' },
       { q: '6 × 2', a: '12', steps: '2 زوجي → آحاد 2 | نصف 2 = 1 → 12' },
     ],
-    note: 'مع الأعداد الفردية استخدم طريقة الخطوط!',
+    note: 'مع الأعداد الفردية استخدم طريقة أخرى!',
   },
   {
     id: 7,
@@ -79,17 +146,136 @@ const SECRETS = [
       { q: '9 × 7', a: '63', steps: 'صديق 7 = 3 (آحاد) | 9−3 = 6 (عشرات)' },
     ],
   },
+  {
+    id: 10,
+    title: 'سر المضاعفة',
+    icon: '➗',
+    color: 'from-teal-500 to-cyan-600',
+    rule: 'للضرب في 4: ضاعف الرقم مرتين',
+    rule2: 'للضرب في 8: ضاعف الرقم ثلاث مرات',
+    examples: [
+      { q: '6 × 4', a: '24', steps: '6 ← 12 ← 24' },
+      { q: '6 × 8', a: '48', steps: '6 ← 12 ← 24 ← 48' },
+      { q: '7 × 4', a: '28', steps: '7 ← 14 ← 28' },
+    ],
+  },
+  {
+    id: 11,
+    title: 'سر أصابع الضرب',
+    icon: '🖐️',
+    color: 'from-orange-500 to-amber-600',
+    rule: 'الإبهام = 6، السبابة = 7، الوسطى = 8، البنصر = 9',
+    rule2: 'العشرات: الأصابع الملموسة وما تحتها | الآحاد: الأصابع فوقها × فوقها',
+    examples: [
+      { q: '7 × 8', a: '56', steps: 'العشرات: 2+3 = 5 | الآحاد: 3×2 = 6 → 56' },
+      { q: '6 × 7', a: '42', steps: 'العشرات: 1+2 = 3 | الآحاد: 4×3 = 12 → 42' },
+      { q: '8 × 9', a: '72', steps: 'العشرات: 3+4 = 7 | الآحاد: 2×1 = 2 → 72' },
+    ],
+  },
+  {
+    id: 12,
+    title: 'الضرب في 11',
+    icon: '🔢',
+    color: 'from-violet-500 to-purple-600',
+    rule: 'الطرفان كما هما، والوسط حاصل جمع الجيران',
+    rule2: 'مع الحمل: إذا كان الجمع > 9 → نحمل للرقم التالي',
+    examples: [
+      { q: '34 × 11', a: '374', steps: '3 _ 4 → 3+4=7 → 374' },
+      { q: '153 × 11', a: '1683', steps: '1 _ _ 3 → 5+3=8، 1+5=6 → 1683' },
+      { q: '556 × 11', a: '6116', steps: '5 _ _ 6 → مع الحمل → 6116' },
+    ],
+  },
+  {
+    id: 13,
+    title: 'الضرب في 99',
+    icon: '9️⃣',
+    color: 'from-rose-600 to-pink-700',
+    rule: 'اطرح 1 من الرقم → ثم اطرح الناتج من 99',
+    rule2: 'ينفع فقط للأعداد ≤ 99',
+    examples: [
+      { q: '12 × 99', a: '1188', steps: '12−1=11، 99−11=88 → 1188' },
+      { q: '25 × 99', a: '2475', steps: '25−1=24، 99−24=75 → 2475' },
+      { q: '55 × 99', a: '5445', steps: '55−1=54، 99−54=45 → 5445' },
+    ],
+  },
+  {
+    id: 14,
+    title: 'الضرب في 999',
+    icon: '9️⃣9️⃣',
+    color: 'from-fuchsia-600 to-purple-700',
+    rule: 'اطرح 1 من الرقم → ثم اطرح الناتج من 999',
+    rule2: 'نفس فكرة 99 لكن مع 3 منازل',
+    examples: [
+      { q: '20 × 999', a: '19980', steps: '20−1=19، 999−019=980 → 19980' },
+      { q: '76 × 999', a: '75924', steps: '76−1=75، 999−075=924 → 75924' },
+      { q: '50 × 999', a: '49950', steps: '50−1=49، 999−049=950 → 49950' },
+    ],
+  },
+  {
+    id: 15,
+    title: 'أصدقاء المئة (تحت 100)',
+    icon: '💯',
+    color: 'from-blue-600 to-indigo-700',
+    rule: 'الفرق = 100 − الرقم | الطرح التبادلي ثم ضرب الفرقين',
+    rule2: 'مثال 97 × 96: (97−4=93) و (3×4=12) → 9312',
+    examples: [
+      { q: '96 × 97', a: '9312', steps: '100−96=4، 100−97=3 → (96−3=93)، (4×3=12) → 9312' },
+      { q: '95 × 98', a: '9310', steps: '100−95=5، 100−98=2 → (95−2=93)، (5×2=10) → 9310' },
+      { q: '92 × 97', a: '8924', steps: '100−92=8، 100−97=3 → (92−3=89)، (8×3=24) → 8924' },
+    ],
+  },
+  {
+    id: 16,
+    title: 'الأعداد فوق 100',
+    icon: '🔼',
+    color: 'from-emerald-600 to-green-700',
+    rule: 'الفرق = الرقم − 100 | الجمع التبادلي ثم ضرب الفرقين',
+    rule2: 'مثال 104 × 103: (104+3=107) و (4×3=12) → 10712',
+    examples: [
+      { q: '104 × 103', a: '10712', steps: '104−100=4، 103−100=3 → (104+3=107)، (4×3=12) → 10712' },
+      { q: '105 × 104', a: '10920', steps: '105−100=5، 104−100=4 → (105+4=109)، (5×4=20) → 10920' },
+      { q: '106 × 103', a: '10918', steps: '106−100=6، 103−100=3 → (106+3=109)، (6×3=18) → 10918' },
+    ],
+  },
 ];
+
+const BEST_SCORES_KEY = 'soroban_secrets_best_scores';
+const TIME_PER_QUESTION = 20;
+const MAX_ATTEMPTS = 2;
 
 interface Props {
   onBack: () => void;
   onComplete?: (stars: number) => void;
+  onXP?: (amount: number) => void;
 }
 
-const MagicSecretsScreen: React.FC<Props> = ({ onBack, onComplete }) => {
+const MagicSecretsScreen: React.FC<Props> = ({ onBack, onComplete, onXP }) => {
   const [tab, setTab] = useState<'table' | 'secrets'>('table');
   const [openSecret, setOpenSecret] = useState<number | null>(null);
   const [doneSecrets, setDoneSecrets] = useState<number[]>([]);
+  const [bestScores, setBestScores] = useState<Record<number, number>>({});
+
+  // حالة التمرين
+  const [practiceSecretId, setPracticeSecretId] = useState<number | null>(null);
+
+  // تحميل أفضل النتائج
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(BEST_SCORES_KEY);
+      if (raw) setBestScores(JSON.parse(raw));
+    } catch { /* ignore */ }
+  }, []);
+
+  const saveBestScore = (secretId: number, score: number) => {
+    const current = bestScores[secretId] || 0;
+    if (score > current) {
+      const updated = { ...bestScores, [secretId]: score };
+      setBestScores(updated);
+      try {
+        localStorage.setItem(BEST_SCORES_KEY, JSON.stringify(updated));
+      } catch { /* ignore */ }
+    }
+  };
 
   const handleLearnSecret = (id: number) => {
     if (!doneSecrets.includes(id)) {
@@ -116,16 +302,16 @@ const MagicSecretsScreen: React.FC<Props> = ({ onBack, onComplete }) => {
       <div className="flex gap-2 mb-6 bg-white/5 p-1 rounded-2xl">
         <button
           onClick={() => setTab('table')}
-          className={`flex-1 py-3 rounded-xl font-bold transition ${tab === 'table' ? 'bg-purple-600 shadow-lg' : 'text-white/60'}`}
+          className={`flex-1 py-3 rounded-xl font-bold transition text-sm ${tab === 'table' ? 'bg-purple-600 shadow-lg' : 'text-white/60'}`}
         >
-          <Grid3X3 className="w-5 h-5 inline ml-2" />
+          <Grid3X3 className="w-4 h-4 inline ml-1" />
           الجدول المختصر
         </button>
         <button
           onClick={() => setTab('secrets')}
-          className={`flex-1 py-3 rounded-xl font-bold transition ${tab === 'secrets' ? 'bg-purple-600 shadow-lg' : 'text-white/60'}`}
+          className={`flex-1 py-3 rounded-xl font-bold transition text-sm ${tab === 'secrets' ? 'bg-purple-600 shadow-lg' : 'text-white/60'}`}
         >
-          <Sparkles className="w-5 h-5 inline ml-2" />
+          <Sparkles className="w-4 h-4 inline ml-1" />
           الأسرار
         </button>
       </div>
@@ -144,7 +330,7 @@ const MagicSecretsScreen: React.FC<Props> = ({ onBack, onComplete }) => {
               transition={{ delay: col * 0.05 }}
               className="bg-gradient-to-l from-emerald-900/40 to-slate-800/60 rounded-2xl p-4 border border-emerald-500/20"
             >
-              <h3 className="font-bold text-emerald-300 mb-3 flex items-center gap-2">
+              <h3 className="font-bold text-emerald-300 mb-3">
                 <span className="bg-emerald-500 text-black rounded-lg px-3 py-1 text-sm">الضرب في {col}</span>
               </h3>
               <div className="grid grid-cols-2 gap-2">
@@ -163,25 +349,33 @@ const MagicSecretsScreen: React.FC<Props> = ({ onBack, onComplete }) => {
       {/* Tab 2: Secrets */}
       {tab === 'secrets' && (
         <div className="space-y-4">
-          {SECRETS.map((s) => (
-            <motion.button
-              key={s.id}
-              onClick={() => setOpenSecret(s.id)}
-              whileTap={{ scale: 0.97 }}
-              className={`w-full p-4 rounded-2xl bg-gradient-to-l ${s.color} text-right shadow-lg flex items-center gap-3`}
-            >
-              <span className="text-3xl">{s.icon}</span>
-              <div className="flex-1">
-                <h3 className="font-bold text-lg">{s.title}</h3>
-                <p className="text-xs opacity-90">{s.rule}</p>
-              </div>
-              {doneSecrets.includes(s.id) ? (
-                <Check className="w-6 h-6 text-white" />
-              ) : (
-                <Lock className="w-5 h-5 opacity-70" />
-              )}
-            </motion.button>
-          ))}
+          {SECRETS.map((s) => {
+            const best = bestScores[s.id] || 0;
+            return (
+              <motion.button
+                key={s.id}
+                onClick={() => setOpenSecret(s.id)}
+                whileTap={{ scale: 0.97 }}
+                className={`w-full p-4 rounded-2xl bg-gradient-to-l ${s.color} text-right shadow-lg flex items-center gap-3`}
+              >
+                <span className="text-3xl">{s.icon}</span>
+                <div className="flex-1">
+                  <h3 className="font-bold text-lg">{s.title}</h3>
+                  <p className="text-xs opacity-90">{s.rule}</p>
+                  {best > 0 && (
+                    <p className="text-[10px] mt-1 opacity-90">
+                      🏆 أفضل نتيجة: {best}/5
+                    </p>
+                  )}
+                </div>
+                {doneSecrets.includes(s.id) ? (
+                  <Check className="w-6 h-6 text-white" />
+                ) : (
+                  <Lock className="w-5 h-5 opacity-70" />
+                )}
+              </motion.button>
+            );
+          })}
         </div>
       )}
 
@@ -204,6 +398,7 @@ const MagicSecretsScreen: React.FC<Props> = ({ onBack, onComplete }) => {
             >
               {(() => {
                 const s = SECRETS.find((x) => x.id === openSecret)!;
+                const best = bestScores[s.id] || 0;
                 return (
                   <>
                     <div className="flex justify-between items-start mb-4">
@@ -240,16 +435,35 @@ const MagicSecretsScreen: React.FC<Props> = ({ onBack, onComplete }) => {
                       </div>
                     )}
 
-                    <button
-                      onClick={() => {
-                        handleLearnSecret(s.id);
-                        setOpenSecret(null);
-                      }}
-                      className="mt-6 w-full py-4 bg-gradient-to-l from-purple-600 to-amber-500 rounded-2xl font-bold text-lg flex items-center justify-center gap-2"
-                    >
-                      <Star className="w-5 h-5" />
-                      فهمت السر!
-                    </button>
+                    {best > 0 && (
+                      <div className="mt-4 p-3 bg-gold-400/10 border border-gold-400/30 rounded-xl text-sm text-center">
+                        🏆 أفضل نتيجة لك: {best}/5
+                      </div>
+                    )}
+
+                    <div className="mt-6 flex gap-2">
+                      <button
+                        onClick={() => {
+                          handleLearnSecret(s.id);
+                          setOpenSecret(null);
+                          setPracticeSecretId(s.id);
+                        }}
+                        className="flex-1 py-3 bg-gradient-to-l from-emerald-500 to-teal-600 rounded-2xl font-bold flex items-center justify-center gap-2"
+                      >
+                        <Timer className="w-5 h-5" />
+                        تمرّن
+                      </button>
+                      <button
+                        onClick={() => {
+                          handleLearnSecret(s.id);
+                          setOpenSecret(null);
+                        }}
+                        className="flex-1 py-3 bg-gradient-to-l from-purple-600 to-amber-500 rounded-2xl font-bold flex items-center justify-center gap-2"
+                      >
+                        <Star className="w-5 h-5" />
+                        فهمت
+                      </button>
+                    </div>
                   </>
                 );
               })()}
@@ -257,7 +471,243 @@ const MagicSecretsScreen: React.FC<Props> = ({ onBack, onComplete }) => {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Practice Screen */}
+      <AnimatePresence>
+        {practiceSecretId !== null && (
+          <PracticeModal
+            secretId={practiceSecretId}
+            onClose={() => setPracticeSecretId(null)}
+            onFinish={(score) => {
+              saveBestScore(practiceSecretId, score);
+              if (onXP && score > 0) onXP(score * 5);
+            }}
+          />
+        )}
+      </AnimatePresence>
     </div>
+  );
+};
+
+// ============================================================
+// شاشة التمرين
+// ============================================================
+interface PracticeModalProps {
+  secretId: number;
+  onClose: () => void;
+  onFinish: (score: number) => void;
+}
+
+const PracticeModal: React.FC<PracticeModalProps> = ({ secretId, onClose, onFinish }) => {
+  const secret = SECRETS.find((s) => s.id === secretId)!;
+  const [questions] = useState<Question[]>(() => generateQuestions(secretId));
+  const [idx, setIdx] = useState(0);
+  const [input, setInput] = useState('');
+  const [timeLeft, setTimeLeft] = useState(TIME_PER_QUESTION);
+  const [attempts, setAttempts] = useState(0);
+  const [score, setScore] = useState(0);
+  const [finished, setFinished] = useState(false);
+  const [feedback, setFeedback] = useState<'ok' | 'no' | 'timeout' | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const currentQ = questions[idx];
+
+  // المؤقت
+  useEffect(() => {
+    if (finished || feedback === 'ok' || !currentQ) return;
+    if (timeLeft <= 0) {
+      // انتهى الوقت → خسر السؤال
+      setFeedback('timeout');
+      setTimeout(() => advance(), 1200);
+      return;
+    }
+    const timer = setTimeout(() => setTimeLeft((t) => t - 1), 1000);
+    return () => clearTimeout(timer);
+  }, [timeLeft, finished, feedback, currentQ]);
+
+  // تركيز الحقل تلقائياً
+  useEffect(() => {
+    if (inputRef.current && !finished) {
+      inputRef.current.focus();
+    }
+  }, [idx, finished]);
+
+  const advance = () => {
+    if (idx + 1 >= questions.length) {
+      setFinished(true);
+      setTimeout(() => {
+        onFinish(score);
+      }, 100);
+    } else {
+      setIdx(idx + 1);
+      setInput('');
+      setAttempts(0);
+      setTimeLeft(TIME_PER_QUESTION);
+      setFeedback(null);
+    }
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value.replace(/\D/g, '');
+    if (val.length > 8) return;
+    setInput(val);
+
+    if (val === '' || !currentQ) return;
+    const num = Number(val);
+    if (num === currentQ.a) {
+      // صحيح
+      setFeedback('ok');
+      setScore((s) => s + 1);
+      setTimeout(() => advance(), 1000);
+    } else if (val.length >= String(currentQ.a).length) {
+      // خطأ
+      const newAttempts = attempts + 1;
+      setAttempts(newAttempts);
+      if (newAttempts >= MAX_ATTEMPTS) {
+        setFeedback('no');
+        setTimeout(() => advance(), 1200);
+      } else {
+        setFeedback('no');
+        setTimeout(() => {
+          setInput('');
+          setFeedback(null);
+        }, 700);
+      }
+    }
+  };
+
+  if (!currentQ) return null;
+
+  const progressPct = ((idx + 1) / questions.length) * 100;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-[60] bg-black/90 backdrop-blur-sm flex items-center justify-center p-4"
+    >
+      <motion.div
+        initial={{ scale: 0.9, y: 30 }}
+        animate={{ scale: 1, y: 0 }}
+        className="bg-slate-900 rounded-3xl p-5 max-w-md w-full border border-white/10"
+      >
+        {!finished ? (
+          <>
+            {/* Header */}
+            <div className="flex justify-between items-center mb-4">
+              <div className="flex items-center gap-2">
+                <span className="text-2xl">{secret.icon}</span>
+                <span className="text-sm font-bold">{secret.title}</span>
+              </div>
+              <button onClick={onClose} className="p-2 rounded-full bg-white/10">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Progress + Timer */}
+            <div className="flex items-center gap-3 mb-4">
+              <div className="flex-1 h-2 rounded-full bg-white/10 overflow-hidden">
+                <motion.div
+                  className="h-full bg-gradient-to-r from-purple-500 to-amber-500"
+                  initial={{ width: 0 }}
+                  animate={{ width: `${progressPct}%` }}
+                />
+              </div>
+              <span className="text-xs text-white/60">
+                {idx + 1}/{questions.length}
+              </span>
+            </div>
+
+            {/* Timer */}
+            <div className={`mb-4 p-2 rounded-xl text-center flex items-center justify-center gap-2 ${
+              timeLeft <= 5 ? 'bg-red-500/20 border border-red-500/50' : 'bg-white/5 border border-white/10'
+            }`}>
+              <Timer className={`w-4 h-4 ${timeLeft <= 5 ? 'text-red-400' : 'text-amber-300'}`} />
+              <span className={`font-bold ${timeLeft <= 5 ? 'text-red-300' : 'text-white'}`}>
+                {timeLeft} ثانية
+              </span>
+            </div>
+
+            {/* Question */}
+            <div className="bg-white/5 rounded-2xl p-6 text-center mb-4">
+              <p className="text-xs text-white/50 mb-3">السؤال {idx + 1}</p>
+              <p className="text-4xl font-black" dir="ltr">
+                {currentQ.q} = <span className="text-amber-300">؟</span>
+              </p>
+            </div>
+
+            {/* Input */}
+            <input
+              ref={inputRef}
+              type="text"
+              inputMode="numeric"
+              value={input}
+              onChange={handleChange}
+              disabled={feedback === 'ok' || feedback === 'timeout'}
+              className={`w-full bg-slate-800 border-2 rounded-2xl px-4 py-3 text-center text-2xl font-bold outline-none transition ${
+                feedback === 'ok'
+                  ? 'border-emerald-500 text-emerald-300'
+                  : feedback === 'no'
+                    ? 'border-red-500'
+                    : feedback === 'timeout'
+                      ? 'border-red-500 text-red-300'
+                      : 'border-purple-500/50 focus:border-amber-400 text-white'
+              }`}
+              placeholder="اكتب الإجابة"
+              dir="ltr"
+            />
+
+            {/* Feedback */}
+            <div className="mt-3 h-6 text-center">
+              {feedback === 'ok' && (
+                <p className="text-emerald-400 font-bold text-sm">✅ إجابة صحيحة!</p>
+              )}
+              {feedback === 'no' && attempts === 1 && (
+                <p className="text-amber-400 font-bold text-sm">⚠️ حاول مرة أخرى!</p>
+              )}
+              {feedback === 'no' && attempts >= MAX_ATTEMPTS && (
+                <p className="text-red-400 font-bold text-sm">
+                  ❌ الإجابة: {currentQ.a}
+                </p>
+              )}
+              {feedback === 'timeout' && (
+                <p className="text-red-400 font-bold text-sm">
+                  ⏱️ انتهى الوقت! الإجابة: {currentQ.a}
+                </p>
+              )}
+            </div>
+
+            {/* Score */}
+            <p className="text-center text-xs text-white/50 mt-4">
+              النقاط: {score}
+            </p>
+          </>
+        ) : (
+          <>
+            {/* Result */}
+            <div className="text-center py-6">
+              <Trophy className="w-16 h-16 text-gold-300 mx-auto mb-4" />
+              <h2 className="text-2xl font-bold mb-2">انتهى التمرين!</h2>
+              <p className="text-5xl font-black text-amber-300 mb-4">
+                {score}/5
+              </p>
+              <p className="text-sm text-white/60 mb-6">
+                {score === 5 ? '🏆 ممتاز! أنت بطل!' :
+                 score >= 3 ? '👏 جيد جداً! استمر!' :
+                 '💪 حاول مرة أخرى!'}
+              </p>
+              <button
+                onClick={onClose}
+                className="w-full py-3 bg-gradient-to-l from-purple-600 to-amber-500 rounded-2xl font-bold"
+              >
+                إغلاق
+              </button>
+            </div>
+          </>
+        )}
+      </motion.div>
+    </motion.div>
   );
 };
 
