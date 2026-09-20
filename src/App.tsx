@@ -17,6 +17,10 @@ import { GuardianDashboard } from './components/GuardianDashboard';
 import InteractiveSorobanScreen from './components/InteractiveSorobanScreen';
 import { BadgeModal } from './components/BadgeModal';
 
+// ✅ استيراد الشاشتين الجديدتين
+import MultiplicationScreen from './screens/MultiplicationScreen';
+import MagicSecretsScreen from './screens/MagicSecretsScreen';
+
 function App() {
   const [role, setRole] = useState<Role>(null);
   const [screen, setScreen] = useState<Screen>('role');
@@ -160,6 +164,22 @@ function App() {
               onBack={() => handleNavigate('hero-dashboard')}
               playSound={playSound}
               onXP={addXP}
+            />
+          )}
+
+          {/* ✅ الشاشة الجديدة: درس الضرب */}
+          {screen === 'multiplication' && (
+            <MultiplicationScreen
+              onBack={() => handleNavigate('hero-dashboard')}
+              onComplete={(stars) => addXP(stars * 10)}
+            />
+          )}
+
+          {/* ✅ الشاشة الجديدة: الأسرار السحرية */}
+          {screen === 'secrets' && (
+            <MagicSecretsScreen
+              onBack={() => handleNavigate('hero-dashboard')}
+              onComplete={(stars) => addXP(stars * 10)}
             />
           )}
 
