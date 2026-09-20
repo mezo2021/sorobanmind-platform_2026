@@ -255,7 +255,7 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
         {LEARN_MODULES.map((mod, i) => {
           const Icon = ICONS[mod.icon] || Info;
           const isDone = completed.includes(mod.id);
-          const isFirstLesson = mod.id === 1;
+          const isFirstLesson = mod.id === 0;
           const previousCompleted = completed.includes(mod.id - 1);
           const isLocked = !isDone && !isFirstLesson && !previousCompleted;
           const solvedCount = (lessonProgress[mod.id] || []).length;
