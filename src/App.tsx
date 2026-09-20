@@ -1,3 +1,4 @@
+import CrossMultiplicationScreen from './screens/CrossMultiplicationScreen';
 import { useState, useCallback, useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import type { Role, Screen } from './types';
