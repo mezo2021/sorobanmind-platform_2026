@@ -133,7 +133,7 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
   const [showSteps, setShowSteps] = useState(false);
   const [abacusValue, setAbacusValue] = useState(0);
 
-  // ✨ جديد: تتبع المحاولات لكل مثال
+  // تتبع المحاولات لكل مثال
   const [attempts, setAttempts] = useState<Record<number, number>>({});
   const [showAnswer, setShowAnswer] = useState(false);
   const [feedbackMsg, setFeedbackMsg] = useState<string>('');
@@ -214,7 +214,7 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
     }
   };
 
-  // ✨ جديد: زر "تحقق" في وضع جرّب
+  // ✅ التصحيح: لا نمسح المعداد — الطفل يمكنه تعديل حركاته
   const handleCheck = () => {
     if (!currentEx) return;
     if (abacusValue === currentEx.answer) {
@@ -229,8 +229,6 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
           ? '❌ لم تصل بعد. يمكنك رؤية الإجابة الآن.'
           : `❌ حاول مرة أخرى. المحاولة ${toArabicNumber(currentAttempts)} من ${toArabicNumber(MAX_ATTEMPTS)}`
       );
-      // إعادة تعيين المعداد
-      setAbacusValue(0);
     }
   };
 
@@ -387,7 +385,6 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
                 </button>
               </div>
 
-              {/* بطاقة القاعدة */}
               <div className="mb-4 p-3 rounded-2xl bg-gradient-to-br from-gold-400/10 to-gold-600/10 border border-gold-400/30">
                 <div className="flex items-start gap-2">
                   <Fingerprint className="w-5 h-5 text-gold-400 shrink-0 mt-0.5" />
@@ -398,7 +395,6 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
                 </div>
               </div>
 
-              {/* جدول القاعدة */}
               {selected.ruleTable && selected.ruleTable.length > 0 && (
                 <div className="mb-4 p-3 rounded-2xl bg-black/30 border border-gold-400/20">
                   <p className="text-xs font-bold text-gold-300 mb-2 text-center">📋 جدول القاعدة</p>
@@ -488,40 +484,49 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
               {/* ─────────── وضع "جرّب" ─────────── */}
               {currentEx && mode === 'try' && (
                 <div className="flex flex-col items-center gap-3 mb-4">
-                  {/* المعداد التفاعلي — لا تلميح للإجابة */}
                   <InteractiveSoroban
                     columns={getColumnsForValue(currentEx.answer)}
                     value={abacusValue}
                     onValueChange={(v) => setAbacusValue(v)}
                   />
 
-                  {/* زر تحقق */}
                   {!isSolved && !showAnswer && (
-                    <button
-                      onClick={handleCheck}
-                      className="btn-primary !py-2 !px-6 !text-sm"
-                      disabled={abacusValue === 0}
-                    >
-                      <CheckCircle2 className="w-4 h-4" />
-                      تحقق
-                    </button>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={handleCheck}
+                        className="btn-primary !py-2 !px-6 !text-sm"
+                      >
+                        <CheckCircle2 className="w-4 h-4" />
+                        تحقق
+                      </button>
+                      {abacusValue !== 0 && (
+                        <button
+                          onClick={() => {
+                            setAbacusValue(0);
+                            playSound('click');
+                          }}
+                          className="btn-ghost !py-2 !px-4 !text-sm"
+                          title="إعادة تعيين المعداد"
+                        >
+                          <RotateCcw className="w-4 h-4" />
+                          مسح
+                        </button>
+                      )}
+                    </div>
                   )}
 
-                  {/* عداد المحاولات + رسالة التغذية الراجعة */}
                   {feedbackMsg && !showAnswer && !isSolved && (
                     <p className="text-xs text-white/60 font-body text-center">
                       {feedbackMsg}
                     </p>
                   )}
 
-                  {/* نجاح */}
                   {isSolved && (
                     <p className="text-sm text-emerald2-300 font-bold font-body">
                       ✅ أحسنت! إجابة صحيحة.
                     </p>
                   )}
 
-                  {/* زر "أرني الإجابة" بعد 10 محاولات */}
                   {canShowAnswerBtn && !showAnswer && (
                     <button
                       onClick={() => { setShowAnswer(true); playSound('click'); }}
@@ -532,7 +537,6 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
                     </button>
                   )}
 
-                  {/* الإجابة بعد الضغط على الزر */}
                   {showAnswer && (
                     <div className="w-full p-3 rounded-2xl bg-gold-500/15 border border-gold-400/40">
                       <p className="text-sm font-bold text-gold-300 text-center mb-1">
@@ -622,7 +626,6 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
                 </div>
               )}
 
-              {/* شرح "شاهد" فقط */}
               {currentEx && mode === 'watch' && currentEx.explanation && (
                 <div className="flex gap-3 p-3 rounded-2xl bg-purple-500/10 border border-purple-400/20 mb-4">
                   <Lightbulb className="w-5 h-5 text-gold-400 shrink-0 mt-0.5" />
