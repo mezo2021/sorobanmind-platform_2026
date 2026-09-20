@@ -1,40 +1,12 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import {
-  BookOpen,
-  Dumbbell,
-  Eye,
-  Swords,
-  Calculator,
-  Lock,
-  CheckCircle2,
-  Circle,
-  ArrowLeft,
-  Star,
-  Award,
-  Crown,
-  Lock as LockBadge,
-  X,
-  Palette,
-  Trash2,
-  Target,
-  Diamond,
-  Sparkles,
-  Flame,
-  Trophy,
-  Brain,
-  ShieldCheck,
-  Zap,
-  FileText,
-  Grid3X3,
-  Wand2,
-  Unlock,
-  Hash,
-  Divide,
+  BookOpen, Dumbbell, Eye, Swords, Calculator, Lock,
+  ArrowLeft, Sparkles, Flame, Brain, Zap, Palette, Trash2,
+  Unlock, X, Grid3X3, Wand2, Hash, Divide, FileText,
   type LucideIcon,
 } from 'lucide-react';
 
-import { LEVELS, BADGES } from '@/data';
 import type { Screen, CharacterType } from '@/types';
 import { Companion } from './Companion';
 import { CharacterSelector } from './CharacterSelector';
@@ -53,13 +25,7 @@ function toArabicNumber(value: number | string): string {
 
 const CHARACTER_INFO: Record<
   CharacterType,
-  {
-    name: string;
-    title: string;
-    message: string;
-    color: string;
-    lightColor: string;
-  }
+  { name: string; title: string; message: string; color: string; lightColor: string }
 > = {
   sham: {
     name: 'شام',
@@ -100,7 +66,6 @@ type ActionCard = {
   gradient: string;
   glow: string;
   requiresExam?: boolean;
-  comingSoon?: boolean;
 };
 
 const ACTION_CARDS: ActionCard[] = [
@@ -180,14 +145,14 @@ const ACTION_CARDS: ActionCard[] = [
     requiresExam: true,
   },
   {
-    screen: 'cross-multiplication',
+    screen: 'division',
     title: 'القسمة',
     titleEn: 'Division',
-    desc: 'قريبًا — تعلّم القسمة على السوروبان',
+    desc: 'قسمة الأعداد على السوروبان',
     icon: Divide,
     gradient: 'from-blue-500 to-cyan-700',
     glow: 'shadow-blue-500/40',
-    comingSoon: true,
+    requiresExam: true,
   },
   {
     screen: 'final-exam',
@@ -199,10 +164,6 @@ const ACTION_CARDS: ActionCard[] = [
     glow: 'shadow-gold-500/40',
   },
 ];
-
-const BADGE_ICONS: Record<string, LucideIcon> = {
-  Star, Eye, Award, Crown, Target, Diamond,
-};
 
 const LEGACY_CHARACTER_MAP: Record<string, CharacterType> = {
   fox: 'sham',
@@ -262,7 +223,6 @@ export function HeroDashboard({
   };
 
   const canOpenCard = (card: ActionCard): boolean => {
-    if (card.comingSoon) return false;
     if (card.requiresExam && !examPassed) return false;
     return true;
   };
@@ -437,7 +397,6 @@ export function HeroDashboard({
         {ACTION_CARDS.map((card, i) => {
           const Icon = card.icon;
           const isLocked = !canOpenCard(card);
-          const isComingSoon = !!card.comingSoon;
 
           return (
             <motion.button
@@ -458,12 +417,6 @@ export function HeroDashboard({
             >
               <div className={`absolute inset-0 bg-gradient-to-br ${card.gradient} opacity-0 group-hover:opacity-15 transition-opacity duration-500`} />
 
-              {isComingSoon && (
-                <span className="absolute top-2 left-2 text-[10px] px-2 py-0.5 rounded-full bg-white/10 border border-white/20 text-white/60">
-                  قريبًا
-                </span>
-              )}
-
               <div className={`relative inline-flex w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-br ${card.gradient} items-center justify-center shadow-xl ${card.glow} mb-2 ${
                 isLocked ? 'grayscale' : ''
               }`}>
@@ -481,7 +434,7 @@ export function HeroDashboard({
                 {card.titleEn}
               </p>
               <p className="text-[11px] sm:text-xs text-white/60 font-body leading-snug">
-                {isLocked && !isComingSoon
+                {isLocked
                   ? '🔒 اجتز الامتحان النهائي لفتح هذا الدرس'
                   : card.desc}
               </p>
