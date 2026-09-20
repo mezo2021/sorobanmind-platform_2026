@@ -1,6 +1,6 @@
 // ============================================================
 // types.ts — الأنواع المركزية لمشروع SorobanMind
-// الإصدار: 3.0 (النسخة المستقرة)
+// الإصدار: 3.1
 // ============================================================
 
 // ------------------------------------------------------------
@@ -121,7 +121,6 @@ export interface DivisionExample {
 // ------------------------------------------------------------
 // نظام القواعد والجداول
 // ------------------------------------------------------------
-
 export interface SubRule {
   id: string;
   formula: string;
@@ -152,12 +151,6 @@ export interface TactileActivity {
 // ------------------------------------------------------------
 // وحدات التعلّم
 // ------------------------------------------------------------
-
-/**
- * طريقة التفاعل في وضع "جرّب":
- * - number-input: إدخال رقم (للتعريف، التمثيل، القيم الثابتة)
- * - abacus-representation: تمثيل الناتج على المعداد التفاعلي (للعمليات الحسابية)
- */
 export type InteractionMode = 'number-input' | 'abacus-representation';
 
 export interface LearnModule {
@@ -179,26 +172,12 @@ export interface LearnModule {
   story: string;
   storyAudioText?: string;
   examples: (LessonExample | DivisionExample)[];
-
-  // إضافات نظام المنهج
   subRules?: SubRule[];
   tables?: RuleTable[];
   tactileActivity?: TactileActivity;
   targetAge?: string;
   requiresAllPrevious?: boolean;
-
-  // إعدادات التفاعل
-  /**
-   * طريقة التفاعل في "جرّب" — افتراضياً 'number-input'
-   */
   interactionMode?: InteractionMode;
-
-  /**
-   * عدد المحاولات المسموح بها قبل إظهار الإجابة.
-   * - undefined = 5 محاولات (افتراضي)
-   * - 0 = لا نهائي (للعمليات الحسابية)
-   * - رقم آخر = العدد المحدد
-   */
   maxAttempts?: number;
 }
 
@@ -275,7 +254,6 @@ export interface Quest {
 export interface PracticeQuestion {
   question: string;
   answer: number;
-  /** شرح الإجابة — يظهر في وضع "شاهد" وبعد 5 محاولات فاشلة في "جرّب" */
   explanation: string;
   type?: RuleCategory;
   steps?: LessonStep[];
@@ -343,14 +321,3 @@ export interface ProgressData {
 }
 
 export type LessonProgress = Record<number, number[]>;
-
-// ============================================================
-// ملاحظات الإصدار 3.0
-// ============================================================
-// ✅ إضافة InteractionMode للتفريق بين أنواع التفاعل
-// ✅ إضافة maxAttempts لضبط عدد المحاولات
-// ✅ حذف choices من PracticeQuestion (إدخال يدوي فقط)
-// ✅ إضافة explanation إجباري في PracticeQuestion
-// ✅ دعم نظام الجداول والقواعد الفرعية
-// ✅ دعم الأنشطة الملموسة
-// ============================================================
