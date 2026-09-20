@@ -115,6 +115,7 @@ function App() {
           {screen === 'final-exam' && (
             <FinalExam
               onBack={() => handleNavigate('hero-dashboard')}
+              onGoToLearn={() => handleNavigate('learn')}
               onComplete={(score, passed) => {
                 try {
                   localStorage.setItem(
