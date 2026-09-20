@@ -16,7 +16,8 @@ export type Screen =
   | 'anzan'
   | 'quests'
   | 'soroban'
-  | 'guardian-dashboard';
+  | 'guardian-dashboard'
+  | 'final-exam';
 
 // ------------------------------------------------------------
 // الشخصيات (الأبطال المرافقون)
