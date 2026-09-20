@@ -89,7 +89,7 @@ const CHARACTER_INFO: Record<
   },
 };
 
-const ACTION_CARDS: {
+type ActionCard = {
   screen: Screen;
   title: string;
   titleEn: string;
@@ -97,7 +97,10 @@ const ACTION_CARDS: {
   icon: LucideIcon;
   gradient: string;
   glow: string;
-}[] = [
+  requiresExam?: boolean; // ✅ خاصية جديدة: تتطلب اجتياز الامتحان
+};
+
+const ACTION_CARDS: ActionCard[] = [
   {
     screen: 'learn',
     title: 'التعلّم',
@@ -143,7 +146,7 @@ const ACTION_CARDS: {
     gradient: 'from-pink-500 to-purple-700',
     glow: 'shadow-pink-500/40',
   },
-  // ✅ زر جديد: درس الضرب
+  // ✅ درس الضرب — يتطلب اجتياز الامتحان
   {
     screen: 'multiplication',
     title: 'درس الضرب',
@@ -152,8 +155,9 @@ const ACTION_CARDS: {
     icon: Grid3X3,
     gradient: 'from-indigo-500 to-purple-700',
     glow: 'shadow-indigo-500/40',
+    requiresExam: true,
   },
-  // ✅ زر جديد: الأسرار السحرية
+  // ✅ الأسرار السحرية — يتطلب اجتياز الامتحان
   {
     screen: 'secrets',
     title: 'الأسرار السحرية',
@@ -162,6 +166,7 @@ const ACTION_CARDS: {
     icon: Wand2,
     gradient: 'from-amber-500 to-rose-600',
     glow: 'shadow-amber-500/40',
+    requiresExam: true,
   },
   {
     screen: 'final-exam',
@@ -333,6 +338,9 @@ export function HeroDashboard({
   const [showResetConfirm, setShowResetConfirm] =
     useState(false);
 
+  // ✅ حالة اجتياز الامتحان النهائي
+  const [examPassed, setExamPassed] = useState(false);
+
   const quests = useQuests();
 
   useEffect(() => {
@@ -375,6 +383,19 @@ export function HeroDashboard({
     if (savedName) {
       setChildName(savedName);
     }
+
+    // ✅ قراءة نتيجة الامتحان النهائي
+    try {
+      const raw = localStorage.getItem('soroban_exam_result');
+      if (raw) {
+        const data = JSON.parse(raw);
+        if (data?.passed === true) {
+          setExamPassed(true);
+        }
+      }
+    } catch {
+      /* ignore */
+    }
   }, []);
 
   const handleCompanionChange = (
@@ -391,6 +412,14 @@ export function HeroDashboard({
   const handleNav = (screen: Screen) => {
     playSound('click');
     onNavigate(screen);
+  };
+
+  // ✅ التحقق من إمكانية فتح بطاقة معينة
+  const canOpenCard = (card: ActionCard): boolean => {
+    if (card.requiresExam && !examPassed) {
+      return false;
+    }
+    return true;
   };
 
   const handleReset = () => {
@@ -849,6 +878,7 @@ export function HeroDashboard({
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-5 mb-8">
         {ACTION_CARDS.map((card, i) => {
           const Icon = card.icon;
+          const isLocked = !canOpenCard(card);
 
           return (
             <motion.button
@@ -868,26 +898,46 @@ export function HeroDashboard({
                 stiffness: 200,
                 damping: 20,
               }}
-              whileHover={{
-                scale: 1.05,
-                y: -5,
-              }}
-              whileTap={{
-                scale: 0.95,
-              }}
-              onClick={() =>
-                handleNav(card.screen)
+              whileHover={
+                !isLocked
+                  ? {
+                      scale: 1.05,
+                      y: -5,
+                    }
+                  : {}
               }
-              className="group relative glass-card p-4 sm:p-6 text-center overflow-hidden"
+              whileTap={
+                !isLocked
+                  ? {
+                      scale: 0.95,
+                    }
+                  : {}
+              }
+              onClick={() => {
+                if (isLocked) {
+                  playSound('whoosh');
+                  return;
+                }
+                handleNav(card.screen);
+              }}
+              className={`group relative glass-card p-4 sm:p-6 text-center overflow-hidden ${
+                isLocked ? 'opacity-70 cursor-not-allowed' : ''
+              }`}
             >
               <div
                 className={`absolute inset-0 bg-gradient-to-br ${card.gradient} opacity-0 group-hover:opacity-15 transition-opacity duration-500`}
               />
 
               <div
-                className={`relative inline-flex w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br ${card.gradient} items-center justify-center shadow-xl ${card.glow} mb-3`}
+                className={`relative inline-flex w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br ${card.gradient} items-center justify-center shadow-xl ${card.glow} mb-3 ${
+                  isLocked ? 'grayscale' : ''
+                }`}
               >
-                <Icon className="w-7 h-7 sm:w-8 sm:h-8 text-white" />
+                {isLocked ? (
+                  <Lock className="w-7 h-7 sm:w-8 sm:h-8 text-white" />
+                ) : (
+                  <Icon className="w-7 h-7 sm:w-8 sm:h-8 text-white" />
+                )}
               </div>
 
               <h3 className="text-base sm:text-lg font-extrabold font-display text-white mb-0.5">
@@ -899,7 +949,9 @@ export function HeroDashboard({
               </p>
 
               <p className="text-xs text-white/60 font-body leading-snug">
-                {card.desc}
+                {isLocked
+                  ? '🔒 اجتز الامتحان النهائي لفتح هذا الدرس'
+                  : card.desc}
               </p>
             </motion.button>
           );
