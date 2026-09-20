@@ -16,6 +16,8 @@ export type Screen =
   | 'anzan'
   | 'quests'
   | 'soroban'
+  | 'multiplication'
+  | 'secrets'
   | 'guardian-dashboard'
   | 'final-exam';
 
