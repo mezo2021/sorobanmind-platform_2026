@@ -17,22 +17,37 @@ function getColumnsForValue(value: number): number {
 // ========== حساب خطوات الضرب الجزئي ==========
 function computePartialProducts(a: number, b: number) {
   const digits = String(a).split('').reverse().map(Number);
-  const steps: Array<{ digitValue: number; value: number; label: string }> = [];
+  const steps: Array<{ digitValue: number; value: number; label: string; placeName: string }> = [];
   const zerosLabels = ['', 'صفر', 'صفرين', 'ثلاثة أصفار'];
+  const placeNames = ['آحاد', 'عشرات', 'مئات', 'آلاف'];
   for (let i = 0; i < digits.length; i++) {
     const place = Math.pow(10, i);
     const digitValue = digits[i] * place;
     if (digits[i] === 0) continue;
     const zerosText = zerosLabels[i] || '';
+    const placeName = placeNames[i] || '';
     steps.push({
       digitValue,
       value: digitValue * b,
+      placeName,
       label: zerosText
-        ? `${digits[i]} × ${b} + ${zerosText}`
-        : `${digits[i]} × ${b}`,
+        ? `${placeName}: ${digits[i]} × ${b} + ${zerosText}`
+        : `${placeName}: ${digits[i]} × ${b}`,
     });
   }
   return steps;
+}
+
+// ========== نص القاعدة حسب عدد منازل الرقم ==========
+function getRuleText(a: number): string {
+  const digits = String(a).length;
+  if (digits === 2) {
+    return 'اضرب آحاد الرقم × الرقم الثاني، ثم عشراته × الرقم الثاني (مع إضافة صفر)، ثم اجمع النواتج على المعداد.';
+  }
+  if (digits === 3) {
+    return 'اضرب آحاد الرقم × الرقم الثاني، ثم عشراته × الرقم الثاني (مع إضافة صفر)، ثم مئاته × الرقم الثاني (مع إضافة صفرين)، ثم اجمع النواتج على المعداد.';
+  }
+  return 'اضرب كل منزلة × الرقم الثاني مع إضافة الأصفار المناسبة، ثم اجمع النواتج على المعداد.';
 }
 
 // ========== بيانات المراحل ==========
@@ -283,7 +298,7 @@ const MultiplicationScreen: React.FC<Props> = ({ onBack, onComplete }) => {
               <Lightbulb className="w-5 h-5 text-amber-300" /> الطريقة:
             </p>
             <p className="text-white/80 leading-relaxed">
-              اضرب آحاد الرقم × الرقم الثاني، ثم عشراته × الرقم الثاني (مع إضافة صفر)، ثم اجمع النواتج على المعداد.
+              {getRuleText(watchProblem.a)}
             </p>
           </div>
         </div>
