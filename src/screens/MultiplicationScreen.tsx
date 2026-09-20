@@ -25,53 +25,11 @@ function computePartialProducts(a: number, b: number) {
     steps.push({
       digitValue,
       value: digitValue * b,
-      label: `${digitValue} × ${b}`,
+      label: `${b} × ${digitValue}`,
     });
   }
   return steps;
 }
-
-// ========== جدول الشبكة (Lattice) ==========
-const LatticeTable: React.FC<{ a: number; b: number }> = ({ a, b }) => {
-  const aDigits = String(a).split('').map(Number);
-  const bDigits = String(b).split('').map(Number);
-
-  return (
-    <div className="inline-block bg-white rounded-xl p-2 shadow-lg" dir="ltr">
-      {/* Header row */}
-      <div className="flex" style={{ paddingLeft: 28 }}>
-        {bDigits.map((d, j) => (
-          <div key={j} className="w-14 text-center font-bold text-purple-700 text-sm">
-            {d}
-          </div>
-        ))}
-      </div>
-      {/* Rows */}
-      {aDigits.map((ad, i) => (
-        <div key={i} className="flex items-center">
-          <div className="w-7 text-center font-bold text-purple-700 text-sm">{ad}</div>
-          {bDigits.map((bd, j) => {
-            const product = ad * bd;
-            const tens = Math.floor(product / 10);
-            const ones = product % 10;
-            return (
-              <div key={j} className="w-14 h-14 border border-purple-300 relative bg-purple-50">
-                <div className="absolute inset-0 flex flex-col">
-                  <div className="flex-1 flex items-center justify-center text-blue-600 font-bold text-sm">
-                    {tens}
-                  </div>
-                  <div className="flex-1 flex items-center justify-center text-red-600 font-bold text-sm border-t border-purple-300">
-                    {ones}
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      ))}
-    </div>
-  );
-};
 
 // ========== بيانات المراحل ==========
 const STAGE_DATA: Record<Stage, {
@@ -263,11 +221,6 @@ const MultiplicationScreen: React.FC<Props> = ({ onBack, onComplete }) => {
               <span className="text-white/60 mx-3">×</span>
               <span className="text-emerald-300">{watchProblem.b}</span>
             </p>
-          </div>
-
-          {/* Lattice Table */}
-          <div className="bg-white/5 rounded-2xl p-3 flex justify-center">
-            <LatticeTable a={watchProblem.a} b={watchProblem.b} />
           </div>
 
           {/* Steps */}
