@@ -1,6 +1,6 @@
 // ============================================================
 // types.ts — الأنواع المركزية لمشروع SorobanMind
-// الإصدار: 2.0 (بعد إعادة الهيكلة)
+// الإصدار: 3.0 (النسخة المستقرة)
 // ============================================================
 
 // ------------------------------------------------------------
@@ -21,16 +21,12 @@ export type Screen =
 // ------------------------------------------------------------
 // الشخصيات (الأبطال المرافقون)
 // ------------------------------------------------------------
-/** معرّف الشخصية — مطابق لملفات الأفاتار في src/components/avatars */
 export type CharacterType = 'sham' | 'rayan' | 'bana' | 'joud';
 
-/** مرادف لـ CharacterType للاستخدام في سياق الأفاتار */
 export type AvatarId = CharacterType;
 
-/** مفتاح التخزين في localStorage */
 export const CHARACTER_STORAGE_KEY = 'soroban_companion';
 
-/** قائمة الشخصيات الصالحة */
 export const VALID_CHARACTERS: CharacterType[] = [
   'sham',
   'rayan',
@@ -38,7 +34,6 @@ export const VALID_CHARACTERS: CharacterType[] = [
   'joud',
 ];
 
-/** خريطة التوافق مع الإصدارات القديمة */
 export const LEGACY_CHARACTER_MAP: Partial<Record<string, CharacterType>> = {
   fox: 'sham',
   owl: 'bana',
@@ -47,7 +42,6 @@ export const LEGACY_CHARACTER_MAP: Partial<Record<string, CharacterType>> = {
   aya: 'joud',
 };
 
-/** بيانات وصفية للشخصية */
 export interface CharacterInfo {
   id: CharacterType;
   name: string;
@@ -124,10 +118,9 @@ export interface DivisionExample {
 }
 
 // ------------------------------------------------------------
-// ✨ أنواع جديدة — نظام القواعد والجداول
+// نظام القواعد والجداول
 // ------------------------------------------------------------
 
-/** قاعدة فرعية داخل درس (مثل: +1 = +5-4) */
 export interface SubRule {
   id: string;
   formula: string;
@@ -136,13 +129,11 @@ export interface SubRule {
   storyAudioText?: string;
 }
 
-/** عمود في جدول التمارين */
 export interface TableColumn {
   operations: ChainOperation[];
   answer: number;
 }
 
-/** جدول تمارين (15 عمود × 5 صفوف) */
 export interface RuleTable {
   id: string;
   titleAr: string;
@@ -150,7 +141,6 @@ export interface RuleTable {
   columns: TableColumn[];
 }
 
-/** نشاط ملموس تمهيدي */
 export interface TactileActivity {
   titleAr: string;
   materials: string[];
@@ -159,8 +149,16 @@ export interface TactileActivity {
 }
 
 // ------------------------------------------------------------
-// وحدات التعلّم (محدّثة)
+// وحدات التعلّم
 // ------------------------------------------------------------
+
+/**
+ * طريقة التفاعل في وضع "جرّب":
+ * - number-input: إدخال رقم (للتعريف، التمثيل، القيم الثابتة)
+ * - abacus-representation: تمثيل الناتج على المعداد التفاعلي (للعمليات الحسابية)
+ */
+export type InteractionMode = 'number-input' | 'abacus-representation';
+
 export interface LearnModule {
   id: number;
   title: string;
@@ -181,12 +179,26 @@ export interface LearnModule {
   storyAudioText?: string;
   examples: (LessonExample | DivisionExample)[];
 
-  // ✨ إضافات جديدة
+  // إضافات نظام المنهج
   subRules?: SubRule[];
   tables?: RuleTable[];
   tactileActivity?: TactileActivity;
   targetAge?: string;
   requiresAllPrevious?: boolean;
+
+  // إعدادات التفاعل
+  /**
+   * طريقة التفاعل في "جرّب" — افتراضياً 'number-input'
+   */
+  interactionMode?: InteractionMode;
+
+  /**
+   * عدد المحاولات المسموح بها قبل إظهار الإجابة.
+   * - undefined = 5 محاولات (افتراضي)
+   * - 0 = لا نهائي (للعمليات الحسابية)
+   * - رقم آخر = العدد المحدد
+   */
+  maxAttempts?: number;
 }
 
 // ------------------------------------------------------------
@@ -204,8 +216,6 @@ export interface LevelNode {
 // ------------------------------------------------------------
 // نظام التقدم والنجاح
 // ------------------------------------------------------------
-
-/** تقدم الطالب في مستوى واحد */
 export interface StudentProgress {
   levelId: number;
   correctAnswers: number;
@@ -217,14 +227,12 @@ export interface StudentProgress {
   lastUpdated: number;
 }
 
-/** قواعد النجاح في المستوى */
 export interface LevelUnlockRules {
   PASS_THRESHOLD: number;
   MIN_CORRECT: number;
   MAX_ATTEMPTS: number;
 }
 
-/** القيم الافتراضية لقواعد النجاح */
 export const LEVEL_RULES: LevelUnlockRules = {
   PASS_THRESHOLD: 75,
   MIN_CORRECT: 15,
@@ -266,7 +274,8 @@ export interface Quest {
 export interface PracticeQuestion {
   question: string;
   answer: number;
-  choices: number[];
+  /** شرح الإجابة — يظهر في وضع "شاهد" وبعد 5 محاولات فاشلة في "جرّب" */
+  explanation: string;
   type?: RuleCategory;
   steps?: LessonStep[];
   lessonId?: number;
@@ -332,5 +341,15 @@ export interface ProgressData {
   weeklyXP: { day: string; xp: number }[];
 }
 
-/** تقدّم الدروس */
 export type LessonProgress = Record<number, number[]>;
+
+// ============================================================
+// ملاحظات الإصدار 3.0
+// ============================================================
+// ✅ إضافة InteractionMode للتفريق بين أنواع التفاعل
+// ✅ إضافة maxAttempts لضبط عدد المحاولات
+// ✅ حذف choices من PracticeQuestion (إدخال يدوي فقط)
+// ✅ إضافة explanation إجباري في PracticeQuestion
+// ✅ دعم نظام الجداول والقواعد الفرعية
+// ✅ دعم الأنشطة الملموسة
+// ============================================================
