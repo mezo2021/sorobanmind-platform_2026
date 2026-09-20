@@ -69,12 +69,13 @@ export const SorobanColumn: React.FC<SorobanColumnProps> = ({ digit }) => {
       <div className="relative z-10 w-full h-[3px] bg-gradient-to-r from-purple-500 via-indigo-400 to-purple-500 rounded-full" />
 
       {/* القسم السفلي: الأرض (أربع خرزات زرقاء) */}
-      <div className="relative z-10 flex flex-col justify-between w-full items-center h-[132px] sm:h-[148px] py-1.5">
+      {/* ✅ التعديل: أضفنا pt-3 (حشوة علوية) لإبعاد الخرزات المفعّلة عن العارضة */}
+      <div className="relative z-10 flex flex-col justify-between w-full items-center h-[132px] sm:h-[148px] pt-3 pb-1.5">
         <div className="absolute left-1/2 top-0 bottom-0 w-[3px] -translate-x-1/2 bg-amber-800/70" />
         <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-purple-500 via-indigo-400 to-purple-500 rounded-full" />
         <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-gradient-to-r from-purple-500 via-indigo-400 to-purple-500 rounded-full" />
 
-        {/* الخرزات المفعّلة: ملتصقة بالعارضة من الأسفل */}
+        {/* الخرزات المفعّلة: أصبحت الآن بعيدة قليلاً عن العارضة */}
         <div className="relative z-10 flex flex-col items-center gap-[3px]">
           {Array.from({ length: lowerActiveCount }).map((_, i) => (
             <Bead key={`active-${i}`} color="blue" active />
