@@ -19,6 +19,7 @@ export type Screen =
   | 'multiplication'
   | 'secrets'
   | 'cross-multiplication'
+  | 'division'
   | 'guardian-dashboard'
   | 'final-exam';
 
