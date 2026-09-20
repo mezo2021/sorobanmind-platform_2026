@@ -3,10 +3,14 @@ import { useState, useEffect } from 'react';
 import {
   ArrowRight, TrendingUp, Target, Clock, Award,
   Brain, Calendar, Zap, CheckCircle2, BarChart3,
+  Star, Eye, Crown, Diamond, Trophy, Lock as LockBadge,
+  Swords, ShieldCheck, Circle, Lock,
+  type LucideIcon,
 } from 'lucide-react';
-import { LEVELS } from '@/data';
+import { LEVELS, BADGES } from '@/data';
+import type { LevelNode } from '@/types';
+import { useQuests } from '@/hooks/useQuests';
 
-/** تحويل الأرقام إلى أرقام عربية */
 function toArabicNumber(value: number | string): string {
   return String(value).replace(/\d/g, (d) => '٠١٢٣٤٥٦٧٨٩'[Number(d)]);
 }
@@ -38,6 +42,67 @@ interface PracticeStats {
   subtractionProblems: number;
 }
 
+const BADGE_ICONS: Record<string, LucideIcon> = {
+  Star, Eye, Award, Crown, Target, Diamond,
+};
+
+const BADGE_GRADIENTS: Record<string, string> = {
+  beginner: 'from-emerald2-400 to-emerald2-600',
+  trainee: 'from-electric-400 to-electric-600',
+  'anzan-master': 'from-electric-400 to-electric-600',
+  skilled: 'from-purple-400 to-purple-600',
+  'soroban-expert': 'from-purple-400 to-purple-600',
+  professional: 'from-pink-400 to-pink-600',
+  legend: 'from-gold-400 to-gold-600',
+  'eternal-legend': 'from-gold-400 to-gold-600',
+};
+
+// ====== مكوّن زر عقدة المستوى (منقول من HeroDashboard) ======
+function LevelNodeButton({
+  level,
+  index,
+}: {
+  level: LevelNode;
+  index: number;
+}) {
+  const isOdd = index % 2 === 1;
+  const Icon =
+    level.status === 'locked' ? Lock
+    : level.status === 'completed' ? CheckCircle2
+    : Circle;
+
+  const statusColor =
+    level.status === 'completed' ? 'from-emerald2-400 to-emerald2-600'
+    : level.status === 'available' ? 'from-purple-400 to-electric-500'
+    : 'from-gray-600 to-gray-800';
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.5 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ delay: index * 0.08, type: 'spring', stiffness: 200, damping: 15 }}
+      className={`relative flex flex-col items-center gap-2 ${isOdd ? 'mt-12' : ''}`}
+    >
+      <div className={`relative w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br ${statusColor} flex items-center justify-center shadow-xl`}>
+        <Icon className="w-7 h-7 sm:w-8 sm:h-8 text-white" />
+        <span className="absolute -top-1.5 -right-1.5 w-6 h-6 rounded-full bg-gold-400 text-gold-900 text-xs font-extrabold flex items-center justify-center shadow-lg">
+          {toArabicNumber(level.id)}
+        </span>
+      </div>
+      <div className="text-center max-w-[90px]">
+        <p className={`text-xs sm:text-sm font-bold font-body ${level.status === 'locked' ? 'text-white/30' : 'text-white/80'}`}>
+          {level.nameAr}
+        </p>
+        {level.status === 'available' && (
+          <p className="text-[10px] text-purple-300 font-body mt-0.5">
+            {toArabicNumber(level.xpRequired)} XP
+          </p>
+        )}
+      </div>
+    </motion.div>
+  );
+}
+
 export function GuardianDashboard({
   onBack,
   playSound,
@@ -48,51 +113,46 @@ export function GuardianDashboard({
 }: GuardianDashboardProps) {
   const [savedName, setSavedName] = useState(childName);
   const [completed, setCompleted] = useState<number[]>([]);
+  const [earnedBadges, setEarnedBadges] = useState<string[]>([]);
   const [anzanStats, setAnzanStats] = useState<AnzanStats>({ highScore: 0, totalRounds: 0, totalCorrect: 0 });
   const [practiceStats, setPracticeStats] = useState<PracticeStats>({
-    totalProblems: 0,
-    correctAnswers: 0,
-    additionProblems: 0,
-    subtractionProblems: 0,
+    totalProblems: 0, correctAnswers: 0, additionProblems: 0, subtractionProblems: 0,
   });
   const [weeklyXP, setWeeklyXP] = useState<{ day: string; xp: number }[]>([]);
 
+  const quests = useQuests();
+
   useEffect(() => {
-    // قراءة الاسم
     const name = localStorage.getItem('soroban_child_name');
     if (name) setSavedName(name);
 
-    // قراءة الدروس المكتملة
     try {
       const saved = localStorage.getItem(COMPLETED_KEY);
       if (saved) setCompleted(JSON.parse(saved));
-    } catch {
-      /* ignore */
-    }
+    } catch { /* ignore */ }
 
-    // قراءة إحصائيات الأنزان
+    try {
+      const stats = localStorage.getItem(STATS_KEY);
+      if (stats) {
+        const parsed = JSON.parse(stats);
+        if (Array.isArray(parsed.earnedBadges)) setEarnedBadges(parsed.earnedBadges);
+      }
+    } catch { /* ignore */ }
+
     try {
       const saved = localStorage.getItem(ANZAN_KEY);
       if (saved) setAnzanStats({ ...anzanStats, ...JSON.parse(saved) });
-    } catch {
-      /* ignore */
-    }
+    } catch { /* ignore */ }
 
-    // قراءة إحصائيات التدريب
     try {
       const saved = localStorage.getItem(PRACTICE_KEY);
       if (saved) setPracticeStats({ ...practiceStats, ...JSON.parse(saved) });
-    } catch {
-      /* ignore */
-    }
+    } catch { /* ignore */ }
 
-    // قراءة نشاط الأسبوع (من sorobanmind-stats)
     try {
       const saved = localStorage.getItem(STATS_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
-        // استخدام XP الحالي كـ "نشاط اليوم"
-        // في المستقبل، يمكن تخزين XP لكل يوم
         const days = ['السبت', 'الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة'];
         const today = new Date().getDay();
         const mapped = days.map((day, idx) => ({
@@ -101,9 +161,7 @@ export function GuardianDashboard({
         }));
         setWeeklyXP(mapped);
       }
-    } catch {
-      /* ignore */
-    }
+    } catch { /* ignore */ }
   }, []);
 
   const accuracy = practiceStats.totalProblems > 0
@@ -113,49 +171,29 @@ export function GuardianDashboard({
   const completedLevels = completed.length;
 
   const stats = [
-    {
-      label: 'نقاط الخبرة',
-      labelEn: 'XP Points',
-      value: toArabicNumber(childXP),
-      icon: Zap,
-      gradient: 'from-gold-400 to-gold-600',
-      glow: 'shadow-gold-500/30',
-    },
-    {
-      label: 'المستوى',
-      labelEn: 'Level',
-      value: toArabicNumber(childLevel),
-      icon: Award,
-      gradient: 'from-purple-500 to-purple-700',
-      glow: 'shadow-purple-500/30',
-    },
-    {
-      label: 'الأيام المتتالية',
-      labelEn: 'Day Streak',
-      value: toArabicNumber(childStreak),
-      icon: TrendingUp,
-      gradient: 'from-orange-500 to-red-500',
-      glow: 'shadow-orange-500/30',
-    },
-    {
-      label: 'دقة الإجابات',
-      labelEn: 'Accuracy',
-      value: `${toArabicNumber(accuracy)}٪`,
-      icon: Target,
-      gradient: 'from-emerald2-500 to-emerald2-700',
-      glow: 'shadow-emerald2-500/30',
-    },
+    { label: 'نقاط الخبرة', labelEn: 'XP Points', value: toArabicNumber(childXP), icon: Zap, gradient: 'from-gold-400 to-gold-600', glow: 'shadow-gold-500/30' },
+    { label: 'المستوى', labelEn: 'Level', value: toArabicNumber(childLevel), icon: Award, gradient: 'from-purple-500 to-purple-700', glow: 'shadow-purple-500/30' },
+    { label: 'الأيام المتتالية', labelEn: 'Day Streak', value: toArabicNumber(childStreak), icon: TrendingUp, gradient: 'from-orange-500 to-red-500', glow: 'shadow-orange-500/30' },
+    { label: 'دقة الإجابات', labelEn: 'Accuracy', value: `${toArabicNumber(accuracy)}٪`, icon: Target, gradient: 'from-emerald2-500 to-emerald2-700', glow: 'shadow-emerald2-500/30' },
   ];
 
+  const nextBadge = BADGES.find((b) => !earnedBadges.includes(b.id));
+
+  const prevThreshold = (() => {
+    const index = nextBadge ? BADGES.findIndex((b) => b.id === nextBadge.id) : -1;
+    return index > 0 ? BADGES[index - 1].xpRequired : 0;
+  })();
+
+  const progressPct = nextBadge
+    ? Math.min(100, Math.max(0, ((childXP - prevThreshold) / (nextBadge.xpRequired - prevThreshold)) * 100))
+    : 100;
+
   return (
-    <div className="px-3 sm:px-6 py-6 max-w-5xl mx-auto">
+    <div className="px-3 sm:px-6 py-6 max-w-5xl mx-auto" dir="rtl">
       {/* Back */}
       <div className="flex items-center gap-3 mb-6">
         <button
-          onClick={() => {
-            playSound('click');
-            onBack();
-          }}
+          onClick={() => { playSound('click'); onBack(); }}
           className="btn-ghost !px-3 !py-2"
         >
           <ArrowRight className="w-5 h-5" />
@@ -181,9 +219,7 @@ export function GuardianDashboard({
           </motion.div>
           <div>
             <p className="text-sm text-white/50 font-body">تقدم الطفل</p>
-            <h2 className="text-2xl sm:text-3xl font-extrabold font-display text-white">
-              {savedName}
-            </h2>
+            <h2 className="text-2xl sm:text-3xl font-extrabold font-display text-white">{savedName}</h2>
             <p className="text-sm text-emerald2-300 font-body mt-0.5">
               مستوى {toArabicNumber(childLevel)} · {toArabicNumber(completedLevels)}/{toArabicNumber(LEVELS.length)} دروس مكتملة
             </p>
@@ -203,14 +239,10 @@ export function GuardianDashboard({
               transition={{ delay: i * 0.08, type: 'spring', stiffness: 200, damping: 20 }}
               className="glass-card p-4 sm:p-5 text-center"
             >
-              <div
-                className={`inline-flex w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-gradient-to-br ${stat.gradient} items-center justify-center shadow-lg ${stat.glow} mb-3`}
-              >
+              <div className={`inline-flex w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-gradient-to-br ${stat.gradient} items-center justify-center shadow-lg ${stat.glow} mb-3`}>
                 <Icon className="w-6 h-6 text-white" />
               </div>
-              <p className="text-2xl sm:text-3xl font-extrabold font-display text-white mb-0.5">
-                {stat.value}
-              </p>
+              <p className="text-2xl sm:text-3xl font-extrabold font-display text-white mb-0.5">{stat.value}</p>
               <p className="text-xs sm:text-sm text-white/60 font-body">{stat.label}</p>
               <p className="text-[10px] text-white/30 font-body">{stat.labelEn}</p>
             </motion.div>
@@ -218,11 +250,158 @@ export function GuardianDashboard({
         })}
       </div>
 
-      {/* Weekly XP chart */}
+      {/* 🏆 BADGES (منقول من HeroDashboard) */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.25 }}
+        className="glass-card p-5 sm:p-6 mb-6"
+      >
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <Trophy className="w-5 h-5 text-gold-300" />
+            <h3 className="text-xl font-extrabold font-display text-white">الشارات</h3>
+          </div>
+          <span className="badge bg-gold-400/15 border-gold-400/20 text-gold-200 text-xs">
+            {toArabicNumber(earnedBadges.length)}/{toArabicNumber(BADGES.length)}
+          </span>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
+          {BADGES.map((badge, i) => {
+            const isEarned = earnedBadges.includes(badge.id);
+            const Icon = BADGE_ICONS[badge.icon] || Star;
+            const gradient = BADGE_GRADIENTS[badge.id] || 'from-purple-400 to-electric-500';
+            return (
+              <motion.div
+                key={badge.id}
+                initial={{ opacity: 0, scale: 0.7 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: i * 0.06 }}
+                className={`flex flex-col items-center gap-2 p-3 rounded-2xl border ${isEarned ? 'bg-white/5 border-white/10' : 'bg-white/[0.02] border-white/5'}`}
+              >
+                <div className={`relative w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg ${isEarned ? `bg-gradient-to-br ${gradient}` : 'bg-white/5'}`}>
+                  {isEarned ? <Icon className="w-7 h-7 text-white" /> : <LockBadge className="w-6 h-6 text-white/25" />}
+                </div>
+                <p className={`text-xs font-bold font-body text-center ${isEarned ? 'text-white/80' : 'text-white/30'}`}>{badge.nameAr}</p>
+                <p className="text-[10px] text-white/40 font-body">{toArabicNumber(badge.xpRequired)} XP</p>
+              </motion.div>
+            );
+          })}
+        </div>
+
+        {nextBadge ? (
+          <div>
+            <div className="flex items-center justify-between mb-1.5">
+              <p className="text-xs text-white/50 font-body">المسافة نحو شارة "{nextBadge.nameAr}"</p>
+              <p className="text-xs text-white/50 font-body">
+                {toArabicNumber(childXP)}/{toArabicNumber(nextBadge.xpRequired)} XP
+              </p>
+            </div>
+            <div className="h-3 rounded-full bg-white/10 overflow-hidden">
+              <motion.div
+                className={`h-full rounded-full bg-gradient-to-r ${BADGE_GRADIENTS[nextBadge.id] || 'from-purple-400 to-electric-500'}`}
+                initial={{ width: 0 }}
+                animate={{ width: `${progressPct}%` }}
+                transition={{ duration: 0.8, ease: 'easeOut' }}
+              />
+            </div>
+          </div>
+        ) : (
+          <p className="text-center text-sm text-gold-300 font-body font-bold">
+            🏆 حصل على جميع الشارات! أسطورة حقيقية
+          </p>
+        )}
+      </motion.div>
+
+      {/* ⚔️ ACTIVE QUESTS (منقولة من HeroDashboard) */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
+        className="glass-card p-5 sm:p-6 mb-6"
+      >
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <Swords className="w-5 h-5 text-gold-300" />
+            <h3 className="text-xl font-extrabold font-display text-white">المغامرات النشطة</h3>
+          </div>
+        </div>
+
+        <div className="space-y-3">
+          {quests.slice(0, 3).map((quest, i) => {
+            const pct = Math.min(100, (quest.progress / quest.target) * 100);
+            return (
+              <motion.div
+                key={quest.id}
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.4 + i * 0.1 }}
+                className="p-4 rounded-2xl bg-white/5 border border-white/10"
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <p className="font-bold text-white font-body text-sm">{quest.titleAr}</p>
+                  <span className="text-xs font-bold text-gold-300">
+                    +{toArabicNumber(quest.xpReward)} XP
+                  </span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="flex-1 h-2.5 rounded-full bg-white/10 overflow-hidden">
+                    <motion.div
+                      className={`h-full rounded-full bg-gradient-to-r ${quest.color}`}
+                      initial={{ width: 0 }}
+                      animate={{ width: `${pct}%` }}
+                      transition={{ delay: 0.5 + i * 0.1, duration: 0.8 }}
+                    />
+                  </div>
+                  <span className="text-xs text-white/50 font-body whitespace-nowrap">
+                    {toArabicNumber(quest.progress)}/{toArabicNumber(quest.target)}
+                  </span>
+                </div>
+              </motion.div>
+            );
+          })}
+
+          {quests.length === 0 && (
+            <div className="text-center py-6 text-white/40 font-body text-sm">
+              لا توجد مغامرات نشطة حالياً.
+            </div>
+          )}
+        </div>
+      </motion.div>
+
+      {/* 🗺️ LEVEL MAP (منقولة من HeroDashboard) */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.35 }}
+        className="glass-card p-5 sm:p-6 mb-6"
+      >
+        <div className="flex items-center justify-between mb-5">
+          <div className="flex items-center gap-2">
+            <ShieldCheck className="w-5 h-5 text-emerald-300" />
+            <h3 className="text-xl font-extrabold font-display text-white">خارطة المستويات</h3>
+          </div>
+          <span className="badge bg-purple-500/15 border-purple-400/20 text-purple-300 text-xs">
+            {toArabicNumber(completedLevels)}/{toArabicNumber(LEVELS.length)} مكتمل
+          </span>
+        </div>
+
+        <div className="relative overflow-x-auto scrollbar-hide pb-4">
+          <div className="flex items-start gap-3 sm:gap-5 min-w-max pr-2 pl-8">
+            <div className="absolute top-8 right-0 left-0 h-1 bg-gradient-to-r from-purple-500/30 via-electric-500/30 to-white/5 rounded-full" />
+            {LEVELS.map((level, i) => (
+              <LevelNodeButton key={level.id} level={level} index={i} />
+            ))}
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Weekly XP chart */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.4 }}
         className="glass-card p-5 sm:p-6 mb-6"
       >
         <div className="flex items-center gap-2 mb-5">
@@ -256,16 +435,14 @@ export function GuardianDashboard({
         <motion.div
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.4 }}
+          transition={{ delay: 0.5 }}
           className="glass-card p-5"
         >
           <div className="flex items-center gap-2 mb-2">
             <CheckCircle2 className="w-5 h-5 text-emerald2-400" />
             <p className="text-sm text-white/60 font-body">مسائل محلولة</p>
           </div>
-          <p className="text-3xl font-extrabold font-display text-white">
-            {toArabicNumber(practiceStats.totalProblems)}
-          </p>
+          <p className="text-3xl font-extrabold font-display text-white">{toArabicNumber(practiceStats.totalProblems)}</p>
           <p className="text-xs text-emerald2-300 font-body mt-1">
             {toArabicNumber(practiceStats.correctAnswers)} إجابة صحيحة
           </p>
@@ -274,16 +451,14 @@ export function GuardianDashboard({
         <motion.div
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.45 }}
+          transition={{ delay: 0.55 }}
           className="glass-card p-5"
         >
           <div className="flex items-center gap-2 mb-2">
             <Clock className="w-5 h-5 text-electric-400" />
             <p className="text-sm text-white/60 font-body">جولات الأنزان</p>
           </div>
-          <p className="text-3xl font-extrabold font-display text-white">
-            {toArabicNumber(anzanStats.totalRounds)}
-          </p>
+          <p className="text-3xl font-extrabold font-display text-white">{toArabicNumber(anzanStats.totalRounds)}</p>
           <p className="text-xs text-electric-300 font-body mt-1">
             {toArabicNumber(anzanStats.totalCorrect)} إجابة صحيحة
           </p>
@@ -292,16 +467,14 @@ export function GuardianDashboard({
         <motion.div
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.5 }}
+          transition={{ delay: 0.6 }}
           className="glass-card p-5"
         >
           <div className="flex items-center gap-2 mb-2">
             <Award className="w-5 h-5 text-gold-400" />
             <p className="text-sm text-white/60 font-body">رقم قياسي أنزان</p>
           </div>
-          <p className="text-3xl font-extrabold font-display text-white">
-            {toArabicNumber(anzanStats.highScore)}
-          </p>
+          <p className="text-3xl font-extrabold font-display text-white">{toArabicNumber(anzanStats.highScore)}</p>
           <p className="text-xs text-gold-300 font-body mt-1">أعلى نتيجة</p>
         </motion.div>
       </div>
@@ -310,7 +483,7 @@ export function GuardianDashboard({
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.55 }}
+        transition={{ delay: 0.65 }}
         className="glass-card p-5 sm:p-6"
       >
         <div className="flex items-center gap-2 mb-4">
@@ -325,37 +498,29 @@ export function GuardianDashboard({
                 key={level.id}
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.6 + i * 0.04 }}
+                transition={{ delay: 0.7 + i * 0.04 }}
                 className="flex items-center gap-3"
               >
                 <span
                   className={`w-2 h-2 rounded-full shrink-0 ${
-                    level.status === 'completed'
-                      ? 'bg-emerald2-400'
-                      : level.status === 'available'
-                      ? 'bg-purple-400 animate-pulse'
-                      : 'bg-white/20'
+                    level.status === 'completed' ? 'bg-emerald2-400'
+                    : level.status === 'available' ? 'bg-purple-400 animate-pulse'
+                    : 'bg-white/20'
                   }`}
                 />
-                <span
-                  className={`text-sm font-body w-28 sm:w-36 shrink-0 ${
-                    level.status === 'locked' ? 'text-white/30' : 'text-white/70'
-                  }`}
-                >
+                <span className={`text-sm font-body w-28 sm:w-36 shrink-0 ${level.status === 'locked' ? 'text-white/30' : 'text-white/70'}`}>
                   {level.nameAr}
                 </span>
                 <div className="flex-1 h-2 rounded-full bg-white/10 overflow-hidden">
                   <motion.div
                     className={`h-full rounded-full ${
-                      level.status === 'completed'
-                        ? 'bg-gradient-to-r from-emerald2-400 to-emerald2-600'
-                        : level.status === 'available'
-                        ? 'bg-gradient-to-r from-purple-400 to-electric-500'
-                        : 'bg-white/10'
+                      level.status === 'completed' ? 'bg-gradient-to-r from-emerald2-400 to-emerald2-600'
+                      : level.status === 'available' ? 'bg-gradient-to-r from-purple-400 to-electric-500'
+                      : 'bg-white/10'
                     }`}
                     initial={{ width: 0 }}
                     animate={{ width: `${pct}%` }}
-                    transition={{ delay: 0.7 + i * 0.04, duration: 0.6 }}
+                    transition={{ delay: 0.8 + i * 0.04, duration: 0.6 }}
                   />
                 </div>
                 <span className="text-xs text-white/40 font-body w-8 text-left shrink-0">
