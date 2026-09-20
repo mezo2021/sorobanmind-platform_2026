@@ -1,4 +1,3 @@
-import CrossMultiplicationScreen from './screens/CrossMultiplicationScreen';
 import { useState, useCallback, useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import type { Role, Screen } from './types';
@@ -18,12 +17,17 @@ import { GuardianDashboard } from './components/GuardianDashboard';
 import InteractiveSorobanScreen from './components/InteractiveSorobanScreen';
 import { BadgeModal } from './components/BadgeModal';
 
-// ✅ استيراد الشاشتين الجديدتين
+// ✅ استيراد الشاشات الجديدة
 import MultiplicationScreen from './screens/MultiplicationScreen';
 import MagicSecretsScreen from './screens/MagicSecretsScreen';
+import CrossMultiplicationScreen from './screens/CrossMultiplicationScreen';
 
 // ✅ الشاشات التي تتطلب اجتياز الامتحان النهائي
-const EXAM_REQUIRED_SCREENS: Screen[] = ['multiplication', 'secrets'];
+const EXAM_REQUIRED_SCREENS: Screen[] = [
+  'multiplication',
+  'secrets',
+  'cross-multiplication',
+];
 
 function App() {
   const [role, setRole] = useState<Role>(null);
@@ -205,9 +209,18 @@ function App() {
             />
           )}
 
-          {/* ✅ الأسرار السحرية — محمي + تمرير onXP */}
+          {/* ✅ الأسرار السحرية — محمي */}
           {screen === 'secrets' && examPassed && (
             <MagicSecretsScreen
+              onBack={() => handleNavigate('hero-dashboard')}
+              onComplete={(stars) => addXP(stars * 10)}
+              onXP={addXP}
+            />
+          )}
+
+          {/* ✅ الضرب التقاطعي — محمي */}
+          {screen === 'cross-multiplication' && examPassed && (
+            <CrossMultiplicationScreen
               onBack={() => handleNavigate('hero-dashboard')}
               onComplete={(stars) => addXP(stars * 10)}
               onXP={addXP}
