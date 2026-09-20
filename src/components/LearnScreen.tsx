@@ -27,7 +27,7 @@ interface LearnScreenProps {
   onBack: () => void;
   playSound: (type: 'click' | 'success' | 'error' | 'bead' | 'whoosh' | 'levelup') => void;
   onXP: (amount: number) => void;
-  onNavigate?: (screen: Screen) => void; // ✅ جديد
+  onNavigate?: (screen: Screen) => void;
 }
 
 type LessonMode = 'watch' | 'try';
@@ -127,7 +127,6 @@ export function LearnScreen({ onBack, playSound, onXP, onNavigate }: LearnScreen
     }
   });
 
-  // ✅ حالة اجتياز الامتحان النهائي
   const [examPassed, setExamPassed] = useState(false);
 
   const [mode, setMode] = useState<LessonMode>('watch');
@@ -143,15 +142,12 @@ export function LearnScreen({ onBack, playSound, onXP, onNavigate }: LearnScreen
 
   const { speak, stop, isSpeaking, isSupported } = useSpeech();
 
-  // ✅ قراءة نتيجة الامتحان عند الإقلاع
   useEffect(() => {
     try {
       const raw = localStorage.getItem('soroban_exam_result');
       if (raw) {
         const data = JSON.parse(raw);
-        if (data?.passed === true) {
-          setExamPassed(true);
-        }
+        if (data?.passed === true) setExamPassed(true);
       }
     } catch { /* ignore */ }
   }, []);
@@ -304,6 +300,17 @@ export function LearnScreen({ onBack, playSound, onXP, onNavigate }: LearnScreen
       gradient: 'from-indigo-500 to-purple-700',
       available: true,
     },
+    // ✅ جديد: الضرب التقاطعي
+    {
+      id: 'cross-multiplication',
+      screen: 'cross-multiplication' as Screen,
+      title: 'الضرب التقاطعي',
+      titleEn: 'Cross Multiplication',
+      desc: 'درس متقدم: 2×2 حتى 5×2 و 3×3',
+      icon: Hash,
+      gradient: 'from-cyan-500 to-blue-700',
+      available: true,
+    },
     {
       id: 'secrets',
       screen: 'secrets' as Screen,
@@ -426,7 +433,7 @@ export function LearnScreen({ onBack, playSound, onXP, onNavigate }: LearnScreen
       </div>
 
       {/* ============================================
-          المستوى المتقدم (الضرب + الأسرار + القسمة)
+          المستوى المتقدم (الضرب + الضرب التقاطعي + الأسرار + القسمة)
       ============================================ */}
       <motion.div
         initial={{ opacity: 0, y: 30 }}
@@ -434,7 +441,6 @@ export function LearnScreen({ onBack, playSound, onXP, onNavigate }: LearnScreen
         transition={{ delay: 0.5, type: 'spring', stiffness: 200, damping: 20 }}
         className="mt-10"
       >
-        {/* فاصل بصري */}
         <div className="flex items-center gap-3 mb-6">
           <div className="flex-1 h-px bg-gradient-to-l from-transparent via-gold-400/40 to-transparent" />
           <div className="flex items-center gap-2 px-4 py-2 rounded-2xl bg-gradient-to-br from-gold-400/20 to-amber-600/20 border border-gold-400/40">
@@ -652,19 +658,13 @@ export function LearnScreen({ onBack, playSound, onXP, onNavigate }: LearnScreen
 
                   {!isSolved && !showAnswer && (
                     <div className="flex gap-2">
-                      <button
-                        onClick={handleCheck}
-                        className="btn-primary !py-2 !px-6 !text-sm"
-                      >
+                      <button onClick={handleCheck} className="btn-primary !py-2 !px-6 !text-sm">
                         <CheckCircle2 className="w-4 h-4" />
                         تحقق
                       </button>
                       {abacusValue !== 0 && (
                         <button
-                          onClick={() => {
-                            setAbacusValue(0);
-                            playSound('click');
-                          }}
+                          onClick={() => { setAbacusValue(0); playSound('click'); }}
                           className="btn-ghost !py-2 !px-4 !text-sm"
                           title="إعادة تعيين المعداد"
                         >
@@ -676,15 +676,11 @@ export function LearnScreen({ onBack, playSound, onXP, onNavigate }: LearnScreen
                   )}
 
                   {feedbackMsg && !showAnswer && !isSolved && (
-                    <p className="text-xs text-white/60 font-body text-center">
-                      {feedbackMsg}
-                    </p>
+                    <p className="text-xs text-white/60 font-body text-center">{feedbackMsg}</p>
                   )}
 
                   {isSolved && (
-                    <p className="text-sm text-emerald2-300 font-bold font-body">
-                      ✅ أحسنت! إجابة صحيحة.
-                    </p>
+                    <p className="text-sm text-emerald2-300 font-bold font-body">✅ أحسنت! إجابة صحيحة.</p>
                   )}
 
                   {canShowAnswerBtn && !showAnswer && (
@@ -705,10 +701,7 @@ export function LearnScreen({ onBack, playSound, onXP, onNavigate }: LearnScreen
                       <p className="text-xs text-white/70 font-body text-center leading-relaxed">
                         {currentEx.explanation}
                       </p>
-                      <button
-                        onClick={handleExampleSolved}
-                        className="w-full mt-3 btn-primary !py-2 !text-sm"
-                      >
+                      <button onClick={handleExampleSolved} className="w-full mt-3 btn-primary !py-2 !text-sm">
                         فهمت، التالي
                       </button>
                     </div>
@@ -719,10 +712,7 @@ export function LearnScreen({ onBack, playSound, onXP, onNavigate }: LearnScreen
               {mode === 'watch' && currentEx && currentEx.steps.length > 0 && !isFingerLesson && (
                 <div className="mb-4">
                   {!showSteps ? (
-                    <button
-                      onClick={() => { setShowSteps(true); setCurrentStep(0); }}
-                      className="w-full btn-primary !py-3"
-                    >
+                    <button onClick={() => { setShowSteps(true); setCurrentStep(0); }} className="w-full btn-primary !py-3">
                       <BookOpen className="w-5 h-5" />
                       اشرح لي الخطوات
                     </button>
