@@ -29,6 +29,7 @@ import {
   Grid3X3,
   Wand2,
   Unlock,
+  Hash,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -165,6 +166,17 @@ const ACTION_CARDS: ActionCard[] = [
     icon: Wand2,
     gradient: 'from-amber-500 to-rose-600',
     glow: 'shadow-amber-500/40',
+    requiresExam: true,
+  },
+  // ✅ بطاقة جديدة: الضرب التقاطعي
+  {
+    screen: 'cross-multiplication',
+    title: 'الضرب التقاطعي',
+    titleEn: 'Cross Multiplication',
+    desc: 'درس متقدم: 2×2 حتى 5×2 و 3×3',
+    icon: Hash,
+    gradient: 'from-cyan-500 to-blue-700',
+    glow: 'shadow-cyan-500/40',
     requiresExam: true,
   },
   {
@@ -418,16 +430,13 @@ export function HeroDashboard({
     return true;
   };
 
-  // ✅ وضع الاختبار: فتح كل شيء دفعة واحدة
   const handleTestUnlock = () => {
     try {
-      // 1. اجتياز الامتحان النهائي
       localStorage.setItem(
         'soroban_exam_result',
         JSON.stringify({ score: 100, passed: true, date: Date.now() })
       );
 
-      // 2. إكمال جميع المستويات 0-9
       const allLessons = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
       localStorage.setItem(
         'soroban-completed-lessons',
@@ -605,7 +614,6 @@ export function HeroDashboard({
               </span>
             </button>
 
-            {/* ✅ زر وضع الاختبار */}
             <button
               type="button"
               onClick={handleTestUnlock}
