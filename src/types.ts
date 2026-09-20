@@ -18,6 +18,7 @@ export type Screen =
   | 'soroban'
   | 'multiplication'
   | 'secrets'
+  | 'cross-multiplication'
   | 'guardian-dashboard'
   | 'final-exam';
 
