@@ -21,13 +21,32 @@ import { BadgeModal } from './components/BadgeModal';
 import MultiplicationScreen from './screens/MultiplicationScreen';
 import MagicSecretsScreen from './screens/MagicSecretsScreen';
 
+// ✅ الشاشات التي تتطلب اجتياز الامتحان النهائي
+const EXAM_REQUIRED_SCREENS: Screen[] = ['multiplication', 'secrets'];
+
 function App() {
   const [role, setRole] = useState<Role>(null);
   const [screen, setScreen] = useState<Screen>('role');
+  const [examPassed, setExamPassed] = useState(false);
 
   const { stats, addXP, toggleSound, incrementStreak, newBadge, clearNewBadge } = useGameStats();
   const playSound = useSound(stats.soundEnabled);
   const { burst, celebrate } = useConfetti();
+
+  // ✅ قراءة حالة اجتياز الامتحان عند الإقلاع
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem('soroban_exam_result');
+      if (raw) {
+        const data = JSON.parse(raw);
+        if (data?.passed === true) {
+          setExamPassed(true);
+        }
+      }
+    } catch {
+      /* ignore */
+    }
+  }, []);
 
   useEffect(() => {
     if (newBadge) {
@@ -50,8 +69,12 @@ function App() {
   }, []);
 
   const handleNavigate = useCallback((s: Screen) => {
+    // ✅ الحماية المزدوجة: منع الوصول لشاشات مقفلة
+    if (EXAM_REQUIRED_SCREENS.includes(s) && !examPassed) {
+      return;
+    }
     setScreen(s);
-  }, []);
+  }, [examPassed]);
 
   const showHeader = role !== null && screen !== 'role';
 
@@ -127,6 +150,11 @@ function App() {
                     JSON.stringify({ score, passed, date: Date.now() })
                   );
                 } catch { /* ignore */ }
+
+                // ✅ تحديث حالة القفل فوراً عند نجاح الامتحان
+                if (passed) {
+                  setExamPassed(true);
+                }
               }}
               playSound={playSound}
             />
@@ -167,16 +195,16 @@ function App() {
             />
           )}
 
-          {/* ✅ الشاشة الجديدة: درس الضرب */}
-          {screen === 'multiplication' && (
+          {/* ✅ درس الضرب — محمي */}
+          {screen === 'multiplication' && examPassed && (
             <MultiplicationScreen
               onBack={() => handleNavigate('hero-dashboard')}
               onComplete={(stars) => addXP(stars * 10)}
             />
           )}
 
-          {/* ✅ الشاشة الجديدة: الأسرار السحرية */}
-          {screen === 'secrets' && (
+          {/* ✅ الأسرار السحرية — محمي */}
+          {screen === 'secrets' && examPassed && (
             <MagicSecretsScreen
               onBack={() => handleNavigate('hero-dashboard')}
               onComplete={(stars) => addXP(stars * 10)}
