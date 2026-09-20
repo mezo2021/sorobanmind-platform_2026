@@ -7,7 +7,7 @@ interface FingerMathProps {
 }
 
 interface HandProps {
-  digit: number;
+  digit: number;   // 0-9
   label: string;
 }
 
@@ -15,120 +15,92 @@ function Hand({ digit, label }: HandProps) {
   const thumbUp = digit >= 5;
   const fingerCount = digit >= 5 ? digit - 5 : digit;
 
-  // مواقع الأصابع الأربعة (كل إصبع في x)
-  const fingerPositions = [70, 95, 120, 145];
-
   return (
     <div className="flex flex-col items-center gap-2">
       <svg
-        width="180"
-        height="230"
-        viewBox="0 0 220 260"
+        width="160"
+        height="200"
+        viewBox="0 0 200 240"
         xmlns="http://www.w3.org/2000/svg"
       >
-        {/* ظل خلفي */}
+        {/* ظل */}
         <ellipse
-          cx="110"
-          cy="235"
-          rx="70"
-          ry="8"
-          fill="rgba(0,0,0,0.2)"
+          cx="105"
+          cy="230"
+          rx="55"
+          ry="5"
+          fill="rgba(0,0,0,0.12)"
         />
 
-        {/* الكف */}
-        <path
-          d="M 55 105 
-             Q 55 95 65 95 
-             L 155 95 
-             Q 165 95 165 105 
-             L 165 195 
-             Q 165 230 135 230 
-             L 85 230 
-             Q 55 230 55 195 Z"
-          fill="#FFD7B5"
-          stroke="#A86544"
-          strokeWidth="3"
-          strokeLinejoin="round"
-        />
-
-        {/* خط داخل الكف للعمق */}
-        <path
-          d="M 80 130 Q 110 145 140 130"
-          stroke="rgba(168,101,68,0.25)"
-          strokeWidth="2"
-          fill="none"
-        />
-
-        {/* الأصابع الأربعة */}
-        {fingerPositions.map((x, i) => {
+        {/* الأصابع الأربعة — خلف الكف */}
+        {[0, 1, 2, 3].map((i) => {
+          const x = 58 + i * 24;
           const isUp = i < fingerCount;
-          const y = isUp ? 15 : 55;
-          const height = isUp ? 85 : 45;
 
           return (
-            <g key={i}>
-              <motion.rect
-                initial={false}
-                animate={{ y, height }}
-                transition={{ type: 'spring', stiffness: 220, damping: 20 }}
-                x={x}
-                width="20"
-                rx="10"
-                fill={isUp ? '#FFD7B5' : '#E5A98A'}
-                stroke="#A86544"
-                strokeWidth="3"
-              />
-              {/* خط داخل الأصبع */}
-              <motion.line
-                initial={false}
-                animate={{
-                  y1: y + 15,
-                  y2: y + height - 12,
-                }}
-                transition={{ type: 'spring', stiffness: 220, damping: 20 }}
-                x1={x + 10}
-                x2={x + 10}
-                stroke="rgba(168,101,68,0.25)"
-                strokeWidth="1.5"
-              />
-            </g>
+            <motion.rect
+              key={i}
+              initial={false}
+              animate={{
+                y: isUp ? 20 : 90,
+                height: isUp ? 140 : 70,
+              }}
+              transition={{ type: 'spring', stiffness: 250, damping: 22 }}
+              x={x}
+              width="20"
+              rx="10"
+              fill={isUp ? '#FFD7B5' : '#E8B893'}
+              stroke="#8B5A3C"
+              strokeWidth="3"
+            />
           );
         })}
 
-        {/* الإبهام */}
-        <motion.g
+        {/* الإبهام — خلف الكف، على اليسار */}
+        <motion.rect
           initial={false}
           animate={{
-            x: thumbUp ? -30 : 0,
-            y: thumbUp ? -40 : 0,
+            y: thumbUp ? 55 : 145,
+            height: thumbUp ? 100 : 40,
           }}
-          transition={{ type: 'spring', stiffness: 220, damping: 20 }}
-        >
-          {/* شكل الإبهام */}
-          <motion.rect
-            initial={false}
-            animate={{
-              width: thumbUp ? 26 : 40,
-              height: thumbUp ? 75 : 32,
-              x: thumbUp ? 40 : 42,
-              y: thumbUp ? 20 : 100,
-            }}
-            transition={{ type: 'spring', stiffness: 220, damping: 20 }}
-            rx="13"
-            fill={thumbUp ? '#FFD7B5' : '#E5A98A'}
-            stroke="#A86544"
-            strokeWidth="3"
-          />
-        </motion.g>
+          transition={{ type: 'spring', stiffness: 250, damping: 22 }}
+          x="30"
+          width="28"
+          rx="14"
+          fill={thumbUp ? '#FFD7B5' : '#E8B893'}
+          stroke="#8B5A3C"
+          strokeWidth="3"
+        />
 
-        {/* تلميح بصري: نقطة حمراء على رأس الإبهام إذا كان مرفوعاً (يمثل الجدة 5) */}
+        {/* الكف — فوق الأصابع */}
+        <rect
+          x="55"
+          y="125"
+          width="100"
+          height="100"
+          rx="22"
+          fill="#FFD7B5"
+          stroke="#8B5A3C"
+          strokeWidth="3"
+        />
+
+        {/* خط انحناء في الكف */}
+        <path
+          d="M 80 155 Q 105 172 130 155"
+          stroke="rgba(139,90,60,0.3)"
+          strokeWidth="2"
+          fill="none"
+          strokeLinecap="round"
+        />
+
+        {/* نقطة ذهبية على الإبهام المرفوع (الجدة 5) */}
         {thumbUp && (
           <motion.circle
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
-            cx="52"
-            cy="18"
-            r="9"
+            cx="44"
+            cy="70"
+            r="8"
             fill="#FCD34D"
             stroke="#B45309"
             strokeWidth="2"
