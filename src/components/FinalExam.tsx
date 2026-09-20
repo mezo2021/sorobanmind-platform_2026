@@ -1,23 +1,26 @@
 // src/components/FinalExam.tsx
-import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import {
   ArrowRight, CheckCircle2, Trophy, RotateCcw, Award,
-  SkipForward, FileText, AlertCircle,
+  SkipForward, FileText, AlertCircle, Lock, BookOpen,
 } from 'lucide-react';
 import { InteractiveSoroban } from './InteractiveSoroban';
 import { pickRandomExamQuestions, type ExamQuestion } from '@/examBank';
+import { LEARN_MODULES } from '@/data';
 
 interface FinalExamProps {
   onBack: () => void;
   onComplete: (score: number, passed: boolean) => void;
   playSound: (type: 'click' | 'success' | 'error' | 'bead' | 'whoosh' | 'levelup') => void;
+  onGoToLearn?: () => void;
 }
 
 const TOTAL_QUESTIONS = 25;
 const POINTS_PER_QUESTION = 4;
 const PASS_THRESHOLD = 60;
 const MAX_ATTEMPTS_BEFORE_SKIP = 5;
+const COMPLETED_STORAGE_KEY = 'soroban-completed-lessons';
 
 type ExamState = 'intro' | 'running' | 'finished';
 
@@ -32,7 +35,6 @@ function getColumnsForValue(value: number): number {
   return 4;
 }
 
-/** تحويل السؤال إلى نص — الإشارة تأتي بعد القيمة */
 function questionToString(q: ExamQuestion): string {
   if (!q.operations || q.operations.length === 0) return '';
   const parts: string[] = [String(q.operations[0].value)];
@@ -43,7 +45,31 @@ function questionToString(q: ExamQuestion): string {
   return parts.join(' ') + ' = ؟';
 }
 
-export function FinalExam({ onBack, onComplete, playSound }: FinalExamProps) {
+/** يتحقق أن كل الدروس (0-9) قد أكملت */
+function isExamUnlocked(): boolean {
+  try {
+    const saved = localStorage.getItem(COMPLETED_STORAGE_KEY);
+    if (!saved) return false;
+    const completed: number[] = JSON.parse(saved);
+    const allIds = LEARN_MODULES.map((m) => m.id);
+    return allIds.every((id) => completed.includes(id));
+  } catch {
+    return false;
+  }
+}
+
+function getCompletedCount(): number {
+  try {
+    const saved = localStorage.getItem(COMPLETED_STORAGE_KEY);
+    if (!saved) return 0;
+    const completed: number[] = JSON.parse(saved);
+    return completed.length;
+  } catch {
+    return 0;
+  }
+}
+
+export function FinalExam({ onBack, onComplete, playSound, onGoToLearn }: FinalExamProps) {
   const [state, setState] = useState<ExamState>('intro');
   const [questions, setQuestions] = useState<ExamQuestion[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -52,13 +78,26 @@ export function FinalExam({ onBack, onComplete, playSound }: FinalExamProps) {
   const [attempts, setAttempts] = useState(0);
   const [answers, setAnswers] = useState<Array<{ correct: boolean }>>([]);
 
+  // 🔒 حالة القفل
+  const [unlocked, setUnlocked] = useState(false);
+  const [completedCount, setCompletedCount] = useState(0);
+
+  useEffect(() => {
+    setUnlocked(isExamUnlocked());
+    setCompletedCount(getCompletedCount());
+  }, []);
+
   const currentQuestion = questions[currentIndex];
   const correctCount = answers.filter((a) => a.correct).length;
   const currentScore = correctCount * POINTS_PER_QUESTION;
   const canSkip = attempts >= MAX_ATTEMPTS_BEFORE_SKIP;
+  const totalLevels = LEARN_MODULES.length;
 
-  // ─────────────────── بدء الامتحان ───────────────────
   const startExam = () => {
+    if (!unlocked) {
+      playSound('error');
+      return;
+    }
     playSound('click');
     setQuestions(pickRandomExamQuestions());
     setCurrentIndex(0);
@@ -69,7 +108,6 @@ export function FinalExam({ onBack, onComplete, playSound }: FinalExamProps) {
     setState('running');
   };
 
-  // ─────────────────── تحقق ───────────────────
   const handleCheck = () => {
     if (!currentQuestion || feedback !== 'idle') return;
     setAttempts(attempts + 1);
@@ -86,7 +124,6 @@ export function FinalExam({ onBack, onComplete, playSound }: FinalExamProps) {
     }
   };
 
-  // ─────────────────── تخطي ───────────────────
   const handleSkip = () => {
     if (!currentQuestion) return;
     playSound('click');
@@ -94,7 +131,6 @@ export function FinalExam({ onBack, onComplete, playSound }: FinalExamProps) {
     advance(newAnswers);
   };
 
-  // ─────────────────── الانتقال للتالي ───────────────────
   const advance = (finalAnswers: Array<{ correct: boolean }>) => {
     setAbacusValue(0);
     setFeedback('idle');
@@ -104,7 +140,6 @@ export function FinalExam({ onBack, onComplete, playSound }: FinalExamProps) {
       setCurrentIndex(currentIndex + 1);
       setAnswers(finalAnswers);
     } else {
-      // ─── انتهى الامتحان ───
       const finalScore =
         finalAnswers.filter((a) => a.correct).length * POINTS_PER_QUESTION;
       const passed = finalScore >= PASS_THRESHOLD;
@@ -117,9 +152,11 @@ export function FinalExam({ onBack, onComplete, playSound }: FinalExamProps) {
   };
 
   // ═══════════════════════════════════════════════════════
-  // شاشة الترحيب
+  // شاشة الترحيب + القفل
   // ═══════════════════════════════════════════════════════
   if (state === 'intro') {
+    const remaining = totalLevels - completedCount;
+
     return (
       <div className="px-3 sm:px-6 py-6 max-w-2xl mx-auto" dir="rtl">
         <div className="flex items-center gap-3 mb-6">
@@ -137,56 +174,108 @@ export function FinalExam({ onBack, onComplete, playSound }: FinalExamProps) {
           animate={{ opacity: 1, y: 0 }}
           className="glass-strong p-8 text-center"
         >
-          <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-gradient-to-br from-gold-400 to-purple-600 shadow-2xl mb-4">
-            <FileText className="w-10 h-10 text-white" />
+          {/* أيقونة القفل/الامتحان */}
+          <div className={`inline-flex items-center justify-center w-20 h-20 rounded-3xl shadow-2xl mb-4 ${
+            unlocked
+              ? 'bg-gradient-to-br from-gold-400 to-purple-600'
+              : 'bg-gradient-to-br from-slate-600 to-slate-800'
+          }`}>
+            {unlocked ? (
+              <FileText className="w-10 h-10 text-white" />
+            ) : (
+              <Lock className="w-10 h-10 text-white/60" />
+            )}
           </div>
 
           <h2 className="text-3xl font-black font-display text-white mb-3">
-            الامتحان النهائي 🏆
+            {unlocked ? 'الامتحان النهائي 🏆' : 'الامتحان مقفل 🔒'}
           </h2>
 
-          <p className="text-white/60 font-body mb-6 leading-relaxed">
-            هذا الامتحان يقيس إتقانك لكل ما تعلمته. ركّز، واستخدم المعداد التفاعلي لتمثيل الناتج.
-          </p>
+          {unlocked ? (
+            <>
+              <p className="text-white/60 font-body mb-6 leading-relaxed">
+                هذا الامتحان يقيس إتقانك لكل ما تعلمته. ركّز، واستخدم المعداد التفاعلي لتمثيل الناتج.
+              </p>
 
-          <div className="grid grid-cols-2 gap-3 mb-6 text-right">
-            <div className="p-4 rounded-2xl bg-white/5 border border-white/10">
-              <p className="text-xs text-white/40 font-body mb-1">عدد الأسئلة</p>
-              <p className="text-2xl font-black font-display text-white">
-                {toArabicNumber(TOTAL_QUESTIONS)}
-              </p>
-            </div>
-            <div className="p-4 rounded-2xl bg-white/5 border border-white/10">
-              <p className="text-xs text-white/40 font-body mb-1">الدرجة الكلية</p>
-              <p className="text-2xl font-black font-display text-white">
-                {toArabicNumber(100)}
-              </p>
-            </div>
-            <div className="p-4 rounded-2xl bg-white/5 border border-white/10">
-              <p className="text-xs text-white/40 font-body mb-1">درجة كل سؤال</p>
-              <p className="text-2xl font-black font-display text-white">
-                {toArabicNumber(POINTS_PER_QUESTION)}
-              </p>
-            </div>
-            <div className="p-4 rounded-2xl bg-emerald2-500/15 border border-emerald2-400/30">
-              <p className="text-xs text-emerald2-300 font-body mb-1">النجاح</p>
-              <p className="text-2xl font-black font-display text-emerald2-200">
-                {toArabicNumber(PASS_THRESHOLD)}
-              </p>
-            </div>
-          </div>
+              <div className="grid grid-cols-2 gap-3 mb-6 text-right">
+                <div className="p-4 rounded-2xl bg-white/5 border border-white/10">
+                  <p className="text-xs text-white/40 font-body mb-1">عدد الأسئلة</p>
+                  <p className="text-2xl font-black font-display text-white">
+                    {toArabicNumber(TOTAL_QUESTIONS)}
+                  </p>
+                </div>
+                <div className="p-4 rounded-2xl bg-white/5 border border-white/10">
+                  <p className="text-xs text-white/40 font-body mb-1">الدرجة الكلية</p>
+                  <p className="text-2xl font-black font-display text-white">
+                    {toArabicNumber(100)}
+                  </p>
+                </div>
+                <div className="p-4 rounded-2xl bg-white/5 border border-white/10">
+                  <p className="text-xs text-white/40 font-body mb-1">درجة كل سؤال</p>
+                  <p className="text-2xl font-black font-display text-white">
+                    {toArabicNumber(POINTS_PER_QUESTION)}
+                  </p>
+                </div>
+                <div className="p-4 rounded-2xl bg-emerald2-500/15 border border-emerald2-400/30">
+                  <p className="text-xs text-emerald2-300 font-body mb-1">النجاح</p>
+                  <p className="text-2xl font-black font-display text-emerald2-200">
+                    {toArabicNumber(PASS_THRESHOLD)}
+                  </p>
+                </div>
+              </div>
 
-          <div className="flex gap-2 p-3 rounded-2xl bg-electric-500/10 border border-electric-400/30 mb-6 text-right">
-            <AlertCircle className="w-5 h-5 text-electric-300 shrink-0 mt-0.5" />
-            <p className="text-xs text-white/70 font-body leading-relaxed">
-              لن تظهر الإجابة الصحيحة أثناء الامتحان. إذا احترت في سؤال، يمكنك تخطّيه بعد عدة محاولات.
-            </p>
-          </div>
+              <div className="flex gap-2 p-3 rounded-2xl bg-electric-500/10 border border-electric-400/30 mb-6 text-right">
+                <AlertCircle className="w-5 h-5 text-electric-300 shrink-0 mt-0.5" />
+                <p className="text-xs text-white/70 font-body leading-relaxed">
+                  لن تظهر الإجابة الصحيحة أثناء الامتحان. إذا احترت في سؤال، يمكنك تخطّيه بعد عدة محاولات.
+                </p>
+              </div>
 
-          <button onClick={startExam} className="btn-primary w-full !py-4 !text-lg">
-            <Award className="w-6 h-6" />
-            ابدأ الامتحان
-          </button>
+              <button onClick={startExam} className="btn-primary w-full !py-4 !text-lg">
+                <Award className="w-6 h-6" />
+                ابدأ الامتحان
+              </button>
+            </>
+          ) : (
+            <>
+              <p className="text-white/60 font-body mb-6 leading-relaxed">
+                عليك إكمال جميع دروس التعلّم قبل أن تتمكن من دخول الامتحان النهائي.
+              </p>
+
+              {/* شريط التقدم */}
+              <div className="p-5 rounded-2xl bg-white/5 border border-white/10 mb-6">
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-xs text-white/50 font-body">
+                    الدروس المُكتملة
+                  </p>
+                  <p className="text-xs text-gold-300 font-black font-display">
+                    {toArabicNumber(completedCount)} / {toArabicNumber(totalLevels)}
+                  </p>
+                </div>
+                <div className="h-3 rounded-full bg-white/10 overflow-hidden">
+                  <motion.div
+                    className="h-full rounded-full bg-gradient-to-r from-purple-400 to-electric-500"
+                    initial={{ width: 0 }}
+                    animate={{ width: `${(completedCount / totalLevels) * 100}%` }}
+                    transition={{ duration: 0.6 }}
+                  />
+                </div>
+                <p className="text-xs text-white/50 font-body mt-3 text-center">
+                  باقي {toArabicNumber(remaining)} {remaining === 1 ? 'درس' : 'دروس'} لإكمالها
+                </p>
+              </div>
+
+              {onGoToLearn && (
+                <button
+                  onClick={() => { playSound('click'); onGoToLearn(); }}
+                  className="btn-primary w-full !py-4 !text-lg"
+                >
+                  <BookOpen className="w-6 h-6" />
+                  اذهب إلى الدروس
+                </button>
+              )}
+            </>
+          )}
         </motion.div>
       </div>
     );
@@ -273,7 +362,7 @@ export function FinalExam({ onBack, onComplete, playSound }: FinalExamProps) {
   // ═══════════════════════════════════════════════════════
   // شاشة الامتحان الجارية
   // ═══════════════════════════════════════════════════════
-  const progressPct = ((currentIndex) / TOTAL_QUESTIONS) * 100;
+  const progressPct = (currentIndex / TOTAL_QUESTIONS) * 100;
   const questionText = currentQuestion ? questionToString(currentQuestion) : '';
 
   return (
@@ -295,7 +384,6 @@ export function FinalExam({ onBack, onComplete, playSound }: FinalExamProps) {
         </div>
       </div>
 
-      {/* شريط التقدم */}
       <div className="mb-4">
         <div className="flex items-center justify-between mb-1.5">
           <p className="text-xs text-white/50 font-body">
@@ -315,7 +403,6 @@ export function FinalExam({ onBack, onComplete, playSound }: FinalExamProps) {
         </div>
       </div>
 
-      {/* بطاقة السؤال */}
       <motion.div
         key={currentIndex}
         initial={{ opacity: 0, y: 20 }}
@@ -327,7 +414,6 @@ export function FinalExam({ onBack, onComplete, playSound }: FinalExamProps) {
         </p>
       </motion.div>
 
-      {/* المعداد التفاعلي */}
       <div className="flex justify-center mb-4">
         <InteractiveSoroban
           columns={getColumnsForValue(currentQuestion?.answer ?? 99)}
@@ -336,7 +422,6 @@ export function FinalExam({ onBack, onComplete, playSound }: FinalExamProps) {
         />
       </div>
 
-      {/* زر تحقق */}
       <div className="flex gap-2 mb-3">
         <button
           onClick={handleCheck}
@@ -374,7 +459,6 @@ export function FinalExam({ onBack, onComplete, playSound }: FinalExamProps) {
         )}
       </div>
 
-      {/* زر تخطي — يظهر بعد 5 محاولات */}
       {canSkip && feedback === 'idle' && (
         <button
           onClick={handleSkip}
