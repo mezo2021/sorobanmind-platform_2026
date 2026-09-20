@@ -1,6 +1,9 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowRight, Eye, Play, Zap, Trophy, RotateCcw, Settings2, Sparkles, Brain, Heart } from 'lucide-react';
+import {
+  ArrowRight, Eye, Play, Zap, Trophy, RotateCcw,
+  Settings2, Sparkles, Brain, Heart, CheckCircle2, XCircle,
+} from 'lucide-react';
 
 function toArabicNumber(value: number | string): string {
   return String(value).replace(/\d/g, (d) => '٠١٢٣٤٥٦٧٨٩'[Number(d)]);
@@ -20,15 +23,20 @@ type Level = 'beginner' | 'intermediate' | 'advanced' | 'expert' | 'master';
 const SPEED_MS: Record<Speed, number> = { slow: 1500, medium: 1000, fast: 700 };
 const SPEED_LABELS: Record<Speed, string> = { slow: 'بطيء', medium: 'متوسط', fast: 'سريع' };
 
-// ═══════════════════════════════════════════════════════════════
-// مستويات الأنزان الجديدة — مرتبطة بالدروس 3-8
-// ═══════════════════════════════════════════════════════════════
 const LEVEL_LABELS: Record<Level, string> = {
-  beginner: '🌱 مبتدئ — درس ٣ (مباشر)',
-  intermediate: '⭐ متوسط — درس ٤ (الجدة ٥)',
-  advanced: '🔥 متقدم — درس ٥ (عملاق ١٠)',
-  expert: '💎 خبير — درس ٦ (المركب)',
-  master: '👑 محترف — دروس ٧-٨ (سلاسل وأنزان)',
+  beginner: '🌱 مبتدئ — أرقام مباشرة',
+  intermediate: '⭐ متوسط — أصدقاء ٥',
+  advanced: '🔥 متقدم — أصدقاء ١٠',
+  expert: '💎 خبير — القواعد المركبة',
+  master: '👑 محترف — أعداد كبيرة',
+};
+
+const LEVEL_DESCRIPTIONS: Record<Level, string> = {
+  beginner: 'أرقام من ١ إلى ٤، مجموع لا يتجاوز ٩',
+  intermediate: 'أرقام تستخدم قاعدة صديق العدد ٥',
+  advanced: 'أرقام تتجاوز ٩ لاستخدام قاعدة صديق العدد ١٠',
+  expert: 'أرقام مركبة (٦-٩) تحتاج قواعد متعددة',
+  master: 'أعداد من منزلتين (١٠-٩٩) بأرقام كبيرة',
 };
 
 const LEVEL_ORDER: Level[] = ['beginner', 'intermediate', 'advanced', 'expert', 'master'];
@@ -87,53 +95,40 @@ function randomInt(min: number, max: number): number {
 }
 
 // ═══════════════════════════════════════════════════════════════
-// توليد التسلسل — محدّث ليتوافق مع قواعد الدروس الجديدة
+// توليد التسلسل — مرتبط بمستويات الدروس
 // ═══════════════════════════════════════════════════════════════
 function generateSequence(level: Level): SequenceData {
   const operations: Operation[] = [];
 
-  // 🌱 مبتدئ — درس ٣ (المباشر): ٣ عمليات آحاد، مجموع لا يتجاوز ٩
+  // 🌱 مبتدئ — المباشر: عمليات آحاد بمجموع ≤ 9
   if (level === 'beginner') {
     let current = 0;
     for (let i = 0; i < 3; i++) {
       const remaining = 9 - current;
-      const max = Math.min(4, remaining);
-      if (max < 1) {
-        // اضطرار: طرح
-        const v = randomInt(1, Math.min(3, current));
-        operations.push({ value: v, operator: '-' });
-        current -= v;
-        continue;
-      }
-      const value = randomInt(1, max);
+      if (remaining < 1) break;
+      const value = randomInt(1, Math.min(4, remaining));
       operations.push({ value, operator: '+' });
       current += value;
     }
     return { operations, expectedResult: current };
   }
 
-  // ⭐ متوسط — درس ٤ (الجدة ٥): عمليات تجبر استخدام أصدقاء ٥
+  // ⭐ متوسط — الجدة 5: عمليات تجبر استخدام أصدقاء 5
   if (level === 'intermediate') {
     let current = 0;
-    for (let i = 0; i < 3; i++) {
-      if (i === 0) {
-        // ابدأ بـ 4 أو 5 لتسهيل دخول الجدة لاحقاً
-        const value = randomInt(4, 5);
-        operations.push({ value, operator: '+' });
-        current += value;
-        continue;
-      }
-      // نجبر إضافة أو طرح يستخدم الجدة 5
-      const canSubtract = current >= 1;
-      const useSubtract = canSubtract && Math.random() < 0.5;
-      if (useSubtract) {
-        // اطرح رقماً بحيث الناتج يبقى في النطاق
+    // نبدأ بـ 4
+    operations.push({ value: 4, operator: '+' });
+    current = 4;
+    // نضيف/نطرح لإجبار الجدة 5
+    for (let i = 0; i < 2; i++) {
+      const canSub = current >= 1;
+      const useSub = canSub && Math.random() < 0.5;
+      if (useSub) {
         const maxSub = Math.min(4, current);
         const value = randomInt(1, maxSub);
         operations.push({ value, operator: '-' });
         current -= value;
       } else {
-        // أضف رقماً يجبر استخدام صديق 5 (مثلاً إذا كان لدينا 4 ونضيف 4)
         const room = 9 - current;
         if (room >= 1) {
           const value = randomInt(1, Math.min(4, room));
@@ -149,24 +144,19 @@ function generateSequence(level: Level): SequenceData {
     return { operations, expectedResult: current };
   }
 
-  // 🔥 متقدم — درس ٥ (عملاق ١٠): ٣ عمليات آحاد تتجاوز 9 للإجبار على +10
+  // 🔥 متقدم — العملاق 10: تجاوز 9
   if (level === 'advanced') {
     let current = 0;
-    for (let i = 0; i < 3; i++) {
-      if (i === 0) {
-        const value = randomInt(6, 9);
-        operations.push({ value, operator: '+' });
-        current += value;
-        continue;
-      }
-      const canSubtract = current >= 1;
-      const useSubtract = canSubtract && Math.random() < 0.5;
-      if (useSubtract) {
+    operations.push({ value: randomInt(6, 9), operator: '+' });
+    current = operations[0].value;
+    for (let i = 0; i < 2; i++) {
+      const canSub = current >= 1;
+      const useSub = canSub && Math.random() < 0.5;
+      if (useSub) {
         const value = randomInt(1, Math.min(5, current));
         operations.push({ value, operator: '-' });
         current -= value;
       } else {
-        // اجبر تجاوز 9 → استخدام عملاق 10
         const value = randomInt(3, 9);
         operations.push({ value, operator: '+' });
         current += value;
@@ -175,24 +165,19 @@ function generateSequence(level: Level): SequenceData {
     return { operations, expectedResult: current };
   }
 
-  // 💎 خبير — درس ٦ (المركب): ٤ عمليات مركبة بآحاد
+  // 💎 خبير — المركب: 4 عمليات بأرقام كبيرة
   if (level === 'expert') {
     let current = 0;
-    for (let i = 0; i < 4; i++) {
-      if (i === 0) {
-        const value = randomInt(4, 8);
-        operations.push({ value, operator: '+' });
-        current += value;
-        continue;
-      }
-      const canSubtract = current >= 1;
-      const useSubtract = canSubtract && Math.random() < 0.45;
-      if (useSubtract) {
+    operations.push({ value: randomInt(4, 8), operator: '+' });
+    current = operations[0].value;
+    for (let i = 0; i < 3; i++) {
+      const canSub = current >= 1;
+      const useSub = canSub && Math.random() < 0.45;
+      if (useSub) {
         const value = randomInt(1, Math.min(6, current));
         operations.push({ value, operator: '-' });
         current -= value;
       } else {
-        // اجبر القاعدة المركبة: أضف 6-9
         const value = randomInt(6, 9);
         operations.push({ value, operator: '+' });
         current += value;
@@ -201,19 +186,15 @@ function generateSequence(level: Level): SequenceData {
     return { operations, expectedResult: current };
   }
 
-  // 👑 محترف — دروس ٧-٨ (سلاسل بمنزلتين وثلاث)
+  // 👑 محترف — سلاسل بمنزلتين
   let current = 0;
-  for (let i = 0; i < 5; i++) {
-    if (i === 0) {
-      const value = randomInt(10, 40);
-      operations.push({ value, operator: '+' });
-      current += value;
-      continue;
-    }
-    const canSubtract = current >= 10;
+  operations.push({ value: randomInt(10, 40), operator: '+' });
+  current = operations[0].value;
+  for (let i = 0; i < 4; i++) {
+    const canSub = current >= 10;
     const canAdd = current <= 89;
-    const useSubtract = canSubtract && (Math.random() < 0.5 || !canAdd);
-    if (useSubtract) {
+    const useSub = canSub && (Math.random() < 0.5 || !canAdd);
+    if (useSub) {
       const value = randomInt(5, Math.min(20, current));
       operations.push({ value, operator: '-' });
       current -= value;
@@ -240,10 +221,8 @@ export function AnzanScreen({ onBack, playSound, onXP, burst }: AnzanScreenProps
   const [level, setLevel] = useState<Level>('beginner');
   const [speed, setSpeed] = useState<Speed>('slow');
   const [showSettings, setShowSettings] = useState(false);
-
   const [attempt, setAttempt] = useState(1);
   const [levelWasEased, setLevelWasEased] = useState(false);
-  const [showAnswer, setShowAnswer] = useState(false);
 
   const [sequence, setSequence] = useState<SequenceData>(() => generateSequence('beginner'));
 
@@ -269,7 +248,6 @@ export function AnzanScreen({ onBack, playSound, onXP, burst }: AnzanScreenProps
     if (resetAttempts) {
       setAttempt(1);
       setLevelWasEased(false);
-      setShowAnswer(false);
     }
     playSound('click');
   }, [playSound, level]);
@@ -278,10 +256,7 @@ export function AnzanScreen({ onBack, playSound, onXP, burst }: AnzanScreenProps
     setPhase('flashing');
     setFlashIndex(-1);
     setUserAnswer('');
-    setShowAnswer(false);
-    if (slowerSpeed) {
-      setSpeed('slow');
-    }
+    if (slowerSpeed) setSpeed('slow');
     playSound('click');
   }, [playSound]);
 
@@ -321,10 +296,8 @@ export function AnzanScreen({ onBack, playSound, onXP, burst }: AnzanScreenProps
 
       if (attempt === 1) {
         setAttempt(2);
-        setShowAnswer(false);
         setPhase('retry');
       } else {
-        setShowAnswer(true);
         const easierLevel = getEasierLevel(level);
         if (easierLevel !== level) {
           setLevel(easierLevel);
@@ -352,26 +325,38 @@ export function AnzanScreen({ onBack, playSound, onXP, burst }: AnzanScreenProps
     startGame(true);
   };
 
-  const currentOp = flashIndex >= 0 && flashIndex < sequence.operations.length ? sequence.operations[flashIndex] : null;
+  const currentOp =
+    flashIndex >= 0 && flashIndex < sequence.operations.length
+      ? sequence.operations[flashIndex]
+      : null;
 
   return (
-    <div className="px-3 sm:px-6 py-6 max-w-2xl mx-auto">
+    <div className="px-3 sm:px-6 py-6 max-w-2xl mx-auto" dir="rtl">
       <div className="flex items-center gap-3 mb-6">
         <button onClick={() => { playSound('click'); onBack(); }} className="btn-ghost !px-3 !py-2">
           <ArrowRight className="w-5 h-5" />
         </button>
         <div className="flex-1">
-          <h2 className="text-2xl sm:text-3xl font-extrabold font-display text-white">التصور الذهني</h2>
-          <p className="text-sm text-white/50 font-body">تخيل الخرزات في عقلك واجمع/اطرح الأرقام</p>
+          <h2 className="text-2xl sm:text-3xl font-extrabold font-display text-white">
+            التصور الذهني
+          </h2>
+          <p className="text-sm text-white/50 font-body">
+            تخيل الخرزات في عقلك واجمع/اطرح الأرقام
+          </p>
         </div>
         {phase === 'idle' && (
-          <button onClick={() => { playSound('click'); setShowSettings((s) => !s); }} className="btn-ghost !px-3 !py-2" aria-label="الإعدادات">
+          <button
+            onClick={() => { playSound('click'); setShowSettings((s) => !s); }}
+            className="btn-ghost !px-3 !py-2"
+            aria-label="الإعدادات"
+          >
             <Settings2 className="w-5 h-5" />
           </button>
         )}
       </div>
 
-      <div className="flex gap-3 mb-5 flex-wrap">
+      {/* Stats badges */}
+      <div className="flex gap-2 mb-5 flex-wrap">
         <div className="badge bg-electric-500/15 border-electric-400/20">
           <Zap className="w-4 h-4 text-electric-300" />
           <span className="text-electric-200 text-sm">الجولة {toArabicNumber(round + 1)}</span>
@@ -386,6 +371,7 @@ export function AnzanScreen({ onBack, playSound, onXP, burst }: AnzanScreenProps
         </div>
       </div>
 
+      {/* Settings */}
       <AnimatePresence>
         {showSettings && phase === 'idle' && (
           <motion.div
@@ -397,15 +383,23 @@ export function AnzanScreen({ onBack, playSound, onXP, burst }: AnzanScreenProps
             <div className="mb-4">
               <p className="text-sm text-white/60 font-body mb-2">المستوى (مرتبط بالدروس)</p>
               <div className="grid grid-cols-1 gap-2">
-                {(['beginner', 'intermediate', 'advanced', 'expert', 'master'] as Level[]).map((l) => (
+                {LEVEL_ORDER.map((l) => (
                   <button
                     key={l}
                     onClick={() => { playSound('click'); setLevel(l); }}
                     className={`py-2 px-3 rounded-xl font-bold font-body text-xs transition-all text-right ${
-                      level === l ? 'bg-gradient-to-br from-emerald2-500 to-electric-500 text-white shadow-lg' : 'bg-white/10 text-white/60 hover:bg-white/15'
+                      level === l
+                        ? 'bg-gradient-to-br from-emerald2-500 to-electric-500 text-white shadow-lg'
+                        : 'bg-white/10 text-white/60 hover:bg-white/15'
                     }`}
                   >
-                    {LEVEL_LABELS[l]}
+                    <div className="flex items-center justify-between gap-2">
+                      <span>{LEVEL_LABELS[l]}</span>
+                      {level === l && <CheckCircle2 className="w-4 h-4" />}
+                    </div>
+                    <p className="text-[10px] text-white/40 font-body mt-1">
+                      {LEVEL_DESCRIPTIONS[l]}
+                    </p>
                   </button>
                 ))}
               </div>
@@ -418,7 +412,9 @@ export function AnzanScreen({ onBack, playSound, onXP, burst }: AnzanScreenProps
                     key={s}
                     onClick={() => { playSound('click'); setSpeed(s); }}
                     className={`flex-1 py-2 rounded-xl font-bold font-body transition-all ${
-                      speed === s ? 'bg-gradient-to-br from-emerald2-500 to-electric-500 text-white shadow-lg' : 'bg-white/10 text-white/60 hover:bg-white/15'
+                      speed === s
+                        ? 'bg-gradient-to-br from-emerald2-500 to-electric-500 text-white shadow-lg'
+                        : 'bg-white/10 text-white/60 hover:bg-white/15'
                     }`}
                   >
                     {SPEED_LABELS[s]}
@@ -430,13 +426,25 @@ export function AnzanScreen({ onBack, playSound, onXP, burst }: AnzanScreenProps
         )}
       </AnimatePresence>
 
-      <div className="glass-card p-6 sm:p-10 min-h-[360px] flex flex-col items-center justify-center relative overflow-hidden">
+      {/* Main Card */}
+      <div className="glass-card p-6 sm:p-10 min-h-[420px] flex flex-col items-center justify-center relative overflow-hidden">
         <div className="absolute inset-0 bg-hero-grid bg-[size:20px_20px] opacity-30" />
 
         <AnimatePresence mode="wait">
+          {/* ============ IDLE ============ */}
           {phase === 'idle' && (
-            <motion.div key="idle" initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.8 }} className="relative text-center">
-              <motion.div animate={{ y: [0, -12, 0] }} transition={{ duration: 3, repeat: Infinity }} className="w-20 h-20 rounded-3xl bg-gradient-to-br from-emerald2-500 to-electric-500 flex items-center justify-center shadow-xl shadow-emerald2-500/40 mx-auto mb-5">
+            <motion.div
+              key="idle"
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.8 }}
+              className="relative text-center"
+            >
+              <motion.div
+                animate={{ y: [0, -12, 0] }}
+                transition={{ duration: 3, repeat: Infinity }}
+                className="w-20 h-20 rounded-3xl bg-gradient-to-br from-emerald2-500 to-electric-500 flex items-center justify-center shadow-xl shadow-emerald2-500/40 mx-auto mb-5"
+              >
                 <Eye className="w-10 h-10 text-white" />
               </motion.div>
               <p className="text-white/60 font-body mb-5 max-w-sm mx-auto">
@@ -449,6 +457,7 @@ export function AnzanScreen({ onBack, playSound, onXP, burst }: AnzanScreenProps
             </motion.div>
           )}
 
+          {/* ============ FLASHING ============ */}
           {phase === 'flashing' && (
             <motion.div key="flashing" className="relative flex flex-col items-center w-full">
               {currentOp !== null ? (
@@ -465,28 +474,54 @@ export function AnzanScreen({ onBack, playSound, onXP, burst }: AnzanScreenProps
                   >
                     {currentOp.operator === '+' ? '+' : '−'} {toArabicNumber(currentOp.value)}
                   </motion.div>
-                  <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-lg font-body text-gold-300 mt-4">
+                  <motion.p
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="text-lg font-body text-gold-300 mt-4"
+                  >
                     المجموع الحالي: {toArabicNumber(runningTotal)}
                   </motion.p>
                 </>
               ) : (
-                <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-2xl font-body text-white/50">استعد...</motion.p>
+                <motion.p
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="text-2xl font-body text-white/50"
+                >
+                  استعد...
+                </motion.p>
               )}
               <div className="flex gap-1.5 mt-6 flex-wrap justify-center">
                 {sequence.operations.map((_, i) => (
-                  <div key={i} className={`w-2 h-2 rounded-full transition-all ${
-                    i < flashIndex ? 'bg-emerald2-400' : i === flashIndex ? 'bg-white scale-150' : 'bg-white/15'
-                  }`} />
+                  <div
+                    key={i}
+                    className={`w-2 h-2 rounded-full transition-all ${
+                      i < flashIndex
+                        ? 'bg-emerald2-400'
+                        : i === flashIndex
+                        ? 'bg-white scale-150'
+                        : 'bg-white/15'
+                    }`}
+                  />
                 ))}
               </div>
             </motion.div>
           )}
 
+          {/* ============ ANSWER ============ */}
           {phase === 'answer' && (
-            <motion.div key="answer" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="relative text-center w-full">
+            <motion.div
+              key="answer"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="relative text-center w-full"
+            >
               <div className="mb-4 p-4 rounded-2xl bg-purple-500/10 border border-purple-400/20">
                 <Sparkles className="w-6 h-6 text-purple-300 mx-auto mb-2" />
-                <p className="text-white/70 font-body text-sm">تخيل المعداد في عقلك، واحسب الناتج</p>
+                <p className="text-white/70 font-body text-sm">
+                  تخيل المعداد في عقلك، واحسب الناتج
+                </p>
               </div>
               <p className="text-white/60 font-body mb-4">
                 {attempt === 1 ? 'ما الناتج؟' : 'المحاولة الثانية — ما الناتج؟'}
@@ -501,16 +536,31 @@ export function AnzanScreen({ onBack, playSound, onXP, burst }: AnzanScreenProps
                 placeholder="؟"
               />
               <br />
-              <button onClick={submitAnswer} disabled={!userAnswer} className="btn-primary disabled:opacity-40">تحقق</button>
+              <button onClick={submitAnswer} disabled={!userAnswer} className="btn-primary disabled:opacity-40">
+                تحقق
+              </button>
             </motion.div>
           )}
 
+          {/* ============ RETRY ============ */}
           {phase === 'retry' && (
-            <motion.div key="retry" initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} className="relative text-center w-full">
-              <motion.div animate={{ scale: [1, 1.1, 1] }} transition={{ duration: 1.5, repeat: Infinity }} className="w-20 h-20 rounded-3xl bg-gold-400/20 border-2 border-gold-400/40 flex items-center justify-center mx-auto mb-5">
+            <motion.div
+              key="retry"
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0 }}
+              className="relative text-center w-full"
+            >
+              <motion.div
+                animate={{ scale: [1, 1.1, 1] }}
+                transition={{ duration: 1.5, repeat: Infinity }}
+                className="w-20 h-20 rounded-3xl bg-gold-400/20 border-2 border-gold-400/40 flex items-center justify-center mx-auto mb-5"
+              >
                 <Heart className="w-10 h-10 text-gold-300" />
               </motion.div>
-              <p className="text-2xl font-extrabold font-display text-gold-300 mb-2">قريب جداً! 💪</p>
+              <p className="text-2xl font-extrabold font-display text-gold-300 mb-2">
+                قريب جداً! 💪
+              </p>
               <p className="text-white/60 font-body mb-5 max-w-sm mx-auto">
                 لا بأس، دعنا نعيد عرض الأرقام معاً بسرعة أبطأ. ركّز جيداً!
               </p>
@@ -520,29 +570,53 @@ export function AnzanScreen({ onBack, playSound, onXP, burst }: AnzanScreenProps
             </motion.div>
           )}
 
+          {/* ============ RESULT ============ */}
           {phase === 'result' && (
-            <motion.div key="result" initial={{ opacity: 0, scale: 0.5 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'spring', stiffness: 250, damping: 15 }} className="relative text-center">
+            <motion.div
+              key="result"
+              initial={{ opacity: 0, scale: 0.5 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ type: 'spring', stiffness: 250, damping: 15 }}
+              className="relative text-center"
+            >
               {lastAttemptCorrect ? (
                 <>
-                  <motion.div initial={{ scale: 0 }} animate={{ scale: 1, rotate: [0, 10, -10, 0] }} className="text-7xl mb-3">
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1, rotate: [0, 10, -10, 0] }}
+                    className="text-7xl mb-3"
+                  >
                     <Trophy className="w-20 h-20 text-gold-400 mx-auto" />
                   </motion.div>
                   <p className="text-3xl font-extrabold font-display text-emerald2-300 mb-2">
                     {attempt === 1 ? 'رائع! 🎉' : 'أحسنت! المحاولة الثانية 👏'}
                   </p>
-                  <p className="text-white/60 font-body mb-1">الإجابة الصحيحة: {toArabicNumber(total)}</p>
+                  <p className="text-white/60 font-body mb-1">
+                    الإجابة الصحيحة: {toArabicNumber(total)}
+                  </p>
                   <p className="text-gold-300 font-bold mb-5">
                     +{toArabicNumber(attempt === 1 ? 25 : 10)} XP
                   </p>
                 </>
               ) : (
                 <>
-                  <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="w-20 h-20 rounded-3xl bg-electric-500/20 border-2 border-electric-400/30 flex items-center justify-center mx-auto mb-3">
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    className="w-20 h-20 rounded-3xl bg-electric-500/20 border-2 border-electric-400/30 flex items-center justify-center mx-auto mb-3"
+                  >
                     <Heart className="w-10 h-10 text-electric-300" />
                   </motion.div>
-                  <p className="text-2xl font-extrabold font-display text-electric-300 mb-2">لا بأس! 💙</p>
-                  <p className="text-white/60 font-body mb-1">الإجابة الصحيحة: <span className="font-bold text-white">{toArabicNumber(total)}</span></p>
-                  <p className="text-white/40 font-body text-sm mb-3">إجابتك: {userAnswer ? toArabicNumber(userAnswer) : '—'}</p>
+                  <p className="text-2xl font-extrabold font-display text-electric-300 mb-2">
+                    لا بأس! 💙
+                  </p>
+                  <p className="text-white/60 font-body mb-1">
+                    الإجابة الصحيحة:{' '}
+                    <span className="font-bold text-white">{toArabicNumber(total)}</span>
+                  </p>
+                  <p className="text-white/40 font-body text-sm mb-3">
+                    إجابتك: {userAnswer ? toArabicNumber(userAnswer) : '—'}
+                  </p>
                   {levelWasEased && (
                     <p className="text-gold-300 font-body text-sm mb-3">
                       🌱 سنتدرب أكثر في مستوى أسهل
@@ -550,12 +624,16 @@ export function AnzanScreen({ onBack, playSound, onXP, burst }: AnzanScreenProps
                   )}
                 </>
               )}
+
               <div className="mb-4 p-3 rounded-2xl bg-white/5 border border-white/10">
                 <p className="text-xs text-white/50 font-body mb-1">العمليات التي ظهرت:</p>
                 <p className="text-lg font-bold text-white font-display" dir="ltr">
-                  {sequence.operations.map((op) => `${op.operator === '+' ? '+' : '−'}${toArabicNumber(op.value)}`).join(' ')}
+                  {sequence.operations
+                    .map((op) => `${op.operator === '+' ? '+' : '−'}${toArabicNumber(op.value)}`)
+                    .join(' ')}
                 </p>
               </div>
+
               <button onClick={nextRound} className="btn-primary">
                 <RotateCcw className="w-5 h-5" /> الجولة التالية
               </button>
