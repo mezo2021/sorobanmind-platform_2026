@@ -26,6 +26,8 @@ import {
   ShieldCheck,
   Zap,
   FileText,
+  Grid3X3,
+  Wand2,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -140,6 +142,26 @@ const ACTION_CARDS: {
     icon: Calculator,
     gradient: 'from-pink-500 to-purple-700',
     glow: 'shadow-pink-500/40',
+  },
+  // ✅ زر جديد: درس الضرب
+  {
+    screen: 'multiplication',
+    title: 'درس الضرب',
+    titleEn: 'Multiplication',
+    desc: 'طريقة الشبكة والخطوط مع قواعد السوروبان',
+    icon: Grid3X3,
+    gradient: 'from-indigo-500 to-purple-700',
+    glow: 'shadow-indigo-500/40',
+  },
+  // ✅ زر جديد: الأسرار السحرية
+  {
+    screen: 'secrets',
+    title: 'الأسرار السحرية',
+    titleEn: 'Magic Secrets',
+    desc: 'حِيَل ذكية لجدول الضرب — الجدول المختصر',
+    icon: Wand2,
+    gradient: 'from-amber-500 to-rose-600',
+    glow: 'shadow-amber-500/40',
   },
   {
     screen: 'final-exam',
