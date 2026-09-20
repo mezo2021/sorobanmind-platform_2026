@@ -300,7 +300,6 @@ export function LearnScreen({ onBack, playSound, onXP, onNavigate }: LearnScreen
       gradient: 'from-indigo-500 to-purple-700',
       available: true,
     },
-    // ✅ جديد: الضرب التقاطعي
     {
       id: 'cross-multiplication',
       screen: 'cross-multiplication' as Screen,
@@ -323,13 +322,13 @@ export function LearnScreen({ onBack, playSound, onXP, onNavigate }: LearnScreen
     },
     {
       id: 'division',
-      screen: null,
+      screen: 'division' as Screen,
       title: 'القسمة',
       titleEn: 'Division',
-      desc: 'قريبًا — تعلّم القسمة على السوروبان',
+      desc: 'تعلّم القسمة على السوروبان خطوة بخطوة',
       icon: Divide,
-      gradient: 'from-cyan-500 to-blue-700',
-      available: false,
+      gradient: 'from-blue-500 to-cyan-700',
+      available: true,
     },
   ];
 
@@ -433,7 +432,7 @@ export function LearnScreen({ onBack, playSound, onXP, onNavigate }: LearnScreen
       </div>
 
       {/* ============================================
-          المستوى المتقدم (الضرب + الضرب التقاطعي + الأسرار + القسمة)
+          المستوى المتقدم
       ============================================ */}
       <motion.div
         initial={{ opacity: 0, y: 30 }}
@@ -493,11 +492,7 @@ export function LearnScreen({ onBack, playSound, onXP, onNavigate }: LearnScreen
                       <Icon className="w-6 h-6 text-white" />
                     )}
                   </div>
-                  {!card.available ? (
-                    <span className="badge bg-white/5 border-white/10 text-white/40 text-xs">
-                      قريبًا
-                    </span>
-                  ) : examPassed ? (
+                  {examPassed ? (
                     <span className="badge bg-emerald2-500/20 border-emerald2-400/30 text-emerald2-300 text-xs">
                       <CheckCircle2 className="w-3.5 h-3.5" /> متاح
                     </span>
@@ -511,11 +506,9 @@ export function LearnScreen({ onBack, playSound, onXP, onNavigate }: LearnScreen
                 <h3 className="text-lg font-extrabold font-display text-white mb-1">{card.title}</h3>
                 <p className="text-xs text-white/40 font-body mb-2">{card.titleEn}</p>
                 <p className="text-sm text-white/60 font-body leading-snug">
-                  {isLocked && !card.available
-                    ? card.desc
-                    : isLocked
-                      ? '🔒 اجتز الامتحان النهائي لفتح هذا الدرس'
-                      : card.desc}
+                  {isLocked
+                    ? '🔒 اجتز الامتحان النهائي لفتح هذا الدرس'
+                    : card.desc}
                 </p>
               </motion.button>
             );
@@ -524,7 +517,7 @@ export function LearnScreen({ onBack, playSound, onXP, onNavigate }: LearnScreen
       </motion.div>
 
       {/* ============================================
-          نافذة الدرس (كما هي بدون تغيير)
+          نافذة الدرس
       ============================================ */}
       <AnimatePresence>
         {selected && (
