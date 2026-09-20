@@ -25,6 +25,7 @@ import {
   Brain,
   ShieldCheck,
   Zap,
+  FileText,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -139,6 +140,15 @@ const ACTION_CARDS: {
     icon: Calculator,
     gradient: 'from-pink-500 to-purple-700',
     glow: 'shadow-pink-500/40',
+  },
+  {
+    screen: 'final-exam',
+    title: 'الامتحان النهائي',
+    titleEn: 'Final Exam',
+    desc: '٢٥ سؤالاً — ١٠٠ درجة',
+    icon: FileText,
+    gradient: 'from-gold-400 to-gold-600',
+    glow: 'shadow-gold-500/40',
   },
 ];
 
@@ -565,7 +575,6 @@ export function HeroDashboard({
         <div className="absolute -bottom-24 -left-24 w-64 h-64 rounded-full bg-electric-500/10 blur-3xl" />
 
         <div className="relative grid grid-cols-1 md:grid-cols-[180px_1fr_auto] items-center gap-5">
-          {/* CHARACTER */}
           <div className="relative flex justify-center">
             <motion.div
               animate={{
@@ -596,7 +605,6 @@ export function HeroDashboard({
             </motion.div>
           </div>
 
-          {/* CHARACTER INFORMATION */}
           <div className="text-center md:text-right">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-violet-500/15 border border-violet-400/20 mb-2">
               <Sparkles className="w-4 h-4 text-violet-300" />
@@ -639,7 +647,6 @@ export function HeroDashboard({
             </div>
           </div>
 
-          {/* HERO STATUS */}
           <div className="flex md:flex-col gap-2 justify-center">
             <button
               type="button"
