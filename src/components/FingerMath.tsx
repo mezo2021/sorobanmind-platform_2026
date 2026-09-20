@@ -80,10 +80,13 @@ export function FingerMath({ value }: FingerMathProps) {
   const tens = Math.floor(safeValue / 10);
 
   return (
-    <div className="flex items-center justify-center gap-8 p-4">
+    <div className="flex items-center justify-center gap-8 p-4" dir="rtl">
+      {/* اليد اليسرى (العشرات) — تظهر على اليسار */}
       {tens > 0 && (
         <Hand digit={tens} label="اليد اليسرى (العشرات)" />
       )}
+
+      {/* اليد اليمنى (الآحاد) — تظهر على اليمين */}
       <Hand digit={units} label="اليد اليمنى (الآحاد)" />
     </div>
   );
