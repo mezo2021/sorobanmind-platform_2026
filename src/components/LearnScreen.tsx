@@ -4,7 +4,7 @@ import {
   ArrowRight, Lock, CheckCircle2, Info, Star, CircleDot,
   Combine, Hash, Sigma, Minus, Plus, Lightbulb, Eye, Hand,
   X, Divide, Fingerprint, MoveRight, Target,
-  BookOpen, Sparkles,
+  BookOpen, Sparkles, RotateCcw,
   type LucideIcon,
 } from 'lucide-react';
 import { LEARN_MODULES } from '@/data';
@@ -33,6 +33,7 @@ type LessonMode = 'watch' | 'try';
 
 const COMPLETED_STORAGE_KEY = 'soroban-completed-lessons';
 const PROGRESS_STORAGE_KEY = 'soroban-lesson-progress';
+const MAX_ATTEMPTS = 10;
 
 function getColumnsForValue(value: number): number {
   if (value < 10) return 1;
@@ -132,6 +133,11 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
   const [showSteps, setShowSteps] = useState(false);
   const [abacusValue, setAbacusValue] = useState(0);
 
+  // ✨ جديد: تتبع المحاولات لكل مثال
+  const [attempts, setAttempts] = useState<Record<number, number>>({});
+  const [showAnswer, setShowAnswer] = useState(false);
+  const [feedbackMsg, setFeedbackMsg] = useState<string>('');
+
   const { speak, stop, isSpeaking, isSupported } = useSpeech();
 
   useEffect(() => {
@@ -159,6 +165,9 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
     const savedSolved = lessonProgress[mod.id] || [];
     setSolvedExamples(savedSolved);
     setShowSteps(false);
+    setAttempts({});
+    setShowAnswer(false);
+    setFeedbackMsg('');
     setTimeout(() => speak(mod.audioText), 300);
   };
 
@@ -187,6 +196,8 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
       setSolvedExamples(savedSolved);
     }
     setShowSteps(false);
+    setShowAnswer(false);
+    setFeedbackMsg('');
   };
 
   const handleExampleSolved = () => {
@@ -199,6 +210,27 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
         [selected.id]: newSolved,
       });
       playSound('success');
+      setFeedbackMsg('✅ أحسنت! إجابة صحيحة.');
+    }
+  };
+
+  // ✨ جديد: زر "تحقق" في وضع جرّب
+  const handleCheck = () => {
+    if (!currentEx) return;
+    if (abacusValue === currentEx.answer) {
+      handleExampleSolved();
+    } else {
+      playSound('error');
+      const key = currentExample;
+      const currentAttempts = (attempts[key] || 0) + 1;
+      setAttempts({ ...attempts, [key]: currentAttempts });
+      setFeedbackMsg(
+        currentAttempts >= MAX_ATTEMPTS
+          ? '❌ لم تصل بعد. يمكنك رؤية الإجابة الآن.'
+          : `❌ حاول مرة أخرى. المحاولة ${toArabicNumber(currentAttempts)} من ${toArabicNumber(MAX_ATTEMPTS)}`
+      );
+      // إعادة تعيين المعداد
+      setAbacusValue(0);
     }
   };
 
@@ -209,6 +241,8 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
       setCurrentStep(0);
       setAbacusValue(0);
       setShowSteps(false);
+      setShowAnswer(false);
+      setFeedbackMsg('');
       playSound('click');
     }
   };
@@ -219,6 +253,8 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
       setCurrentStep(0);
       setAbacusValue(0);
       setShowSteps(false);
+      setShowAnswer(false);
+      setFeedbackMsg('');
       playSound('click');
     }
   };
@@ -229,6 +265,9 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
   const isFirstExample = currentExample === 0;
   const allExamplesSolved = selected ? solvedExamples.length === selected.examples.length : false;
   const isFingerLesson = selected?.id === 0;
+
+  const currentAttempts = attempts[currentExample] || 0;
+  const canShowAnswerBtn = currentAttempts >= MAX_ATTEMPTS && !isSolved;
 
   const nextStep = () => {
     if (!currentEx) return;
@@ -431,60 +470,89 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
                 </div>
               )}
 
-              {currentEx && (
+              {/* ─────────── وضع "شاهد" ─────────── */}
+              {currentEx && mode === 'watch' && (
                 <div className="flex justify-center mb-4">
                   <AnimatePresence mode="wait">
-                    {mode === 'watch' ? (
-                      <motion.div key={`watch-${currentExample}`} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                        {isFingerLesson ? (
-                          <FingerMath value={currentEx.answer} />
-                        ) : (
-                          <Soroban value={currentEx.answer} columns={getColumnsForValue(currentEx.answer)} />
-                        )}
-                      </motion.div>
-                    ) : (
-                      <motion.div key={`try-${currentExample}`} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col items-center gap-3">
-                        {isFingerLesson ? (
-                          <>
-                            <FingerMath value={currentEx.answer} />
-                            <button
-                              onClick={handleExampleSolved}
-                              disabled={isSolved}
-                              className="btn-primary !py-2 !text-sm"
-                            >
-                              {isSolved ? '✅ تم' : '✅ أظهرت الرقم بأصابعي'}
-                            </button>
-                          </>
-                        ) : (
-                          <>
-                            <InteractiveSoroban
-                              columns={getColumnsForValue(currentEx.answer)}
-                              value={abacusValue}
-                              onValueChange={(v) => {
-                                setAbacusValue(v);
-                                if (v === currentEx.answer && !isSolved) {
-                                  handleExampleSolved();
-                                }
-                              }}
-                            />
-                            {isSolved && (
-                              <p className="text-sm text-emerald2-300 font-bold font-body">
-                                ✅ أحسنت! وصلت للقيمة {toArabicNumber(currentEx.answer)}
-                              </p>
-                            )}
-                            {!isSolved && (
-                              <p className="text-xs text-white/40 font-body">
-                                حرّك الخرزات لتصل إلى القيمة {toArabicNumber(currentEx.answer)}
-                              </p>
-                            )}
-                          </>
-                        )}
-                      </motion.div>
-                    )}
+                    <motion.div key={`watch-${currentExample}`} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                      {isFingerLesson ? (
+                        <FingerMath value={currentEx.answer} />
+                      ) : (
+                        <Soroban value={currentEx.answer} columns={getColumnsForValue(currentEx.answer)} />
+                      )}
+                    </motion.div>
                   </AnimatePresence>
                 </div>
               )}
 
+              {/* ─────────── وضع "جرّب" ─────────── */}
+              {currentEx && mode === 'try' && (
+                <div className="flex flex-col items-center gap-3 mb-4">
+                  {/* المعداد التفاعلي — لا تلميح للإجابة */}
+                  <InteractiveSoroban
+                    columns={getColumnsForValue(currentEx.answer)}
+                    value={abacusValue}
+                    onValueChange={(v) => setAbacusValue(v)}
+                  />
+
+                  {/* زر تحقق */}
+                  {!isSolved && !showAnswer && (
+                    <button
+                      onClick={handleCheck}
+                      className="btn-primary !py-2 !px-6 !text-sm"
+                      disabled={abacusValue === 0}
+                    >
+                      <CheckCircle2 className="w-4 h-4" />
+                      تحقق
+                    </button>
+                  )}
+
+                  {/* عداد المحاولات + رسالة التغذية الراجعة */}
+                  {feedbackMsg && !showAnswer && !isSolved && (
+                    <p className="text-xs text-white/60 font-body text-center">
+                      {feedbackMsg}
+                    </p>
+                  )}
+
+                  {/* نجاح */}
+                  {isSolved && (
+                    <p className="text-sm text-emerald2-300 font-bold font-body">
+                      ✅ أحسنت! إجابة صحيحة.
+                    </p>
+                  )}
+
+                  {/* زر "أرني الإجابة" بعد 10 محاولات */}
+                  {canShowAnswerBtn && !showAnswer && (
+                    <button
+                      onClick={() => { setShowAnswer(true); playSound('click'); }}
+                      className="btn-ghost !py-2 !px-4 !text-xs !border-gold-400/40 !text-gold-300"
+                    >
+                      <Lightbulb className="w-4 h-4" />
+                      أرني الإجابة
+                    </button>
+                  )}
+
+                  {/* الإجابة بعد الضغط على الزر */}
+                  {showAnswer && (
+                    <div className="w-full p-3 rounded-2xl bg-gold-500/15 border border-gold-400/40">
+                      <p className="text-sm font-bold text-gold-300 text-center mb-1">
+                        💡 الإجابة الصحيحة: {toArabicNumber(currentEx.answer)}
+                      </p>
+                      <p className="text-xs text-white/70 font-body text-center leading-relaxed">
+                        {currentEx.explanation}
+                      </p>
+                      <button
+                        onClick={handleExampleSolved}
+                        className="w-full mt-3 btn-primary !py-2 !text-sm"
+                      >
+                        فهمت، التالي
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* خطوات الشرح — "شاهد" فقط */}
               {mode === 'watch' && currentEx && currentEx.steps.length > 0 && !isFingerLesson && (
                 <div className="mb-4">
                   {!showSteps ? (
@@ -554,18 +622,20 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
                 </div>
               )}
 
-              {/* الشرح - يظهر فقط في "شاهد" أو بعد الحل في "جرّب" */}
-              {currentEx && (mode === 'watch' || isSolved) && currentEx.explanation && (
+              {/* شرح "شاهد" فقط */}
+              {currentEx && mode === 'watch' && currentEx.explanation && (
                 <div className="flex gap-3 p-3 rounded-2xl bg-purple-500/10 border border-purple-400/20 mb-4">
                   <Lightbulb className="w-5 h-5 text-gold-400 shrink-0 mt-0.5" />
                   <p className="text-sm text-white/80 font-body leading-relaxed">{currentEx.explanation}</p>
                 </div>
               )}
 
-              <div className="flex gap-2 mb-4">
-                <button onClick={prevExample} disabled={isFirstExample} className="btn-ghost flex-1 !py-2 !text-sm disabled:opacity-30">السابق</button>
-                <button onClick={nextExample} disabled={isLastExample} className={`flex-1 !py-2 !text-sm ${!isLastExample ? 'btn-primary' : 'btn-ghost opacity-30'}`}>التالي</button>
-              </div>
+              {selected.examples.length > 0 && (
+                <div className="flex gap-2 mb-4">
+                  <button onClick={prevExample} disabled={isFirstExample} className="btn-ghost flex-1 !py-2 !text-sm disabled:opacity-30">السابق</button>
+                  <button onClick={nextExample} disabled={isLastExample} className={`flex-1 !py-2 !text-sm ${!isLastExample ? 'btn-primary' : 'btn-ghost opacity-30'}`}>التالي</button>
+                </div>
+              )}
 
               <button
                 onClick={handleComplete}
