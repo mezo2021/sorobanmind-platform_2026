@@ -112,6 +112,21 @@ function App() {
             />
           )}
 
+          {screen === 'final-exam' && (
+            <FinalExam
+              onBack={() => handleNavigate('hero-dashboard')}
+              onComplete={(score, passed) => {
+                try {
+                  localStorage.setItem(
+                    'soroban_exam_result',
+                    JSON.stringify({ score, passed, date: Date.now() })
+                  );
+                } catch { /* ignore */ }
+              }}
+              playSound={playSound}
+            />
+          )}
+
           {screen === 'practice' && (
             <PracticeScreen
               onBack={() => handleNavigate('hero-dashboard')}
