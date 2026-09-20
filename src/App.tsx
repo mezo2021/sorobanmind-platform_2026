@@ -21,12 +21,14 @@ import { BadgeModal } from './components/BadgeModal';
 import MultiplicationScreen from './screens/MultiplicationScreen';
 import MagicSecretsScreen from './screens/MagicSecretsScreen';
 import CrossMultiplicationScreen from './screens/CrossMultiplicationScreen';
+import DivisionScreen from './screens/DivisionScreen';
 
 // ✅ الشاشات التي تتطلب اجتياز الامتحان النهائي
 const EXAM_REQUIRED_SCREENS: Screen[] = [
   'multiplication',
   'secrets',
   'cross-multiplication',
+  'division',
 ];
 
 function App() {
@@ -209,6 +211,15 @@ function App() {
             />
           )}
 
+          {/* ✅ الضرب التقاطعي — محمي */}
+          {screen === 'cross-multiplication' && examPassed && (
+            <CrossMultiplicationScreen
+              onBack={() => handleNavigate('hero-dashboard')}
+              onComplete={(stars) => addXP(stars * 10)}
+              onXP={addXP}
+            />
+          )}
+
           {/* ✅ الأسرار السحرية — محمي */}
           {screen === 'secrets' && examPassed && (
             <MagicSecretsScreen
@@ -218,9 +229,9 @@ function App() {
             />
           )}
 
-          {/* ✅ الضرب التقاطعي — محمي */}
-          {screen === 'cross-multiplication' && examPassed && (
-            <CrossMultiplicationScreen
+          {/* ✅ القسمة — محمي */}
+          {screen === 'division' && examPassed && (
+            <DivisionScreen
               onBack={() => handleNavigate('hero-dashboard')}
               onComplete={(stars) => addXP(stars * 10)}
               onXP={addXP}
