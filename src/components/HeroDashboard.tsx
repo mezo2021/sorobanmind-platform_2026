@@ -30,14 +30,14 @@ import {
   Wand2,
   Unlock,
   Hash,
+  Divide,
   type LucideIcon,
 } from 'lucide-react';
 
 import { LEVELS, BADGES } from '@/data';
-import type { Screen, LevelNode, CharacterType } from '@/types';
+import type { Screen, CharacterType } from '@/types';
 import { Companion } from './Companion';
 import { CharacterSelector } from './CharacterSelector';
-import { useQuests } from '@/hooks/useQuests';
 
 interface HeroDashboardProps {
   onNavigate: (screen: Screen) => void;
@@ -100,6 +100,7 @@ type ActionCard = {
   gradient: string;
   glow: string;
   requiresExam?: boolean;
+  comingSoon?: boolean;
 };
 
 const ACTION_CARDS: ActionCard[] = [
@@ -152,23 +153,12 @@ const ACTION_CARDS: ActionCard[] = [
     screen: 'multiplication',
     title: 'درس الضرب',
     titleEn: 'Multiplication',
-    desc: 'طريقة الشبكة والخطوط مع قواعد السوروبان',
+    desc: 'قواعد السوروبان والضرب الذهني',
     icon: Grid3X3,
     gradient: 'from-indigo-500 to-purple-700',
     glow: 'shadow-indigo-500/40',
     requiresExam: true,
   },
-  {
-    screen: 'secrets',
-    title: 'الأسرار السحرية',
-    titleEn: 'Magic Secrets',
-    desc: 'حِيَل ذكية لجدول الضرب — الجدول المختصر',
-    icon: Wand2,
-    gradient: 'from-amber-500 to-rose-600',
-    glow: 'shadow-amber-500/40',
-    requiresExam: true,
-  },
-  // ✅ بطاقة جديدة: الضرب التقاطعي
   {
     screen: 'cross-multiplication',
     title: 'الضرب التقاطعي',
@@ -178,6 +168,26 @@ const ACTION_CARDS: ActionCard[] = [
     gradient: 'from-cyan-500 to-blue-700',
     glow: 'shadow-cyan-500/40',
     requiresExam: true,
+  },
+  {
+    screen: 'secrets',
+    title: 'الأسرار السحرية',
+    titleEn: 'Magic Secrets',
+    desc: 'حِيَل ذكية لجدول الضرب',
+    icon: Wand2,
+    gradient: 'from-amber-500 to-rose-600',
+    glow: 'shadow-amber-500/40',
+    requiresExam: true,
+  },
+  {
+    screen: 'cross-multiplication',
+    title: 'القسمة',
+    titleEn: 'Division',
+    desc: 'قريبًا — تعلّم القسمة على السوروبان',
+    icon: Divide,
+    gradient: 'from-blue-500 to-cyan-700',
+    glow: 'shadow-blue-500/40',
+    comingSoon: true,
   },
   {
     screen: 'final-exam',
@@ -191,23 +201,7 @@ const ACTION_CARDS: ActionCard[] = [
 ];
 
 const BADGE_ICONS: Record<string, LucideIcon> = {
-  Star,
-  Eye,
-  Award,
-  Crown,
-  Target,
-  Diamond,
-};
-
-const BADGE_GRADIENTS: Record<string, string> = {
-  beginner: 'from-emerald2-400 to-emerald2-600',
-  trainee: 'from-electric-400 to-electric-600',
-  'anzan-master': 'from-electric-400 to-electric-600',
-  skilled: 'from-purple-400 to-purple-600',
-  'soroban-expert': 'from-purple-400 to-purple-600',
-  professional: 'from-pink-400 to-pink-600',
-  legend: 'from-gold-400 to-gold-600',
-  'eternal-legend': 'from-gold-400 to-gold-600',
+  Star, Eye, Award, Crown, Target, Diamond,
 };
 
 const LEGACY_CHARACTER_MAP: Record<string, CharacterType> = {
@@ -217,119 +211,6 @@ const LEGACY_CHARACTER_MAP: Record<string, CharacterType> = {
   rabbit: 'rayan',
 };
 
-function LevelNodeButton({
-  level,
-  index,
-  onClick,
-  playSound,
-}: {
-  level: LevelNode;
-  index: number;
-  onClick: () => void;
-  playSound: (type: 'click' | 'whoosh') => void;
-}) {
-  const isOdd = index % 2 === 1;
-
-  const Icon =
-    level.status === 'locked'
-      ? Lock
-      : level.status === 'completed'
-        ? CheckCircle2
-        : Circle;
-
-  const statusColor =
-    level.status === 'completed'
-      ? 'from-emerald2-400 to-emerald2-600'
-      : level.status === 'available'
-        ? 'from-purple-400 to-electric-500'
-        : 'from-gray-600 to-gray-800';
-
-  return (
-    <motion.button
-      type="button"
-      initial={{ opacity: 0, scale: 0.5 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{
-        delay: index * 0.08,
-        type: 'spring',
-        stiffness: 200,
-        damping: 15,
-      }}
-      whileHover={
-        level.status !== 'locked'
-          ? {
-              scale: 1.1,
-              y: -3,
-            }
-          : {}
-      }
-      whileTap={
-        level.status !== 'locked'
-          ? {
-              scale: 0.95,
-            }
-          : {}
-      }
-      onClick={() => {
-        if (level.status !== 'locked') {
-          playSound('click');
-          onClick();
-        }
-      }}
-      disabled={level.status === 'locked'}
-      className={`relative flex flex-col items-center gap-2 ${
-        isOdd ? 'mt-12' : ''
-      }`}
-    >
-      {level.status === 'available' && (
-        <motion.div
-          className="absolute -inset-1 rounded-2xl bg-purple-500/30"
-          animate={{
-            scale: [1, 1.15, 1],
-            opacity: [0.5, 0.2, 0.5],
-          }}
-          transition={{
-            duration: 2,
-            repeat: Infinity,
-          }}
-        />
-      )}
-
-      <div
-        className={`relative w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br ${statusColor} flex items-center justify-center shadow-xl ${
-          level.status === 'available'
-            ? 'shadow-purple-500/50'
-            : ''
-        }`}
-      >
-        <Icon className="w-7 h-7 sm:w-8 sm:h-8 text-white" />
-
-        <span className="absolute -top-1.5 -right-1.5 w-6 h-6 rounded-full bg-gold-400 text-gold-900 text-xs font-extrabold flex items-center justify-center shadow-lg">
-          {toArabicNumber(level.id)}
-        </span>
-      </div>
-
-      <div className="text-center max-w-[90px]">
-        <p
-          className={`text-xs sm:text-sm font-bold font-body ${
-            level.status === 'locked'
-              ? 'text-white/30'
-              : 'text-white/80'
-          }`}
-        >
-          {level.nameAr}
-        </p>
-
-        {level.status === 'available' && (
-          <p className="text-[10px] text-purple-300 font-body mt-0.5">
-            {toArabicNumber(level.xpRequired)} XP
-          </p>
-        )}
-      </div>
-    </motion.button>
-  );
-}
-
 export function HeroDashboard({
   onNavigate,
   playSound,
@@ -337,84 +218,41 @@ export function HeroDashboard({
   streak,
   earnedBadges,
 }: HeroDashboardProps) {
-  const [companion, setCompanion] =
-    useState<CharacterType>('sham');
-
-  const [showSelector, setShowSelector] =
-    useState(false);
-
-  const [childName, setChildName] =
-    useState<string>('');
-
-  const [showResetConfirm, setShowResetConfirm] =
-    useState(false);
-
+  const [companion, setCompanion] = useState<CharacterType>('sham');
+  const [showSelector, setShowSelector] = useState(false);
+  const [childName, setChildName] = useState<string>('');
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [examPassed, setExamPassed] = useState(false);
 
-  const quests = useQuests();
-
   useEffect(() => {
-    const saved =
-      localStorage.getItem('soroban_companion');
-
-    if (
-      saved === 'sham' ||
-      saved === 'rayan' ||
-      saved === 'bana' ||
-      saved === 'joud'
-    ) {
+    const saved = localStorage.getItem('soroban_companion');
+    if (saved === 'sham' || saved === 'rayan' || saved === 'bana' || saved === 'joud') {
       setCompanion(saved as CharacterType);
-    } else if (
-      saved &&
-      LEGACY_CHARACTER_MAP[saved]
-    ) {
-      const migrated =
-        LEGACY_CHARACTER_MAP[saved];
-
-      localStorage.setItem(
-        'soroban_companion',
-        migrated,
-      );
-
+    } else if (saved && LEGACY_CHARACTER_MAP[saved]) {
+      const migrated = LEGACY_CHARACTER_MAP[saved];
+      localStorage.setItem('soroban_companion', migrated);
       setCompanion(migrated);
     } else {
-      localStorage.setItem(
-        'soroban_companion',
-        'sham',
-      );
-
+      localStorage.setItem('soroban_companion', 'sham');
       setCompanion('sham');
       setShowSelector(true);
     }
 
-    const savedName =
-      localStorage.getItem('soroban_child_name');
-
-    if (savedName) {
-      setChildName(savedName);
-    }
+    const savedName = localStorage.getItem('soroban_child_name');
+    if (savedName) setChildName(savedName);
 
     try {
       const raw = localStorage.getItem('soroban_exam_result');
       if (raw) {
         const data = JSON.parse(raw);
-        if (data?.passed === true) {
-          setExamPassed(true);
-        }
+        if (data?.passed === true) setExamPassed(true);
       }
-    } catch {
-      /* ignore */
-    }
+    } catch { /* ignore */ }
   }, []);
 
-  const handleCompanionChange = (
-    character: CharacterType,
-  ) => {
+  const handleCompanionChange = (character: CharacterType) => {
     setCompanion(character);
-    localStorage.setItem(
-      'soroban_companion',
-      character,
-    );
+    localStorage.setItem('soroban_companion', character);
     setShowSelector(false);
   };
 
@@ -424,9 +262,8 @@ export function HeroDashboard({
   };
 
   const canOpenCard = (card: ActionCard): boolean => {
-    if (card.requiresExam && !examPassed) {
-      return false;
-    }
+    if (card.comingSoon) return false;
+    if (card.requiresExam && !examPassed) return false;
     return true;
   };
 
@@ -436,141 +273,49 @@ export function HeroDashboard({
         'soroban_exam_result',
         JSON.stringify({ score: 100, passed: true, date: Date.now() })
       );
-
       const allLessons = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
-      localStorage.setItem(
-        'soroban-completed-lessons',
-        JSON.stringify(allLessons)
-      );
-
+      localStorage.setItem('soroban-completed-lessons', JSON.stringify(allLessons));
       playSound('whoosh');
       setTimeout(() => window.location.reload(), 300);
-    } catch (e) {
-      /* ignore */
-    }
+    } catch { /* ignore */ }
   };
 
   const handleReset = () => {
-    const keysToKeep = [
-      'soroban_companion',
-      'soroban_child_name',
-    ];
-
-    const allKeys = Object.keys(localStorage);
-
-    allKeys.forEach((key) => {
-      if (!keysToKeep.includes(key)) {
-        localStorage.removeItem(key);
-      }
+    const keysToKeep = ['soroban_companion', 'soroban_child_name'];
+    Object.keys(localStorage).forEach((key) => {
+      if (!keysToKeep.includes(key)) localStorage.removeItem(key);
     });
-
-    localStorage.removeItem(
-      'soroban-completed-lessons',
-    );
-
-    localStorage.removeItem(
-      'sorobanmind-stats',
-    );
-
-    localStorage.removeItem(
-      'soroban_anzan_stats',
-    );
-
-    localStorage.removeItem(
-      'soroban_practice_stats',
-    );
-
-    localStorage.removeItem(
-      'soroban_last_visit',
-    );
-
     playSound('whoosh');
-
     setShowResetConfirm(false);
-
     window.location.reload();
   };
 
-  const nextBadge = BADGES.find(
-    (badge) =>
-      !earnedBadges.includes(badge.id),
-  );
-
-  const prevThreshold = (() => {
-    const index = nextBadge
-      ? BADGES.findIndex(
-          (badge) => badge.id === nextBadge.id,
-        )
-      : -1;
-
-    return index > 0
-      ? BADGES[index - 1].xpRequired
-      : 0;
-  })();
-
-  const progressPct = nextBadge
-    ? Math.min(
-        100,
-        Math.max(
-          0,
-          ((xp - prevThreshold) /
-            (nextBadge.xpRequired -
-              prevThreshold)) *
-            100,
-        ),
-      )
-    : 100;
-
-  const characterInfo =
-    CHARACTER_INFO[companion];
-
-  const completedLevels =
-    LEVELS.filter(
-      (level) =>
-        level.status === 'completed',
-    ).length;
+  const characterInfo = CHARACTER_INFO[companion];
 
   return (
-    <div
-      dir="rtl"
-      className="px-3 sm:px-6 py-6 max-w-6xl mx-auto"
-    >
-      {/* =====================================================
-          WELCOME HEADER
-      ====================================================== */}
+    <div dir="rtl" className="px-3 sm:px-6 py-6 max-w-6xl mx-auto">
+      {/* WELCOME HEADER */}
       <motion.div
-        initial={{
-          opacity: 0,
-          y: 20,
-        }}
-        animate={{
-          opacity: 1,
-          y: 0,
-        }}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
         className="glass-card p-5 sm:p-6 mb-6 overflow-hidden relative"
       >
         <div className="absolute top-0 right-0 w-48 h-48 bg-purple-500/10 rounded-full blur-3xl" />
-
         <div className="absolute bottom-0 left-0 w-40 h-40 bg-electric-500/10 rounded-full blur-3xl" />
 
         <div className="relative flex items-center justify-between flex-wrap gap-3">
           <div>
             <div className="flex items-center gap-2 mb-1">
               <Sparkles className="w-5 h-5 text-gold-300" />
-
               <span className="text-xs text-gold-300 font-bold font-body">
                 أكاديمية الأبطال الصغار
               </span>
             </div>
-
             <h2 className="text-2xl sm:text-3xl font-extrabold font-display text-white">
-              مرحباً يا{' '}
-              {childName || 'أيها البطل'}!
+              مرحباً يا {childName || 'أيها البطل'}!
             </h2>
-
             <p className="text-white/60 font-body text-sm mt-1">
-              واصل رحلتك في إتقان الحساب الذهني
-              بالسوروبان
+              واصل رحلتك في إتقان الحساب الذهني بالسوروبان
             </p>
           </div>
 
@@ -579,39 +324,26 @@ export function HeroDashboard({
               <p className="text-2xl font-extrabold text-purple-300 font-display">
                 {toArabicNumber(xp)}
               </p>
-
-              <p className="text-[10px] text-white/50 font-body">
-                نقطة خبرة
-              </p>
+              <p className="text-[10px] text-white/50 font-body">نقطة خبرة</p>
             </div>
 
             <div className="text-center px-4 py-2 rounded-2xl bg-orange-500/15 border border-orange-400/20">
               <div className="flex items-center justify-center gap-1">
                 <Flame className="w-4 h-4 text-orange-300" />
-
                 <p className="text-2xl font-extrabold text-orange-300 font-display">
                   {toArabicNumber(streak)}
                 </p>
               </div>
-
-              <p className="text-[10px] text-white/50 font-body">
-                أيام متتالية
-              </p>
+              <p className="text-[10px] text-white/50 font-body">أيام متتالية</p>
             </div>
 
             <button
               type="button"
-              onClick={() => {
-                playSound('click');
-                setShowSelector(true);
-              }}
+              onClick={() => { playSound('click'); setShowSelector(true); }}
               className="flex items-center gap-2 px-3 py-2 rounded-2xl bg-gradient-to-br from-purple-500/20 to-electric-500/20 border border-purple-400/30 text-purple-200 hover:from-purple-500/30 hover:to-electric-500/30 transition-all text-xs font-body"
             >
               <Palette className="w-4 h-4" />
-
-              <span className="hidden sm:inline">
-                تغيير الرفيق
-              </span>
+              <span className="hidden sm:inline">تغيير الرفيق</span>
             </button>
 
             <button
@@ -621,76 +353,43 @@ export function HeroDashboard({
               title="فتح كل الدروس للاختبار"
             >
               <Unlock className="w-4 h-4" />
-              <span className="hidden sm:inline">
-                فتح الكل
-              </span>
+              <span className="hidden sm:inline">فتح الكل</span>
             </button>
 
             <button
               type="button"
-              onClick={() => {
-                playSound('click');
-                setShowResetConfirm(true);
-              }}
+              onClick={() => { playSound('click'); setShowResetConfirm(true); }}
               className="flex items-center gap-2 px-3 py-2 rounded-2xl bg-red-500/10 border border-red-400/30 text-red-300 hover:bg-red-500/20 transition-all text-xs font-body"
             >
               <Trash2 className="w-4 h-4" />
-
-              <span className="hidden sm:inline">
-                تصفير
-              </span>
+              <span className="hidden sm:inline">تصفير</span>
             </button>
           </div>
         </div>
       </motion.div>
 
-      {/* =====================================================
-          HERO COMPANION CARD
-      ====================================================== */}
+      {/* HERO COMPANION CARD */}
       <motion.div
-        initial={{
-          opacity: 0,
-          y: 20,
-        }}
-        animate={{
-          opacity: 1,
-          y: 0,
-        }}
-        transition={{
-          delay: 0.05,
-        }}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.05 }}
         className="glass-card p-5 sm:p-6 mb-6 overflow-hidden relative"
       >
         <div className="absolute -top-24 -right-24 w-64 h-64 rounded-full bg-violet-500/15 blur-3xl" />
-
         <div className="absolute -bottom-24 -left-24 w-64 h-64 rounded-full bg-electric-500/10 blur-3xl" />
 
         <div className="relative grid grid-cols-1 md:grid-cols-[180px_1fr_auto] items-center gap-5">
           <div className="relative flex justify-center">
             <motion.div
-              animate={{
-                y: [0, -5, 0],
-                rotate: [-1, 1, -1],
-              }}
-              transition={{
-                duration: 3,
-                repeat: Infinity,
-                ease: 'easeInOut',
-              }}
+              animate={{ y: [0, -5, 0], rotate: [-1, 1, -1] }}
+              transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
               className="relative"
             >
               <div className="absolute inset-0 rounded-full bg-violet-500/20 blur-3xl scale-75" />
-
-              <div
-                className={`relative w-36 h-36 sm:w-40 sm:h-40 rounded-[2rem] bg-gradient-to-br ${characterInfo.color} flex items-center justify-center shadow-2xl border border-white/20 overflow-hidden`}
-              >
+              <div className={`relative w-36 h-36 sm:w-40 sm:h-40 rounded-[2rem] bg-gradient-to-br ${characterInfo.color} flex items-center justify-center shadow-2xl border border-white/20 overflow-hidden`}>
                 <div className="absolute inset-0 bg-white/10" />
-
                 <div className="relative">
-                  <Companion
-                    character={companion}
-                    xp={xp}
-                  />
+                  <Companion character={companion} xp={xp} />
                 </div>
               </div>
             </motion.div>
@@ -699,41 +398,20 @@ export function HeroDashboard({
           <div className="text-center md:text-right">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-violet-500/15 border border-violet-400/20 mb-2">
               <Sparkles className="w-4 h-4 text-violet-300" />
-
-              <span className="text-xs font-bold text-violet-200 font-body">
-                رفيق رحلتك
-              </span>
+              <span className="text-xs font-bold text-violet-200 font-body">رفيق رحلتك</span>
             </div>
-
-            <h3 className="text-3xl sm:text-4xl font-black font-display text-white">
-              {characterInfo.name}
-            </h3>
-
-            <p
-              className={`text-sm font-bold font-body mt-1 ${characterInfo.lightColor}`}
-            >
-              {characterInfo.title}
-            </p>
-
-            <p className="text-sm text-white/60 font-body mt-3 leading-relaxed">
-              {characterInfo.message}
-            </p>
+            <h3 className="text-3xl sm:text-4xl font-black font-display text-white">{characterInfo.name}</h3>
+            <p className={`text-sm font-bold font-body mt-1 ${characterInfo.lightColor}`}>{characterInfo.title}</p>
+            <p className="text-sm text-white/60 font-body mt-3 leading-relaxed">{characterInfo.message}</p>
 
             <div className="flex items-center justify-center md:justify-start gap-2 mt-4 flex-wrap">
               <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/5 border border-white/10">
                 <Brain className="w-4 h-4 text-purple-300" />
-
-                <span className="text-xs text-white/60 font-body">
-                  تدريب العقل
-                </span>
+                <span className="text-xs text-white/60 font-body">تدريب العقل</span>
               </div>
-
               <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/5 border border-white/10">
                 <Zap className="w-4 h-4 text-gold-300" />
-
-                <span className="text-xs text-white/60 font-body">
-                  تطوير السرعة
-                </span>
+                <span className="text-xs text-white/60 font-body">تطوير السرعة</span>
               </div>
             </div>
           </div>
@@ -741,255 +419,69 @@ export function HeroDashboard({
           <div className="flex md:flex-col gap-2 justify-center">
             <button
               type="button"
-              onClick={() => {
-                playSound('click');
-                setShowSelector(true);
-              }}
+              onClick={() => { playSound('click'); setShowSelector(true); }}
               className="flex-1 md:flex-none px-4 py-3 rounded-2xl bg-violet-500/15 border border-violet-400/20 text-violet-200 hover:bg-violet-500/25 transition-all text-xs font-bold font-body"
             >
               تغيير الرفيق
             </button>
-
             <div className="px-4 py-3 rounded-2xl bg-white/5 border border-white/10 text-center">
-              <p className="text-lg font-black text-gold-300 font-display">
-                {toArabicNumber(xp)}
-              </p>
-
-              <p className="text-[10px] text-white/40 font-body">
-                خبرة البطل
-              </p>
+              <p className="text-lg font-black text-gold-300 font-display">{toArabicNumber(xp)}</p>
+              <p className="text-[10px] text-white/40 font-body">خبرة البطل</p>
             </div>
           </div>
         </div>
       </motion.div>
 
-      {/* =====================================================
-          BADGES
-      ====================================================== */}
-      <motion.div
-        initial={{
-          opacity: 0,
-          y: 20,
-        }}
-        animate={{
-          opacity: 1,
-          y: 0,
-        }}
-        transition={{
-          delay: 0.1,
-        }}
-        className="glass-card p-5 sm:p-6 mb-6"
-      >
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <Trophy className="w-5 h-5 text-gold-300" />
-
-            <h3 className="text-xl font-extrabold font-display text-white">
-              الشارات
-            </h3>
-          </div>
-
-          <span className="badge bg-gold-400/15 border-gold-400/20 text-gold-200 text-xs">
-            {toArabicNumber(
-              earnedBadges.length,
-            )}
-            /
-            {toArabicNumber(BADGES.length)}
-          </span>
-        </div>
-
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
-          {BADGES.map((badge, i) => {
-            const isEarned =
-              earnedBadges.includes(badge.id);
-
-            const Icon =
-              BADGE_ICONS[badge.icon] ||
-              Star;
-
-            const gradient =
-              BADGE_GRADIENTS[badge.id] ||
-              'from-purple-400 to-electric-500';
-
-            return (
-              <motion.div
-                key={badge.id}
-                initial={{
-                  opacity: 0,
-                  scale: 0.7,
-                }}
-                animate={{
-                  opacity: 1,
-                  scale: 1,
-                }}
-                transition={{
-                  delay: i * 0.08,
-                }}
-                className={`flex flex-col items-center gap-2 p-3 rounded-2xl border ${
-                  isEarned
-                    ? 'bg-white/5 border-white/10'
-                    : 'bg-white/[0.02] border-white/5'
-                }`}
-              >
-                <div
-                  className={`relative w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg ${
-                    isEarned
-                      ? `bg-gradient-to-br ${gradient}`
-                      : 'bg-white/5'
-                  }`}
-                >
-                  {isEarned ? (
-                    <Icon className="w-7 h-7 text-white" />
-                  ) : (
-                    <LockBadge className="w-6 h-6 text-white/25" />
-                  )}
-                </div>
-
-                <p
-                  className={`text-xs font-bold font-body text-center ${
-                    isEarned
-                      ? 'text-white/80'
-                      : 'text-white/30'
-                  }`}
-                >
-                  {badge.nameAr}
-                </p>
-
-                <p className="text-[10px] text-white/40 font-body">
-                  {toArabicNumber(
-                    badge.xpRequired,
-                  )}{' '}
-                  XP
-                </p>
-              </motion.div>
-            );
-          })}
-        </div>
-
-        {nextBadge ? (
-          <div>
-            <div className="flex items-center justify-between mb-1.5">
-              <p className="text-xs text-white/50 font-body">
-                المسافة نحو شارة "
-                {nextBadge.nameAr}"
-              </p>
-
-              <p className="text-xs text-white/50 font-body">
-                {toArabicNumber(xp)}/
-                {toArabicNumber(
-                  nextBadge.xpRequired,
-                )}{' '}
-                XP
-              </p>
-            </div>
-
-            <div className="h-3 rounded-full bg-white/10 overflow-hidden">
-              <motion.div
-                className={`h-full rounded-full bg-gradient-to-r ${
-                  BADGE_GRADIENTS[
-                    nextBadge.id
-                  ] ||
-                  'from-purple-400 to-electric-500'
-                }`}
-                initial={{
-                  width: 0,
-                }}
-                animate={{
-                  width: `${progressPct}%`,
-                }}
-                transition={{
-                  duration: 0.8,
-                  ease: 'easeOut',
-                }}
-              />
-            </div>
-          </div>
-        ) : (
-          <p className="text-center text-sm text-gold-300 font-body font-bold">
-            🏆 حصلت على جميع الشارات!
-            أنت أسطورة حقيقية
-          </p>
-        )}
-      </motion.div>
-
-      {/* =====================================================
-          MAIN ACTION CARDS
-      ====================================================== */}
-      <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-5 mb-8">
+      {/* MAIN ACTION CARDS — 2 cols desktop, 1 col mobile */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-8">
         {ACTION_CARDS.map((card, i) => {
           const Icon = card.icon;
           const isLocked = !canOpenCard(card);
+          const isComingSoon = !!card.comingSoon;
 
           return (
             <motion.button
-              key={card.screen}
+              key={`${card.screen}-${i}`}
               type="button"
-              initial={{
-                opacity: 0,
-                y: 30,
-              }}
-              animate={{
-                opacity: 1,
-                y: 0,
-              }}
-              transition={{
-                delay: i * 0.08,
-                type: 'spring',
-                stiffness: 200,
-                damping: 20,
-              }}
-              whileHover={
-                !isLocked
-                  ? {
-                      scale: 1.05,
-                      y: -5,
-                    }
-                  : {}
-              }
-              whileTap={
-                !isLocked
-                  ? {
-                      scale: 0.95,
-                    }
-                  : {}
-              }
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.06, type: 'spring', stiffness: 200, damping: 20 }}
+              whileHover={!isLocked ? { scale: 1.03, y: -4 } : {}}
+              whileTap={!isLocked ? { scale: 0.97 } : {}}
               onClick={() => {
-                if (isLocked) {
-                  playSound('whoosh');
-                  return;
-                }
+                if (isLocked) { playSound('whoosh'); return; }
                 handleNav(card.screen);
               }}
-              className={`group relative glass-card p-4 sm:p-6 text-center overflow-hidden ${
+              className={`group relative glass-card p-4 text-center overflow-hidden ${
                 isLocked ? 'opacity-70 cursor-not-allowed' : ''
               }`}
             >
-              <div
-                className={`absolute inset-0 bg-gradient-to-br ${card.gradient} opacity-0 group-hover:opacity-15 transition-opacity duration-500`}
-              />
+              <div className={`absolute inset-0 bg-gradient-to-br ${card.gradient} opacity-0 group-hover:opacity-15 transition-opacity duration-500`} />
 
-              <div
-                className={`relative inline-flex w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br ${card.gradient} items-center justify-center shadow-xl ${card.glow} mb-3 ${
-                  isLocked ? 'grayscale' : ''
-                }`}
-              >
+              {isComingSoon && (
+                <span className="absolute top-2 left-2 text-[10px] px-2 py-0.5 rounded-full bg-white/10 border border-white/20 text-white/60">
+                  قريبًا
+                </span>
+              )}
+
+              <div className={`relative inline-flex w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-br ${card.gradient} items-center justify-center shadow-xl ${card.glow} mb-2 ${
+                isLocked ? 'grayscale' : ''
+              }`}>
                 {isLocked ? (
-                  <Lock className="w-7 h-7 sm:w-8 sm:h-8 text-white" />
+                  <Lock className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
                 ) : (
-                  <Icon className="w-7 h-7 sm:w-8 sm:h-8 text-white" />
+                  <Icon className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
                 )}
               </div>
 
-              <h3 className="text-base sm:text-lg font-extrabold font-display text-white mb-0.5">
+              <h3 className="text-sm sm:text-base font-extrabold font-display text-white mb-0.5">
                 {card.title}
               </h3>
-
-              <p className="text-[10px] sm:text-xs text-white/40 font-body mb-1.5">
+              <p className="text-[9px] sm:text-[10px] text-white/40 font-body mb-1.5">
                 {card.titleEn}
               </p>
-
-              <p className="text-xs text-white/60 font-body leading-snug">
-                {isLocked
+              <p className="text-[11px] sm:text-xs text-white/60 font-body leading-snug">
+                {isLocked && !isComingSoon
                   ? '🔒 اجتز الامتحان النهائي لفتح هذا الدرس'
                   : card.desc}
               </p>
@@ -998,314 +490,62 @@ export function HeroDashboard({
         })}
       </div>
 
-      {/* =====================================================
-          LEVEL MAP
-      ====================================================== */}
-      <motion.div
-        initial={{
-          opacity: 0,
-          y: 20,
-        }}
-        animate={{
-          opacity: 1,
-          y: 0,
-        }}
-        transition={{
-          delay: 0.3,
-        }}
-        className="glass-card p-5 sm:p-6 mb-6"
-      >
-        <div className="flex items-center justify-between mb-5">
-          <div className="flex items-center gap-2">
-            <ShieldCheck className="w-5 h-5 text-emerald-300" />
-
-            <h3 className="text-xl font-extrabold font-display text-white">
-              خارطة المستويات
-            </h3>
-          </div>
-
-          <span className="badge bg-purple-500/15 border-purple-400/20 text-purple-300 text-xs">
-            {toArabicNumber(
-              completedLevels,
-            )}
-            /
-            {toArabicNumber(
-              LEVELS.length,
-            )}{' '}
-            مكتمل
-          </span>
-        </div>
-
-        <div className="relative overflow-x-auto scrollbar-hide pb-4">
-          <div className="flex items-start gap-3 sm:gap-5 min-w-max pr-2 pl-8">
-            <div className="absolute top-8 right-0 left-0 h-1 bg-gradient-to-r from-purple-500/30 via-electric-500/30 to-white/5 rounded-full" />
-
-            {LEVELS.map((level, i) => (
-              <LevelNodeButton
-                key={level.id}
-                level={level}
-                index={i}
-                onClick={() =>
-                  onNavigate('learn')
-                }
-                playSound={playSound}
-              />
-            ))}
-          </div>
-        </div>
-      </motion.div>
-
-      {/* =====================================================
-          ACTIVE QUESTS
-      ====================================================== */}
-      <motion.div
-        initial={{
-          opacity: 0,
-          y: 20,
-        }}
-        animate={{
-          opacity: 1,
-          y: 0,
-        }}
-        transition={{
-          delay: 0.4,
-        }}
-        className="glass-card p-5 sm:p-6"
-      >
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <Swords className="w-5 h-5 text-gold-300" />
-
-            <h3 className="text-xl font-extrabold font-display text-white">
-              المغامرات النشطة
-            </h3>
-          </div>
-
-          <button
-            type="button"
-            onClick={() =>
-              handleNav('quests')
-            }
-            className="flex items-center gap-1 text-sm text-purple-300 font-body hover:text-purple-200 transition-colors"
-          >
-            عرض الكل
-
-            <ArrowLeft className="w-4 h-4" />
-          </button>
-        </div>
-
-        <div className="space-y-3">
-          {quests
-            .slice(0, 2)
-            .map((quest, i) => {
-              const pct = Math.min(
-                100,
-                (quest.progress /
-                  quest.target) *
-                  100,
-              );
-
-              return (
-                <motion.div
-                  key={quest.id}
-                  initial={{
-                    opacity: 0,
-                    x: 20,
-                  }}
-                  animate={{
-                    opacity: 1,
-                    x: 0,
-                  }}
-                  transition={{
-                    delay:
-                      0.5 + i * 0.1,
-                  }}
-                  className="p-4 rounded-2xl bg-white/5 border border-white/10"
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <p className="font-bold text-white font-body text-sm">
-                      {quest.titleAr}
-                    </p>
-
-                    <span className="text-xs font-bold text-gold-300">
-                      +
-                      {toArabicNumber(
-                        quest.xpReward,
-                      )}{' '}
-                      XP
-                    </span>
-                  </div>
-
-                  <div className="flex items-center gap-3">
-                    <div className="flex-1 h-2.5 rounded-full bg-white/10 overflow-hidden">
-                      <motion.div
-                        className={`h-full rounded-full bg-gradient-to-r ${quest.color}`}
-                        initial={{
-                          width: 0,
-                        }}
-                        animate={{
-                          width: `${pct}%`,
-                        }}
-                        transition={{
-                          delay:
-                            0.7 +
-                            i * 0.1,
-                          duration: 0.8,
-                          ease: 'easeOut',
-                        }}
-                      />
-                    </div>
-
-                    <span className="text-xs text-white/50 font-body whitespace-nowrap">
-                      {toArabicNumber(
-                        quest.progress,
-                      )}
-                      /
-                      {toArabicNumber(
-                        quest.target,
-                      )}
-                    </span>
-                  </div>
-                </motion.div>
-              );
-            })}
-
-          {quests.length === 0 && (
-            <div className="text-center py-6 text-white/40 font-body text-sm">
-              لا توجد مغامرات نشطة حالياً.
-            </div>
-          )}
-        </div>
-      </motion.div>
-
-      {/* =====================================================
-          FLOATING COMPANION
-      ====================================================== */}
-      <Companion
-        character={companion}
-        xp={xp}
-      />
-
-      {/* =====================================================
-          CHARACTER SELECTOR MODAL
-      ====================================================== */}
+      {/* CHARACTER SELECTOR MODAL */}
       <AnimatePresence>
         {showSelector && (
           <motion.div
-            initial={{
-              opacity: 0,
-            }}
-            animate={{
-              opacity: 1,
-            }}
-            exit={{
-              opacity: 0,
-            }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
             className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4"
           >
             <motion.div
-              initial={{
-                scale: 0.85,
-                opacity: 0,
-                y: 30,
-              }}
-              animate={{
-                scale: 1,
-                opacity: 1,
-                y: 0,
-              }}
-              exit={{
-                scale: 0.85,
-                opacity: 0,
-                y: 30,
-              }}
-              transition={{
-                type: 'spring',
-                stiffness: 250,
-                damping: 25,
-              }}
+              initial={{ scale: 0.85, opacity: 0, y: 30 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.85, opacity: 0, y: 30 }}
+              transition={{ type: 'spring', stiffness: 250, damping: 25 }}
               className="relative bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-3xl p-5 sm:p-7 max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-white/10"
             >
               <button
                 type="button"
-                onClick={() => {
-                  playSound('click');
-                  setShowSelector(false);
-                }}
+                onClick={() => { playSound('click'); setShowSelector(false); }}
                 className="absolute top-4 left-4 w-9 h-9 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors z-10"
                 aria-label="إغلاق"
               >
                 <X className="w-5 h-5 text-white/70" />
               </button>
-
-              <CharacterSelector
-                onSelectCharacter={
-                  handleCompanionChange
-                }
-              />
+              <CharacterSelector onSelectCharacter={handleCompanionChange} />
             </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* =====================================================
-          RESET CONFIRMATION
-      ====================================================== */}
+      {/* RESET CONFIRMATION */}
       <AnimatePresence>
         {showResetConfirm && (
           <motion.div
-            initial={{
-              opacity: 0,
-            }}
-            animate={{
-              opacity: 1,
-            }}
-            exit={{
-              opacity: 0,
-            }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
             className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4"
           >
             <motion.div
-              initial={{
-                scale: 0.85,
-                opacity: 0,
-                y: 30,
-              }}
-              animate={{
-                scale: 1,
-                opacity: 1,
-                y: 0,
-              }}
-              exit={{
-                scale: 0.85,
-                opacity: 0,
-                y: 30,
-              }}
-              transition={{
-                type: 'spring',
-                stiffness: 250,
-                damping: 25,
-              }}
+              initial={{ scale: 0.85, opacity: 0, y: 30 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.85, opacity: 0, y: 30 }}
+              transition={{ type: 'spring', stiffness: 250, damping: 25 }}
               className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-3xl p-6 max-w-md w-full shadow-2xl border border-red-500/30 text-center"
               dir="rtl"
             >
               <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-red-500/20 border border-red-400/30 flex items-center justify-center">
                 <Trash2 className="w-8 h-8 text-red-300" />
               </div>
-
-              <h3 className="text-xl font-extrabold font-display text-white mb-2">
-                تصفير التقدم؟
-              </h3>
-
+              <h3 className="text-xl font-extrabold font-display text-white mb-2">تصفير التقدم؟</h3>
               <p className="text-sm text-white/60 font-body mb-6 leading-relaxed">
-                سيتم حذف جميع نقاط الخبرة،
-                الشارات، والدروس المكتملة.
+                سيتم حذف جميع نقاط الخبرة، الشارات، والدروس المكتملة.
                 <br />
-                <span className="text-emerald-300">
-                  الرفيق والاسم سيُحفظان.
-                </span>
+                <span className="text-emerald-300">الرفيق والاسم سيُحفظان.</span>
               </p>
-
               <div className="flex gap-3">
                 <button
                   type="button"
@@ -1314,15 +554,9 @@ export function HeroDashboard({
                 >
                   نعم، صفّر
                 </button>
-
                 <button
                   type="button"
-                  onClick={() => {
-                    playSound('click');
-                    setShowResetConfirm(
-                      false,
-                    );
-                  }}
+                  onClick={() => { playSound('click'); setShowResetConfirm(false); }}
                   className="btn-ghost flex-1"
                 >
                   إلغاء
