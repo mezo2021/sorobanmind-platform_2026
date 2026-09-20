@@ -9,6 +9,7 @@ import { Header } from './components/Header';
 import { RoleSelection } from './components/RoleSelection';
 import { HeroDashboard } from './components/HeroDashboard';
 import { LearnScreen } from './components/LearnScreen';
+import { FinalExam } from './components/FinalExam';
 import { PracticeScreen } from './components/PracticeScreen';
 import { AnzanScreen } from './components/AnzanScreen';
 import { QuestsScreen } from './components/QuestsScreen';
