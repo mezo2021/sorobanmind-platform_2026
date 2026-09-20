@@ -4,7 +4,7 @@ import {
   ArrowRight, Lock, CheckCircle2, Info, Star, CircleDot,
   Combine, Hash, Sigma, Minus, Plus, Lightbulb, Eye, Hand,
   X, Divide, Fingerprint, MoveRight, Target,
-  BookOpen, Sparkles, RotateCcw,
+  BookOpen, Sparkles, RotateCcw, Grid3X3, Wand2, Crown,
   type LucideIcon,
 } from 'lucide-react';
 import { LEARN_MODULES } from '@/data';
@@ -13,7 +13,7 @@ import { FingerMath } from './FingerMath';
 import { InteractiveSoroban } from './InteractiveSoroban';
 import { SpeechButton } from './SpeechButton';
 import { useSpeech } from '@/hooks/useSpeech';
-import type { LearnModule, LessonStep, DivisionStep, LessonExample, DivisionExample } from '@/types';
+import type { LearnModule, LessonStep, DivisionStep, LessonExample, DivisionExample, Screen } from '@/types';
 
 function toArabicNumber(value: number | string): string {
   return String(value).replace(/\d/g, (d) => '٠١٢٣٤٥٦٧٨٩'[Number(d)]);
@@ -27,6 +27,7 @@ interface LearnScreenProps {
   onBack: () => void;
   playSound: (type: 'click' | 'success' | 'error' | 'bead' | 'whoosh' | 'levelup') => void;
   onXP: (amount: number) => void;
+  onNavigate?: (screen: Screen) => void; // ✅ جديد
 }
 
 type LessonMode = 'watch' | 'try';
@@ -107,7 +108,7 @@ function AbacusStatePreview({ state, label }: { state: number[]; label: string }
   );
 }
 
-export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
+export function LearnScreen({ onBack, playSound, onXP, onNavigate }: LearnScreenProps) {
   const [selected, setSelected] = useState<LearnModule | null>(null);
   const [completed, setCompleted] = useState<number[]>(() => {
     try {
@@ -126,6 +127,9 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
     }
   });
 
+  // ✅ حالة اجتياز الامتحان النهائي
+  const [examPassed, setExamPassed] = useState(false);
+
   const [mode, setMode] = useState<LessonMode>('watch');
   const [currentExample, setCurrentExample] = useState(0);
   const [currentStep, setCurrentStep] = useState(0);
@@ -133,12 +137,24 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
   const [showSteps, setShowSteps] = useState(false);
   const [abacusValue, setAbacusValue] = useState(0);
 
-  // تتبع المحاولات لكل مثال
   const [attempts, setAttempts] = useState<Record<number, number>>({});
   const [showAnswer, setShowAnswer] = useState(false);
   const [feedbackMsg, setFeedbackMsg] = useState<string>('');
 
   const { speak, stop, isSpeaking, isSupported } = useSpeech();
+
+  // ✅ قراءة نتيجة الامتحان عند الإقلاع
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem('soroban_exam_result');
+      if (raw) {
+        const data = JSON.parse(raw);
+        if (data?.passed === true) {
+          setExamPassed(true);
+        }
+      }
+    } catch { /* ignore */ }
+  }, []);
 
   useEffect(() => {
     try {
@@ -214,7 +230,6 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
     }
   };
 
-  // ✅ التصحيح: لا نمسح المعداد — الطفل يمكنه تعديل حركاته
   const handleCheck = () => {
     if (!currentEx) return;
     if (abacusValue === currentEx.answer) {
@@ -277,6 +292,55 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
     }
   };
 
+  // ✅ بطاقات المستوى المتقدم
+  const ADVANCED_CARDS = [
+    {
+      id: 'multiplication',
+      screen: 'multiplication' as Screen,
+      title: 'درس الضرب',
+      titleEn: 'Multiplication',
+      desc: 'طريقة الشبكة والخطوط مع قواعد السوروبان',
+      icon: Grid3X3,
+      gradient: 'from-indigo-500 to-purple-700',
+      available: true,
+    },
+    {
+      id: 'secrets',
+      screen: 'secrets' as Screen,
+      title: 'الأسرار السحرية',
+      titleEn: 'Magic Secrets',
+      desc: 'حِيَل ذكية لجدول الضرب — الجدول المختصر',
+      icon: Wand2,
+      gradient: 'from-amber-500 to-rose-600',
+      available: true,
+    },
+    {
+      id: 'division',
+      screen: null,
+      title: 'القسمة',
+      titleEn: 'Division',
+      desc: 'قريبًا — تعلّم القسمة على السوروبان',
+      icon: Divide,
+      gradient: 'from-cyan-500 to-blue-700',
+      available: false,
+    },
+  ];
+
+  const handleAdvancedClick = (card: typeof ADVANCED_CARDS[0]) => {
+    if (!examPassed) {
+      playSound('whoosh');
+      return;
+    }
+    if (!card.available || !card.screen) {
+      playSound('whoosh');
+      return;
+    }
+    if (onNavigate) {
+      playSound('click');
+      onNavigate(card.screen);
+    }
+  };
+
   return (
     <div className="px-3 sm:px-6 py-6 max-w-5xl mx-auto">
       <div className="flex items-center gap-3 mb-6">
@@ -290,6 +354,9 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
         </div>
       </div>
 
+      {/* ============================================
+          المستويات الأساسية (0-9)
+      ============================================ */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {LEARN_MODULES.map((mod, i) => {
           const Icon = ICONS[mod.icon] || Info;
@@ -358,6 +425,101 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
         })}
       </div>
 
+      {/* ============================================
+          المستوى المتقدم (الضرب + الأسرار + القسمة)
+      ============================================ */}
+      <motion.div
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.5, type: 'spring', stiffness: 200, damping: 20 }}
+        className="mt-10"
+      >
+        {/* فاصل بصري */}
+        <div className="flex items-center gap-3 mb-6">
+          <div className="flex-1 h-px bg-gradient-to-l from-transparent via-gold-400/40 to-transparent" />
+          <div className="flex items-center gap-2 px-4 py-2 rounded-2xl bg-gradient-to-br from-gold-400/20 to-amber-600/20 border border-gold-400/40">
+            <Crown className="w-5 h-5 text-gold-300" />
+            <span className="text-sm font-extrabold font-display text-gold-200">
+              المستوى المتقدم
+            </span>
+          </div>
+          <div className="flex-1 h-px bg-gradient-to-r from-transparent via-gold-400/40 to-transparent" />
+        </div>
+
+        {!examPassed && (
+          <div className="mb-4 p-4 rounded-2xl bg-amber-500/10 border border-amber-400/30 flex items-start gap-3">
+            <Lock className="w-5 h-5 text-amber-300 shrink-0 mt-0.5" />
+            <p className="text-sm text-amber-100 font-body leading-relaxed">
+              🔒 هذه الدروس تُفتح بعد اجتياز <span className="font-bold">الامتحان النهائي</span> (٦٠/١٠٠). أكمل المستويات 0-9 ثم تقدّم للامتحان!
+            </p>
+          </div>
+        )}
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {ADVANCED_CARDS.map((card, i) => {
+            const Icon = card.icon;
+            const isLocked = !examPassed || !card.available;
+
+            return (
+              <motion.button
+                key={card.id}
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.6 + i * 0.08, type: 'spring', stiffness: 200, damping: 20 }}
+                whileHover={!isLocked ? { scale: 1.05, y: -5 } : {}}
+                whileTap={!isLocked ? { scale: 0.95 } : {}}
+                onClick={() => handleAdvancedClick(card)}
+                className={`group relative glass-card p-5 text-right overflow-hidden ${
+                  isLocked ? 'opacity-70 cursor-not-allowed' : ''
+                }`}
+              >
+                <div className={`absolute top-0 right-0 w-24 h-24 rounded-full blur-2xl transition-all ${
+                  isLocked ? 'bg-white/5' : 'bg-gold-500/10 group-hover:bg-gold-500/20'
+                }`} />
+
+                <div className="relative flex items-start justify-between mb-3">
+                  <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${card.gradient} flex items-center justify-center shadow-lg ${
+                    isLocked ? 'grayscale' : ''
+                  }`}>
+                    {isLocked ? (
+                      <Lock className="w-6 h-6 text-white" />
+                    ) : (
+                      <Icon className="w-6 h-6 text-white" />
+                    )}
+                  </div>
+                  {!card.available ? (
+                    <span className="badge bg-white/5 border-white/10 text-white/40 text-xs">
+                      قريبًا
+                    </span>
+                  ) : examPassed ? (
+                    <span className="badge bg-emerald2-500/20 border-emerald2-400/30 text-emerald2-300 text-xs">
+                      <CheckCircle2 className="w-3.5 h-3.5" /> متاح
+                    </span>
+                  ) : (
+                    <span className="badge bg-white/5 border-white/10 text-white/40 text-xs">
+                      <Lock className="w-3.5 h-3.5" /> مقفل
+                    </span>
+                  )}
+                </div>
+
+                <h3 className="text-lg font-extrabold font-display text-white mb-1">{card.title}</h3>
+                <p className="text-xs text-white/40 font-body mb-2">{card.titleEn}</p>
+                <p className="text-sm text-white/60 font-body leading-snug">
+                  {isLocked && !card.available
+                    ? card.desc
+                    : isLocked
+                      ? '🔒 اجتز الامتحان النهائي لفتح هذا الدرس'
+                      : card.desc}
+                </p>
+              </motion.button>
+            );
+          })}
+        </div>
+      </motion.div>
+
+      {/* ============================================
+          نافذة الدرس (كما هي بدون تغيير)
+      ============================================ */}
       <AnimatePresence>
         {selected && (
           <motion.div
@@ -466,7 +628,6 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
                 </div>
               )}
 
-              {/* ─────────── وضع "شاهد" ─────────── */}
               {currentEx && mode === 'watch' && (
                 <div className="flex justify-center mb-4">
                   <AnimatePresence mode="wait">
@@ -481,7 +642,6 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
                 </div>
               )}
 
-              {/* ─────────── وضع "جرّب" ─────────── */}
               {currentEx && mode === 'try' && (
                 <div className="flex flex-col items-center gap-3 mb-4">
                   <InteractiveSoroban
@@ -556,7 +716,6 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
                 </div>
               )}
 
-              {/* خطوات الشرح — "شاهد" فقط */}
               {mode === 'watch' && currentEx && currentEx.steps.length > 0 && !isFingerLesson && (
                 <div className="mb-4">
                   {!showSteps ? (
