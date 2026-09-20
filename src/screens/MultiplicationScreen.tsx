@@ -1,6 +1,6 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowRight, Grid3X3, PenTool, Eye, Play, RefreshCw, Check, X, Lightbulb } from 'lucide-react';
+import { ArrowRight, Grid3X3, Eye, Play, Check, X, Lightbulb } from 'lucide-react';
 
 // ===== توليد مسائل الضرب حسب المراحل =====
 const generateProblems = (stage: number) => {
@@ -19,7 +19,7 @@ const generateProblems = (stage: number) => {
 };
 
 // ===== مكون الشبكة (Lattice) =====
-const LatticeGrid: React.FC<{ a: number; b: number; onCarry?: (c: number) => void }> = ({ a, b }) => {
+const LatticeGrid: React.FC<{ a: number; b: number }> = ({ a, b }) => {
   const aStr = String(a);
   const bStr = String(b);
   const cells: Array<{ row: number; col: number; val: number; tens: number; ones: number }> = [];
