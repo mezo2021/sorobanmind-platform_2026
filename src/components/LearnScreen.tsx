@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { LEARN_MODULES } from '@/data';
 import { Soroban } from './Soroban';
+import { FingerMath } from './FingerMath';
 import { InteractiveSoroban } from './InteractiveSoroban';
 import { SpeechButton } from './SpeechButton';
 import { useSpeech } from '@/hooks/useSpeech';
@@ -19,7 +20,7 @@ function toArabicNumber(value: number | string): string {
 }
 
 const ICONS: Record<string, LucideIcon> = {
-  Info, Star, CircleDot, Combine, Hash, Sigma, Minus, Plus, X, Divide, Brain: Target,
+  Info, Star, CircleDot, Combine, Hash, Sigma, Minus, Plus, X, Divide, Brain: Target, Hand,
 };
 
 interface LearnScreenProps {
@@ -227,6 +228,7 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
   const isLastExample = selected ? currentExample + 1 === selected.examples.length : false;
   const isFirstExample = currentExample === 0;
   const allExamplesSolved = selected ? solvedExamples.length === selected.examples.length : false;
+  const isFingerLesson = selected?.id === 0;
 
   const nextStep = () => {
     if (!currentEx) return;
@@ -434,29 +436,48 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
                   <AnimatePresence mode="wait">
                     {mode === 'watch' ? (
                       <motion.div key={`watch-${currentExample}`} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                        <Soroban value={currentEx.answer} columns={getColumnsForValue(currentEx.answer)} />
+                        {isFingerLesson ? (
+                          <FingerMath value={currentEx.answer} />
+                        ) : (
+                          <Soroban value={currentEx.answer} columns={getColumnsForValue(currentEx.answer)} />
+                        )}
                       </motion.div>
                     ) : (
                       <motion.div key={`try-${currentExample}`} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col items-center gap-3">
-                        <InteractiveSoroban
-                          columns={getColumnsForValue(currentEx.answer)}
-                          value={abacusValue}
-                          onValueChange={(v) => {
-                            setAbacusValue(v);
-                            if (v === currentEx.answer && !isSolved) {
-                              handleExampleSolved();
-                            }
-                          }}
-                        />
-                        {isSolved && (
-                          <p className="text-sm text-emerald2-300 font-bold font-body">
-                            ✅ أحسنت! وصلت للقيمة {toArabicNumber(currentEx.answer)}
-                          </p>
-                        )}
-                        {!isSolved && (
-                          <p className="text-xs text-white/40 font-body">
-                            حرّك الخرزات لتصل إلى القيمة {toArabicNumber(currentEx.answer)}
-                          </p>
+                        {isFingerLesson ? (
+                          <>
+                            <FingerMath value={currentEx.answer} />
+                            <button
+                              onClick={handleExampleSolved}
+                              disabled={isSolved}
+                              className="btn-primary !py-2 !text-sm"
+                            >
+                              {isSolved ? '✅ تم' : '✅ أظهرت الرقم بأصابعي'}
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            <InteractiveSoroban
+                              columns={getColumnsForValue(currentEx.answer)}
+                              value={abacusValue}
+                              onValueChange={(v) => {
+                                setAbacusValue(v);
+                                if (v === currentEx.answer && !isSolved) {
+                                  handleExampleSolved();
+                                }
+                              }}
+                            />
+                            {isSolved && (
+                              <p className="text-sm text-emerald2-300 font-bold font-body">
+                                ✅ أحسنت! وصلت للقيمة {toArabicNumber(currentEx.answer)}
+                              </p>
+                            )}
+                            {!isSolved && (
+                              <p className="text-xs text-white/40 font-body">
+                                حرّك الخرزات لتصل إلى القيمة {toArabicNumber(currentEx.answer)}
+                              </p>
+                            )}
+                          </>
                         )}
                       </motion.div>
                     )}
@@ -464,7 +485,7 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
                 </div>
               )}
 
-              {mode === 'watch' && currentEx && currentEx.steps.length > 0 && (
+              {mode === 'watch' && currentEx && currentEx.steps.length > 0 && !isFingerLesson && (
                 <div className="mb-4">
                   {!showSteps ? (
                     <button
@@ -534,7 +555,7 @@ export function LearnScreen({ onBack, playSound, onXP }: LearnScreenProps) {
               )}
 
               {/* الشرح - يظهر فقط في "شاهد" أو بعد الحل في "جرّب" */}
-              {currentEx && (mode === 'watch' || isSolved) && (
+              {currentEx && (mode === 'watch' || isSolved) && currentEx.explanation && (
                 <div className="flex gap-3 p-3 rounded-2xl bg-purple-500/10 border border-purple-400/20 mb-4">
                   <Lightbulb className="w-5 h-5 text-gold-400 shrink-0 mt-0.5" />
                   <p className="text-sm text-white/80 font-body leading-relaxed">{currentEx.explanation}</p>
