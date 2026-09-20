@@ -34,7 +34,6 @@ function generateQuestions(secretId: number): Question[] {
     const nums = shuffle([2, 3, 4, 5, 6, 7, 8, 9]).slice(0, 5);
     nums.forEach((n) => questions.push({ q: `9 × ${n}`, a: 9 * n }));
   } else if (secretId === 10) {
-    // المضاعفة (4 و 8)
     const nums = shuffle([3, 5, 6, 7, 9, 11, 12, 13]).slice(0, 5);
     nums.forEach((n) => {
       const is4 = Math.random() > 0.5;
@@ -42,33 +41,27 @@ function generateQuestions(secretId: number): Question[] {
       else questions.push({ q: `${n} × 8`, a: n * 8 });
     });
   } else if (secretId === 11) {
-    // الأصابع (6-9)
     const pairs: [number, number][] = [];
     for (let i = 6; i <= 9; i++) for (let j = 6; j <= 9; j++) pairs.push([i, j]);
     shuffle(pairs).slice(0, 5).forEach(([a, b]) => {
       questions.push({ q: `${a} × ${b}`, a: a * b });
     });
   } else if (secretId === 12) {
-    // الضرب في 11
     const nums = shuffle([12, 23, 34, 45, 51, 62, 71, 82, 91, 153, 220]).slice(0, 5);
     nums.forEach((n) => questions.push({ q: `${n} × 11`, a: n * 11 }));
   } else if (secretId === 13) {
-    // الضرب في 99
     const nums = shuffle([3, 5, 7, 12, 25, 34, 46, 55, 62, 78]).slice(0, 5);
     nums.forEach((n) => questions.push({ q: `${n} × 99`, a: n * 99 }));
   } else if (secretId === 14) {
-    // الضرب في 999
     const nums = shuffle([2, 3, 5, 7, 12, 20, 45, 76, 33, 88]).slice(0, 5);
     nums.forEach((n) => questions.push({ q: `${n} × 999`, a: n * 999 }));
   } else if (secretId === 15) {
-    // أصدقاء العشرة (تحت 100)
     const pairs: [number, number][] = [];
     for (let i = 90; i <= 99; i++) for (let j = 90; j <= 99; j++) pairs.push([i, j]);
     shuffle(pairs).slice(0, 5).forEach(([a, b]) => {
       questions.push({ q: `${a} × ${b}`, a: a * b });
     });
   } else if (secretId === 16) {
-    // فوق 100
     const pairs: [number, number][] = [];
     for (let i = 101; i <= 108; i++) for (let j = 101; j <= 108; j++) pairs.push([i, j]);
     shuffle(pairs).slice(0, 5).forEach(([a, b]) => {
@@ -165,11 +158,11 @@ const SECRETS = [
     icon: '🖐️',
     color: 'from-orange-500 to-amber-600',
     rule: 'الإبهام = 6، السبابة = 7، الوسطى = 8، البنصر = 9',
-    rule2: 'العشرات: الأصابع الملموسة وما تحتها | الآحاد: الأصابع فوقها × فوقها',
+    rule2: 'الممدودات (آحاد): عدد الممدودات يميناً × يساراً | المثنيات (عشرات): مجموع المثنيات × 10',
     examples: [
-      { q: '7 × 8', a: '56', steps: 'العشرات: 2+3 = 5 | الآحاد: 3×2 = 6 → 56' },
-      { q: '6 × 7', a: '42', steps: 'العشرات: 1+2 = 3 | الآحاد: 4×3 = 12 → 42' },
-      { q: '8 × 9', a: '72', steps: 'العشرات: 3+4 = 7 | الآحاد: 2×1 = 2 → 72' },
+      { q: '7 × 8', a: '56', steps: 'الممدودات (آحاد): 2 × 3 = 6 | المثنيات (عشرات): (3+2) × 10 = 50 | المجموع: 56' },
+      { q: '6 × 7', a: '42', steps: 'الممدودات (آحاد): 4 × 3 = 12 | المثنيات (عشرات): (1+2) × 10 = 30 | المجموع: 42' },
+      { q: '8 × 9', a: '72', steps: 'الممدودات (آحاد): 2 × 1 = 2 | المثنيات (عشرات): (3+4) × 10 = 70 | المجموع: 72' },
     ],
   },
   {
@@ -254,11 +247,8 @@ const MagicSecretsScreen: React.FC<Props> = ({ onBack, onComplete, onXP }) => {
   const [openSecret, setOpenSecret] = useState<number | null>(null);
   const [doneSecrets, setDoneSecrets] = useState<number[]>([]);
   const [bestScores, setBestScores] = useState<Record<number, number>>({});
-
-  // حالة التمرين
   const [practiceSecretId, setPracticeSecretId] = useState<number | null>(null);
 
-  // تحميل أفضل النتائج
   useEffect(() => {
     try {
       const raw = localStorage.getItem(BEST_SCORES_KEY);
@@ -512,11 +502,9 @@ const PracticeModal: React.FC<PracticeModalProps> = ({ secretId, onClose, onFini
 
   const currentQ = questions[idx];
 
-  // المؤقت
   useEffect(() => {
     if (finished || feedback === 'ok' || !currentQ) return;
     if (timeLeft <= 0) {
-      // انتهى الوقت → خسر السؤال
       setFeedback('timeout');
       setTimeout(() => advance(), 1200);
       return;
@@ -525,7 +513,6 @@ const PracticeModal: React.FC<PracticeModalProps> = ({ secretId, onClose, onFini
     return () => clearTimeout(timer);
   }, [timeLeft, finished, feedback, currentQ]);
 
-  // تركيز الحقل تلقائياً
   useEffect(() => {
     if (inputRef.current && !finished) {
       inputRef.current.focus();
@@ -555,12 +542,10 @@ const PracticeModal: React.FC<PracticeModalProps> = ({ secretId, onClose, onFini
     if (val === '' || !currentQ) return;
     const num = Number(val);
     if (num === currentQ.a) {
-      // صحيح
       setFeedback('ok');
       setScore((s) => s + 1);
       setTimeout(() => advance(), 1000);
     } else if (val.length >= String(currentQ.a).length) {
-      // خطأ
       const newAttempts = attempts + 1;
       setAttempts(newAttempts);
       if (newAttempts >= MAX_ATTEMPTS) {
@@ -594,7 +579,6 @@ const PracticeModal: React.FC<PracticeModalProps> = ({ secretId, onClose, onFini
       >
         {!finished ? (
           <>
-            {/* Header */}
             <div className="flex justify-between items-center mb-4">
               <div className="flex items-center gap-2">
                 <span className="text-2xl">{secret.icon}</span>
@@ -605,7 +589,6 @@ const PracticeModal: React.FC<PracticeModalProps> = ({ secretId, onClose, onFini
               </button>
             </div>
 
-            {/* Progress + Timer */}
             <div className="flex items-center gap-3 mb-4">
               <div className="flex-1 h-2 rounded-full bg-white/10 overflow-hidden">
                 <motion.div
@@ -619,7 +602,6 @@ const PracticeModal: React.FC<PracticeModalProps> = ({ secretId, onClose, onFini
               </span>
             </div>
 
-            {/* Timer */}
             <div className={`mb-4 p-2 rounded-xl text-center flex items-center justify-center gap-2 ${
               timeLeft <= 5 ? 'bg-red-500/20 border border-red-500/50' : 'bg-white/5 border border-white/10'
             }`}>
@@ -629,7 +611,6 @@ const PracticeModal: React.FC<PracticeModalProps> = ({ secretId, onClose, onFini
               </span>
             </div>
 
-            {/* Question */}
             <div className="bg-white/5 rounded-2xl p-6 text-center mb-4">
               <p className="text-xs text-white/50 mb-3">السؤال {idx + 1}</p>
               <p className="text-4xl font-black" dir="ltr">
@@ -637,7 +618,6 @@ const PracticeModal: React.FC<PracticeModalProps> = ({ secretId, onClose, onFini
               </p>
             </div>
 
-            {/* Input */}
             <input
               ref={inputRef}
               type="text"
@@ -658,7 +638,6 @@ const PracticeModal: React.FC<PracticeModalProps> = ({ secretId, onClose, onFini
               dir="ltr"
             />
 
-            {/* Feedback */}
             <div className="mt-3 h-6 text-center">
               {feedback === 'ok' && (
                 <p className="text-emerald-400 font-bold text-sm">✅ إجابة صحيحة!</p>
@@ -678,33 +657,29 @@ const PracticeModal: React.FC<PracticeModalProps> = ({ secretId, onClose, onFini
               )}
             </div>
 
-            {/* Score */}
             <p className="text-center text-xs text-white/50 mt-4">
               النقاط: {score}
             </p>
           </>
         ) : (
-          <>
-            {/* Result */}
-            <div className="text-center py-6">
-              <Trophy className="w-16 h-16 text-gold-300 mx-auto mb-4" />
-              <h2 className="text-2xl font-bold mb-2">انتهى التمرين!</h2>
-              <p className="text-5xl font-black text-amber-300 mb-4">
-                {score}/5
-              </p>
-              <p className="text-sm text-white/60 mb-6">
-                {score === 5 ? '🏆 ممتاز! أنت بطل!' :
-                 score >= 3 ? '👏 جيد جداً! استمر!' :
-                 '💪 حاول مرة أخرى!'}
-              </p>
-              <button
-                onClick={onClose}
-                className="w-full py-3 bg-gradient-to-l from-purple-600 to-amber-500 rounded-2xl font-bold"
-              >
-                إغلاق
-              </button>
-            </div>
-          </>
+          <div className="text-center py-6">
+            <Trophy className="w-16 h-16 text-gold-300 mx-auto mb-4" />
+            <h2 className="text-2xl font-bold mb-2">انتهى التمرين!</h2>
+            <p className="text-5xl font-black text-amber-300 mb-4">
+              {score}/5
+            </p>
+            <p className="text-sm text-white/60 mb-6">
+              {score === 5 ? '🏆 ممتاز! أنت بطل!' :
+               score >= 3 ? '👏 جيد جداً! استمر!' :
+               '💪 حاول مرة أخرى!'}
+            </p>
+            <button
+              onClick={onClose}
+              className="w-full py-3 bg-gradient-to-l from-purple-600 to-amber-500 rounded-2xl font-bold"
+            >
+              إغلاق
+            </button>
+          </div>
         )}
       </motion.div>
     </motion.div>
