@@ -510,7 +510,329 @@ const level1: LearnModule = {
 // ═══════════════════════════════════════════════════════════
 // مصفوفة الدروس
 // ═══════════════════════════════════════════════════════════
+
+// ═══════════════════════════════════════════════════════════
+// المستوى 2: تمثيل الأعداد على السوروبان
+// ═══════════════════════════════════════════════════════════
+const level2: LearnModule = {
+  id: 2,
+  title: 'Number Representation',
+  titleAr: 'تمثيل الأعداد على السوروبان',
+  description: 'Represent numbers from 0 to 9999',
+  descriptionAr: 'مثّل الأعداد من 0 إلى 9999',
+  status: 'locked',
+  beads: { upper: 1, lower: 4 },
+  value: 0,
+  concept: 'Each column represents one digit',
+  conceptAr: 'كل عمود يمثل منزلة رقمية',
+  icon: 'Hash',
+  audioText:
+    'الآن سنتعلم كيف نمثّل الأعداد على السوروبان. كل عمود يمثل منزلة: الآحاد، العشرات، المئات، الآلاف. الخرزة التي تلمس الجسر هي التي لها قيمة! الباقي نائم لا قيمة له.',
+  rule: 'Bead touching the bridge = active',
+  ruleAr: 'الخرزة التي تلمس الجسر = مُفعّلة',
+  story:
+    'قال حارس القلعة: تذكّروا القاعدة الذهبية — الخرزة التي تلمس الجسر هي التي تُحسب! الباقي نائم لا قيمة له. الآن ستمثّلون الأعداد بأيديكم على المعداد، وستصبحون سادة الأرقام!',
+  storyAudioText:
+    'قال حارس القلعة: تذكروا القاعدة الذهبية — الخرزة التي تلمس الجسر هي التي تحسب. الباقي نائم لا قيمة له. الآن ستمثلون الأعداد بأيديكم على المعداد، وستصبحون سادة الأرقام.',
+  targetAge: '6-8',
+  requiresAllPrevious: true,
+
+  interactionMode: 'abacus-representation',
+  maxAttempts: 10,
+
+  tactileActivity: {
+    titleAr: 'نشاط البيوت الثلاثة',
+    materials: ['3 صناديق صغيرة', 'بطاقات أرقام 0-9', 'قلم'],
+    steps: [
+      'سمّ الصندوق الأول: الآحاد',
+      'سمّ الصندوق الثاني: العشرات',
+      'سمّ الصندوق الثالث: المئات',
+      'ضع في كل صندوق عدداً من 0 إلى 9',
+      'اسأل طفلك: ما الرقم الذي يمثله هذا الترتيب؟',
+    ],
+    goal: 'فهم مفهوم المنازل (آحاد، عشرات، مئات) قبل تطبيقه على المعداد',
+  },
+
+  examples: [
+    // 1) الرقم 0
+    {
+      problemText: 'مثّل الرقم 0 على السوروبان',
+      answer: 0,
+      ruleCategory: 'direct',
+      steps: [
+        {
+          stepIndex: 1,
+          instructionText: 'تأكد أن جميع الخرزات بعيدة عن الجسر',
+          fingerUsed: 'index',
+          direction: 'down',
+          targetColumn: 'units',
+          beadsAffected: [],
+          expectedValueAfter: 0,
+        },
+      ],
+      explanation: 'لا توجد خرزة تلمس الجسر = 0',
+      story: 'الجميع نائم! لا أحد يلمس الجسر، فالرقم صفر.',
+      storyAudioText: 'الجميع نائم! لا أحد يلمس الجسر، فالرقم صفر.',
+    },
+
+    // 2) الرقم 3
+    {
+      problemText: 'مثّل الرقم 3 على السوروبان',
+      answer: 3,
+      ruleCategory: 'direct',
+      steps: [
+        {
+          stepIndex: 1,
+          instructionText: 'ارفع ثلاثة أطفال بالإبهام في عمود الآحاد',
+          fingerUsed: 'thumb',
+          direction: 'up',
+          targetColumn: 'units',
+          beadsAffected: [1, 2, 3],
+          expectedValueAfter: 3,
+        },
+      ],
+      explanation: 'ثلاثة أطفال لمسوا الجسر = 3',
+      story: 'استدعت الجدة ثلاثة أطفال، فرفعوا أصابعهم ولامسوا الجسر.',
+      storyAudioText: 'استدعت الجدة ثلاثة أطفال، فرفعوا أصابعهم ولامسوا الجسر.',
+    },
+
+    // 3) الرقم 5
+    {
+      problemText: 'مثّل الرقم 5 على السوروبان',
+      answer: 5,
+      ruleCategory: 'direct',
+      steps: [
+        {
+          stepIndex: 1,
+          instructionText: 'أنزل الجدة 5 بالسبابة في عمود الآحاد',
+          fingerUsed: 'index',
+          direction: 'down',
+          targetColumn: 'units',
+          beadsAffected: [5],
+          expectedValueAfter: 5,
+        },
+      ],
+      explanation: 'الجدة وحدها لمست الجسر = 5',
+      story: 'سمعت الجدة ضحكات الأطفال، فنزلت لتراهم. الجدة وحدها تساوي 5!',
+      storyAudioText:
+        'سمعت الجدة ضحكات الأطفال، فنزلت لتراهم. الجدة وحدها تساوي خمسة.',
+    },
+
+    // 4) الرقم 7
+    {
+      problemText: 'مثّل الرقم 7 على السوروبان',
+      answer: 7,
+      ruleCategory: 'direct',
+      steps: [
+        {
+          stepIndex: 1,
+          instructionText: 'أنزل الجدة 5 بالسبابة في عمود الآحاد',
+          fingerUsed: 'index',
+          direction: 'down',
+          targetColumn: 'units',
+          beadsAffected: [5],
+          expectedValueAfter: 5,
+        },
+        {
+          stepIndex: 2,
+          instructionText: 'ارفع طفلين بالإبهام',
+          fingerUsed: 'thumb',
+          direction: 'up',
+          targetColumn: 'units',
+          beadsAffected: [1, 2],
+          expectedValueAfter: 7,
+        },
+      ],
+      explanation: '5 + 2 = 7 (الجدة + طفلان)',
+      story: 'نزلت الجدة، وانضم إليها طفلان. صار المجموع 5 + 2 = 7',
+      storyAudioText:
+        'نزلت الجدة، وانضم إليها طفلان. صار المجموع خمسة زائد اثنين يساوي سبعة.',
+    },
+
+    // 5) الرقم 9
+    {
+      problemText: 'مثّل الرقم 9 على السوروبان',
+      answer: 9,
+      ruleCategory: 'direct',
+      steps: [
+        {
+          stepIndex: 1,
+          instructionText: 'أنزل الجدة 5 بالسبابة',
+          fingerUsed: 'index',
+          direction: 'down',
+          targetColumn: 'units',
+          beadsAffected: [5],
+          expectedValueAfter: 5,
+        },
+        {
+          stepIndex: 2,
+          instructionText: 'ارفع الأربعة أطفال بالإبهام',
+          fingerUsed: 'thumb',
+          direction: 'up',
+          targetColumn: 'units',
+          beadsAffected: [1, 2, 3, 4],
+          expectedValueAfter: 9,
+        },
+      ],
+      explanation: '5 + 4 = 9 (الجدة + كل الأطفال)',
+      story:
+        'صفّقت الجدة بيديها، فصعد الأطفال الأربعة كلهم. ممتلئ! 5 + 4 = 9',
+      storyAudioText:
+        'صفقت الجدة بيديها، فصعد الأطفال الأربعة كلهم. ممتلئ! خمسة زائد أربعة يساوي تسعة.',
+    },
+
+    // 6) الرقم 10
+    {
+      problemText: 'مثّل الرقم 10 على السوروبان',
+      answer: 10,
+      ruleCategory: 'direct',
+      steps: [
+        {
+          stepIndex: 1,
+          instructionText: 'ارفع خرزة واحدة في عمود العشرات بالإبهام',
+          fingerUsed: 'thumb',
+          direction: 'up',
+          targetColumn: 'tens',
+          beadsAffected: [1],
+          expectedValueAfter: 10,
+        },
+      ],
+      explanation: '10 = 1 في العشرات و 0 في الآحاد',
+      story:
+        'عندما نصل إلى 10، ننتقل إلى بيت العشرات! خرزة واحدة هناك تساوي 10.',
+      storyAudioText:
+        'عندما نصل إلى عشرة، ننتقل إلى بيت العشرات. خرزة واحدة هناك تساوي عشرة.',
+    },
+
+    // 7) الرقم 25
+    {
+      problemText: 'مثّل الرقم 25 على السوروبان',
+      answer: 25,
+      ruleCategory: 'direct',
+      steps: [
+        {
+          stepIndex: 1,
+          instructionText: 'في العشرات: ارفع طفلين بالإبهام',
+          fingerUsed: 'thumb',
+          direction: 'up',
+          targetColumn: 'tens',
+          beadsAffected: [1, 2],
+          expectedValueAfter: 20,
+        },
+        {
+          stepIndex: 2,
+          instructionText: 'في الآحاد: أنزل الجدة 5 بالسبابة',
+          fingerUsed: 'index',
+          direction: 'down',
+          targetColumn: 'units',
+          beadsAffected: [5],
+          expectedValueAfter: 25,
+        },
+      ],
+      explanation: '20 + 5 = 25 (عشرتان + الجدة)',
+      story:
+        'عشرتان في بيت العشرات + الجدة في بيت الآحاد = 25',
+      storyAudioText:
+        'عشرتان في بيت العشرات زائد الجدة في بيت الآحاد يساوي خمسة وعشرين.',
+    },
+
+    // 8) الرقم 47
+    {
+      problemText: 'مثّل الرقم 47 على السوروبان',
+      answer: 47,
+      ruleCategory: 'direct',
+      steps: [
+        {
+          stepIndex: 1,
+          instructionText: 'في العشرات: ارفع 4 أطفال (4 عشرات = 40)',
+          fingerUsed: 'thumb',
+          direction: 'up',
+          targetColumn: 'tens',
+          beadsAffected: [1, 2, 3, 4],
+          expectedValueAfter: 40,
+        },
+        {
+          stepIndex: 2,
+          instructionText: 'في الآحاد: أنزل الجدة 5 + ارفع طفلين (7)',
+          fingerUsed: 'both_pinch',
+          direction: 'pinch_in',
+          targetColumn: 'units',
+          beadsAffected: [5, 1, 2],
+          expectedValueAfter: 47,
+        },
+      ],
+      explanation: '40 + 7 = 47',
+      story: 'أربع عشرات + سبعة آحاد = 47',
+      storyAudioText:
+        'أربع عشرات زائد سبعة آحاد يساوي سبعة وأربعين.',
+    },
+
+    // 9) الرقم 100
+    {
+      problemText: 'مثّل الرقم 100 على السوروبان',
+      answer: 100,
+      ruleCategory: 'direct',
+      steps: [
+        {
+          stepIndex: 1,
+          instructionText: 'ارفع خرزة واحدة في عمود المئات بالإبهام',
+          fingerUsed: 'thumb',
+          direction: 'up',
+          targetColumn: 'hundreds',
+          beadsAffected: [1],
+          expectedValueAfter: 100,
+        },
+      ],
+      explanation: 'مائة = خرزة واحدة في خانة المئات',
+      story: 'عندما نصل إلى 100، ننتقل إلى بيت المئات! هذا بيت العائلة الكبيرة.',
+      storyAudioText:
+        'عندما نصل إلى مائة، ننتقل إلى بيت المئات. هذا بيت العائلة الكبيرة.',
+    },
+
+    // 10) الرقم 134
+    {
+      problemText: 'مثّل الرقم 134 على السوروبان',
+      answer: 134,
+      ruleCategory: 'direct',
+      steps: [
+        {
+          stepIndex: 1,
+          instructionText: 'في المئات: ارفع خرزة واحدة (100)',
+          fingerUsed: 'thumb',
+          direction: 'up',
+          targetColumn: 'hundreds',
+          beadsAffected: [1],
+          expectedValueAfter: 100,
+        },
+        {
+          stepIndex: 2,
+          instructionText: 'في العشرات: ارفع 3 أطفال (30)',
+          fingerUsed: 'thumb',
+          direction: 'up',
+          targetColumn: 'tens',
+          beadsAffected: [1, 2, 3],
+          expectedValueAfter: 130,
+        },
+        {
+          stepIndex: 3,
+          instructionText: 'في الآحاد: ارفع 4 أطفال (4)',
+          fingerUsed: 'thumb',
+          direction: 'up',
+          targetColumn: 'units',
+          beadsAffected: [1, 2, 3, 4],
+          expectedValueAfter: 134,
+        },
+      ],
+      explanation: '100 + 30 + 4 = 134',
+      story:
+        'مائة + ثلاثون + أربعة = 134. كل منزلة تجلس في بيتها!',
+      storyAudioText:
+        'مائة زائد ثلاثون زائد أربعة يساوي مائة وأربعة وثلاثين. كل منزلة تجلس في بيتها.',
+    },
+  ],
+};
 export const LEARN_MODULES: LearnModule[] = [
   level0,
   level1,
+  level2,
 ];
