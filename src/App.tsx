@@ -132,12 +132,13 @@ function App() {
           )}
 
           {screen === 'learn' && (
-            <LearnScreen
-              onBack={() => handleNavigate('hero-dashboard')}
-              playSound={playSound}
-              onXP={addXP}
-            />
-          )}
+  <LearnScreen
+    onBack={() => handleNavigate('hero-dashboard')}
+    playSound={playSound}
+    onXP={addXP}
+    onNavigate={handleNavigate}
+  />
+)}
 
           {screen === 'final-exam' && (
             <FinalExam
