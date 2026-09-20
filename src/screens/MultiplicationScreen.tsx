@@ -18,14 +18,18 @@ function getColumnsForValue(value: number): number {
 function computePartialProducts(a: number, b: number) {
   const digits = String(a).split('').reverse().map(Number);
   const steps: Array<{ digitValue: number; value: number; label: string }> = [];
+  const zerosLabels = ['', 'صفر', 'صفرين', 'ثلاثة أصفار'];
   for (let i = 0; i < digits.length; i++) {
     const place = Math.pow(10, i);
     const digitValue = digits[i] * place;
-    if (digitValue === 0) continue;
+    if (digits[i] === 0) continue;
+    const zerosText = zerosLabels[i] || '';
     steps.push({
       digitValue,
       value: digitValue * b,
-      label: `${b} × ${digitValue}`,
+      label: zerosText
+        ? `${digits[i]} × ${b} + ${zerosText}`
+        : `${digits[i]} × ${b}`,
     });
   }
   return steps;
@@ -97,7 +101,6 @@ const MultiplicationScreen: React.FC<Props> = ({ onBack, onComplete }) => {
   );
   const watchTotalSteps = watchSteps.length + 1;
 
-  // Auto-advance watch
   useEffect(() => {
     if (mode !== 'watch') return;
     setWatchStep(0);
@@ -213,7 +216,6 @@ const MultiplicationScreen: React.FC<Props> = ({ onBack, onComplete }) => {
       {/* ============ WATCH MODE ============ */}
       {mode === 'watch' && (
         <div className="space-y-4">
-          {/* Problem */}
           <div className="bg-white/5 rounded-2xl p-4 text-center">
             <p className="text-xs text-white/60 mb-2">مثال توضيحي</p>
             <p className="text-3xl font-black font-display text-white" dir="ltr">
@@ -223,7 +225,6 @@ const MultiplicationScreen: React.FC<Props> = ({ onBack, onComplete }) => {
             </p>
           </div>
 
-          {/* Steps */}
           <div className="bg-white/5 rounded-2xl p-4 space-y-3">
             <p className="text-sm font-bold text-amber-300 mb-2">📋 خطوات الحل:</p>
             {watchSteps.map((step, i) => (
@@ -241,7 +242,6 @@ const MultiplicationScreen: React.FC<Props> = ({ onBack, onComplete }) => {
               </AnimatePresence>
             ))}
 
-            {/* Sum */}
             {watchStep >= watchSteps.length + 1 && (
               <motion.div
                 initial={{ opacity: 0, x: -20 }}
@@ -256,7 +256,6 @@ const MultiplicationScreen: React.FC<Props> = ({ onBack, onComplete }) => {
             )}
           </div>
 
-          {/* Soroban */}
           {watchStep >= watchTotalSteps && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -279,7 +278,6 @@ const MultiplicationScreen: React.FC<Props> = ({ onBack, onComplete }) => {
             </motion.div>
           )}
 
-          {/* Rule */}
           <div className="bg-amber-500/20 border border-amber-500/40 rounded-2xl p-4 text-sm">
             <p className="font-bold mb-2 flex items-center gap-2">
               <Lightbulb className="w-5 h-5 text-amber-300" /> الطريقة:
