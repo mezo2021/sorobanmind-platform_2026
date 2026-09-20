@@ -1,387 +1,303 @@
-import React, { useState, useMemo, useEffect, useRef } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowRight, Grid3X3, Eye, Play, Check, X, Lightbulb, RotateCcw } from 'lucide-react';
+import { InteractiveSoroban } from '@/components/InteractiveSoroban';
 
-// =====================================================================
-// الأنواع
-// =====================================================================
+// ============================================================
+// الأنواع والثوابت
+// ============================================================
 type Stage = 1 | 2 | 3;
 
 interface Problem {
   a: number;
   b: number;
-  r: number;
 }
 
-interface Point {
-  x: number;
-  y: number;
-}
-
-interface SvgLine {
-  x1: number;
-  y1: number;
-  x2: number;
-  y2: number;
-}
-
-interface IntersectionGroup {
-  points: Point[];
-  value: number;
-  place: number; // 1=units, 10=tens, 100=hundreds, 1000=thousands
-  label: string;
-}
-
-// =====================================================================
-// توليد المسائل حسب المراحل
-// =====================================================================
-const generateProblems = (stage: Stage): Problem[] => {
-  const problems: Problem[] = [];
-  if (stage === 1) {
-    // منزلتين × منزلة
-    const bases = [12, 21, 23, 32, 31, 42, 13, 41, 24, 34, 43, 52, 15, 51, 62];
-    for (const a of bases) {
-      for (let b = 2; b <= 8; b += 2) {
-        problems.push({ a, b, r: a * b });
-      }
-    }
-  } else if (stage === 2) {
-    // 3 منازل × منزلة
-    const bases = [123, 213, 312, 231, 132, 321, 214, 412, 314, 413, 234, 432];
-    for (const a of bases) {
-      for (let b = 2; b <= 8; b += 2) {
-        problems.push({ a, b, r: a * b });
-      }
-    }
-  } else {
-    // منزلتين × منزلتين
-    const pairs: [number, number][] = [
-      [12, 21], [13, 21], [21, 13], [23, 12], [31, 12], [14, 22],
-      [22, 13], [32, 12], [24, 11], [41, 12], [15, 21], [33, 12],
-    ];
-    for (const [a, b] of pairs) {
-      problems.push({ a, b, r: a * b });
-    }
-  }
-  return problems.sort(() => Math.random() - 0.5).slice(0, 8);
-};
-
-// =====================================================================
-// حسابات الخطوط القطرية
-// =====================================================================
 const CANVAS_W = 600;
 const CANVAS_H = 400;
-const INNER_SPACING = 10; // المسافة بين الخطوط داخل نفس المجموعة
-const GROUP_GAP = 90; // المسافة بين المجموعات (الفصل بين المنازل)
+const LINE_SPACING = 12;
+const GROUP_GAP = 100;
 
-interface LineGroupInfo {
-  digit: number;
-  digitIndex: number; // 0 = العشرات/المئات (يسار), الباقي = الآحاد (يمين)
-  lineOffsets: number[]; // قيم الإزاحة الأفقية
-  color: string;
+const COLORS_A = ['#ef4444', '#3b82f6', '#f59e0b', '#ec4899'];
+const COLORS_B = ['#10b981', '#8b5cf6', '#06b6d4', '#f97316'];
+const DOT_COLOR = '#22c55e';
+
+// ============================================================
+// أنواع مساعدة
+// ============================================================
+interface LineA { c: number; color: string; digitIdx: number; }
+interface LineB { d: number; color: string; digitIdx: number; }
+interface Point { x: number; y: number; }
+interface PointGroup {
+  points: Point[];
+  label: string;
+  place: number;
+  center: Point;
 }
 
-function buildLineGroups(numStr: string, colors: string[]): LineGroupInfo[] {
+// ============================================================
+// توليد الخطوط
+// ============================================================
+function generateLinesA(numStr: string): LineA[] {
+  const result: LineA[] = [];
   const digits = numStr.split('').map(Number);
-  const groups: LineGroupInfo[] = [];
-  let cursor = 60;
-  digits.forEach((d, gi) => {
-    const offsets: number[] = [];
+  let cursor = 100;
+  digits.forEach((d, i) => {
     for (let k = 0; k < d; k++) {
-      offsets.push(cursor);
-      cursor += INNER_SPACING;
+      const xPos = cursor + k * LINE_SPACING;
+      result.push({ c: -xPos, color: COLORS_A[i % COLORS_A.length], digitIdx: i });
     }
-    groups.push({
-      digit: d,
-      digitIndex: gi,
-      lineOffsets: offsets,
-      color: colors[gi % colors.length],
-    });
-    cursor += GROUP_GAP;
+    cursor += d * LINE_SPACING + GROUP_GAP;
   });
-  return groups;
+  return result;
 }
 
-function buildLines(
-  groups: LineGroupInfo[],
-  direction: 'down-right' | 'up-right'
-): SvgLine[] {
-  const lines: SvgLine[] = [];
-  for (const g of groups) {
-    for (const off of g.lineOffsets) {
-      if (direction === 'down-right') {
-        lines.push({
-          x1: off - 100,
-          y1: -50,
-          x2: off + 500,
-          y2: 450,
-        });
-      } else {
-        lines.push({
-          x1: off - 100,
-          y1: 450,
-          x2: off + 500,
-          y2: -50,
-        });
+function generateLinesB(numStr: string): LineB[] {
+  const result: LineB[] = [];
+  const digits = numStr.split('').map(Number);
+  let cursor = CANVAS_W - 100;
+  digits.forEach((d, i) => {
+    for (let k = 0; k < d; k++) {
+      const xPos = cursor - k * LINE_SPACING;
+      result.push({ d: xPos, color: COLORS_B[i % COLORS_B.length], digitIdx: i });
+    }
+    cursor -= d * LINE_SPACING + GROUP_GAP;
+  });
+  return result;
+}
+
+function lineASegment(c: number) {
+  const W = CANVAS_W, H = CANVAS_H;
+  let x1 = 0, y1 = 0, x2 = 0, y2 = 0;
+  if (-c >= 0 && -c <= W) { x1 = -c; y1 = 0; }
+  else if (c >= 0 && c <= H) { x1 = 0; y1 = c; }
+  else return null;
+  if (H - c >= 0 && H - c <= W) { x2 = H - c; y2 = H; }
+  else if (W + c >= 0 && W + c <= H) { x2 = W; y2 = W + c; }
+  else return null;
+  return { x1, y1, x2, y2 };
+}
+
+function lineBSegment(d: number) {
+  const W = CANVAS_W, H = CANVAS_H;
+  let x1 = 0, y1 = 0, x2 = 0, y2 = 0;
+  if (d >= 0 && d <= W) { x1 = d; y1 = 0; }
+  else if (d >= 0 && d <= H) { x1 = 0; y1 = d; }
+  else return null;
+  if (d - H >= 0 && d - H <= W) { x2 = d - H; y2 = H; }
+  else if (d - W >= 0 && d - W <= H) { x2 = W; y2 = d - W; }
+  else return null;
+  return { x1, y1, x2, y2 };
+}
+
+// ============================================================
+// تجميع التقاطعات حسب المنزلة
+// ============================================================
+function computeGroups(
+  linesA: LineA[],
+  linesB: LineB[],
+  numDigitsA: number,
+  numDigitsB: number
+): PointGroup[] {
+  const maxPlace = (numDigitsA - 1) + (numDigitsB - 1);
+  const groups: Point[][] = Array.from({ length: maxPlace + 1 }, () => []);
+
+  for (const a of linesA) {
+    const placeA = numDigitsA - 1 - a.digitIdx;
+    for (const b of linesB) {
+      const placeB = numDigitsB - 1 - b.digitIdx;
+      const place = placeA + placeB;
+      const y = (a.c + b.d) / 2;
+      const x = (b.d - a.c) / 2;
+      if (x >= 0 && x <= CANVAS_W && y >= 0 && y <= CANVAS_H) {
+        groups[place].push({ x, y });
       }
     }
   }
-  return lines;
-}
 
-function intersectLines(l1: SvgLine, l2: SvgLine): Point | null {
-  const { x1: x1a, y1: y1a, x2: x2a, y2: y2a } = l1;
-  const { x1: x1b, y1: y1b, x2: x2b, y2: y2b } = l2;
-  const denom = (x1a - x2a) * (y1b - y2b) - (y1a - y2a) * (x1b - x2b);
-  if (Math.abs(denom) < 0.0001) return null;
-  const t = ((x1a - x1b) * (y1b - y2b) - (y1a - y1b) * (x1b - x2b)) / denom;
-  const x = x1a + t * (x2a - x1a);
-  const y = y1a + t * (y2a - y1a);
-  if (x < 0 || x > CANVAS_W || y < 0 || y > CANVAS_H) return null;
-  return { x, y };
-}
-
-function groupIntersections(points: Point[]): IntersectionGroup[] {
-  if (points.length === 0) return [];
-  // رتّب حسب x
-  const sorted = [...points].sort((p, q) => p.x - q.x);
-  // جمّع النقاط المتقاربة (فارق x أقل من 40)
-  const clusters: Point[][] = [];
-  let current: Point[] = [sorted[0]];
-  for (let i = 1; i < sorted.length; i++) {
-    if (sorted[i].x - current[current.length - 1].x < 45) {
-      current.push(sorted[i]);
-    } else {
-      clusters.push(current);
-      current = [sorted[i]];
-    }
-  }
-  clusters.push(current);
-
-  // من اليمين لليسار: آحاد، عشرات، مئات، آلاف
-  const reversed = [...clusters].reverse();
-  const placeValues = [1, 10, 100, 1000, 10000];
   const labels = ['آحاد', 'عشرات', 'مئات', 'آلاف', 'عشرات الآلاف'];
 
-  return reversed.map((cluster, idx) => ({
-    points: cluster,
-    value: cluster.length,
-    place: placeValues[idx] || 1,
-    label: labels[idx] || '',
-  }));
+  return groups
+    .map((pts, place) => ({
+      points: pts,
+      label: labels[place] || '',
+      place,
+      center: pts.length > 0
+        ? {
+            x: pts.reduce((s, p) => s + p.x, 0) / pts.length,
+            y: pts.reduce((s, p) => s + p.y, 0) / pts.length,
+          }
+        : { x: 0, y: 0 },
+    }))
+    .filter((g) => g.points.length > 0);
 }
 
-// =====================================================================
-// مكوّن عرض طريقة الخطوط التفاعلية
-// =====================================================================
-interface LineMethodVizProps {
+// ============================================================
+// مكوّن عرض طريقة الخطوط
+// ============================================================
+interface LineVizProps {
   a: number;
   b: number;
-  autoPlay?: boolean;
+  showNumbers: boolean;
+  animate?: boolean;
 }
 
-const LineMethodViz: React.FC<LineMethodVizProps> = ({ a, b, autoPlay = true }) => {
-  const [step, setStep] = useState(0);
+const LineMethodViz: React.FC<LineVizProps> = ({ a, b, showNumbers, animate = true }) => {
+  const [step, setStep] = useState(animate ? 0 : 3);
 
   const aStr = String(a);
   const bStr = String(b);
+  const digitsA = aStr.split('').map(Number);
+  const digitsB = bStr.split('').map(Number);
 
-  const aColors = ['#ef4444', '#3b82f6', '#f59e0b'];
-  const bColors = ['#10b981', '#8b5cf6', '#ec4899'];
+  const linesA = useMemo(() => generateLinesA(aStr), [aStr]);
+  const linesB = useMemo(() => generateLinesB(bStr), [bStr]);
+  const groups = useMemo(
+    () => computeGroups(linesA, linesB, digitsA.length, digitsB.length),
+    [linesA, linesB, digitsA.length, digitsB.length]
+  );
 
-  // مجموعات الخطوط
-  const aGroups = useMemo(() => buildLineGroups(aStr, aColors), [aStr]);
-  const bGroups = useMemo(() => buildLineGroups(bStr, bColors), [bStr]);
-
-  // الخطوط الفعلية
-  const aLines = useMemo(() => buildLines(aGroups, 'down-right'), [aGroups]);
-  const bLines = useMemo(() => buildLines(bGroups, 'up-right'), [bGroups]);
-
-  // نقاط التقاطع
-  const points = useMemo(() => {
-    const res: Point[] = [];
-    for (const al of aLines) {
-      for (const bl of bLines) {
-        const p = intersectLines(al, bl);
-        if (p) res.push(p);
-      }
-    }
-    return res;
-  }, [aLines, bLines]);
-
-  // تجميع النقاط
-  const groups = useMemo(() => groupIntersections(points), [points]);
-
-  // إعادة التشغيل عند تغيير المسألة
   useEffect(() => {
-    setStep(0);
-    if (!autoPlay) {
-      setStep(5);
+    if (!animate) {
+      setStep(3);
       return;
     }
-    const timer = setInterval(() => {
-      setStep((s) => {
-        if (s >= 5) {
-          clearInterval(timer);
-          return s;
-        }
-        return s + 1;
-      });
-    }, 1100);
-    return () => clearInterval(timer);
-  }, [a, b, autoPlay]);
-
-  // حساب النتيجة النهائية مع الحمل
-  const finalDigits = useMemo(() => {
-    let carry = 0;
-    const result: number[] = [];
-    for (const g of groups) {
-      const total = g.value + carry;
-      result.unshift(total % 10);
-      carry = Math.floor(total / 10);
-    }
-    while (carry > 0) {
-      result.unshift(carry % 10);
-      carry = Math.floor(carry / 10);
-    }
-    return result;
-  }, [groups]);
+    setStep(0);
+    const timers = [
+      setTimeout(() => setStep(1), 200),
+      setTimeout(() => setStep(2), 1000),
+      setTimeout(() => setStep(3), 1800),
+    ];
+    return () => timers.forEach(clearTimeout);
+  }, [a, b, animate]);
 
   return (
     <div className="w-full">
-      <div className="bg-slate-800 rounded-2xl p-2 sm:p-3">
+      <div className="bg-slate-800 rounded-2xl p-2 sm:p-3 overflow-hidden">
         <svg
           viewBox={`0 0 ${CANVAS_W} ${CANVAS_H}`}
           className="w-full h-auto"
-          style={{ maxHeight: '320px' }}
+          style={{ maxHeight: 320 }}
         >
-          {/* الخطوة 1: خطوط الرقم الأول */}
-          {step >= 1 && (
-            <g>
-              {aLines.map((l, i) => (
+          <defs>
+            <filter id="dotglow">
+              <feGaussianBlur stdDeviation="1.5" result="coloredBlur" />
+              <feMerge>
+                <feMergeNode in="coloredBlur" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+          </defs>
+
+          {/* خطوط الرقم الأول (تنزل من أعلى اليسار لأسفل اليمين) */}
+          {step >= 1 &&
+            linesA.map((l, i) => {
+              const s = lineASegment(l.c);
+              if (!s) return null;
+              return (
                 <motion.line
                   key={`a-${i}`}
-                  x1={l.x1}
-                  y1={l.y1}
-                  x2={l.x2}
-                  y2={l.y2}
-                  stroke={
-                    aColors[
-                      Math.min(
-                        aGroups.findIndex((g) => g.lineOffsets.some((o) => o === i % 100 || true)) ||
-                          0,
-                        aColors.length - 1
-                      )
-                    ] || '#ef4444'
-                  }
-                  strokeWidth={3}
+                  x1={s.x1}
+                  y1={s.y1}
+                  x2={s.x2}
+                  y2={s.y2}
+                  stroke={l.color}
+                  strokeWidth={2.2}
                   strokeLinecap="round"
                   initial={{ pathLength: 0, opacity: 0 }}
                   animate={{ pathLength: 1, opacity: 1 }}
-                  transition={{ duration: 0.6, delay: i * 0.05 }}
-                  style={{
-                    stroke: (() => {
-                      // اختيار لون حسب المجموعة
-                      let idx = 0;
-                      let count = 0;
-                      for (const g of aGroups) {
-                        for (const _ of g.lineOffsets) {
-                          if (count === i) return aColors[idx % aColors.length];
-                          count++;
-                        }
-                        idx++;
-                      }
-                      return aColors[0];
-                    })(),
-                  }}
+                  transition={{ duration: 0.4, delay: i * 0.02 }}
                 />
-              ))}
-            </g>
-          )}
+              );
+            })}
 
-          {/* الخطوة 2: خطوط الرقم الثاني */}
-          {step >= 2 && (
-            <g>
-              {bLines.map((l, i) => (
+          {/* خطوط الرقم الثاني (تنزل من أعلى اليمين لأسفل اليسار) */}
+          {step >= 2 &&
+            linesB.map((l, i) => {
+              const s = lineBSegment(l.d);
+              if (!s) return null;
+              return (
                 <motion.line
                   key={`b-${i}`}
-                  x1={l.x1}
-                  y1={l.y1}
-                  x2={l.x2}
-                  y2={l.y2}
-                  strokeWidth={3}
+                  x1={s.x1}
+                  y1={s.y1}
+                  x2={s.x2}
+                  y2={s.y2}
+                  stroke={l.color}
+                  strokeWidth={2.2}
                   strokeLinecap="round"
                   initial={{ pathLength: 0, opacity: 0 }}
                   animate={{ pathLength: 1, opacity: 1 }}
-                  transition={{ duration: 0.6, delay: i * 0.05 }}
-                  style={{
-                    stroke: (() => {
-                      let idx = 0;
-                      let count = 0;
-                      for (const g of bGroups) {
-                        for (const _ of g.lineOffsets) {
-                          if (count === i) return bColors[idx % bColors.length];
-                          count++;
-                        }
-                        idx++;
-                      }
-                      return bColors[0];
-                    })(),
-                  }}
+                  transition={{ duration: 0.4, delay: i * 0.02 }}
                 />
-              ))}
-            </g>
-          )}
+              );
+            })}
 
-          {/* الخطوة 3: نقاط التقاطع */}
-          {step >= 3 && (
-            <g>
-              {points.map((p, i) => (
+          {/* نقاط التقاطع الخضراء */}
+          {step >= 3 &&
+            groups.flatMap((g, gi) =>
+              g.points.map((p, pi) => (
                 <motion.circle
-                  key={`p-${i}`}
+                  key={`p-${gi}-${pi}`}
                   cx={p.x}
                   cy={p.y}
-                  r={6}
-                  fill="#ef4444"
-                  stroke="#fff"
-                  strokeWidth={2}
-                  initial={{ scale: 0, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  transition={{ duration: 0.3, delay: i * 0.03 }}
+                  r={4}
+                  fill={DOT_COLOR}
+                  stroke="#ffffff"
+                  strokeWidth={1}
+                  filter="url(#dotglow)"
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ delay: pi * 0.005 }}
                 />
-              ))}
-            </g>
-          )}
+              ))
+            )}
 
-          {/* الخطوة 4: أرقام المجموعات */}
-          {step >= 4 &&
+          {/* أرقام/عناوين المجموعات */}
+          {step >= 3 &&
             groups.map((g, gi) => {
-              const cx = g.points.reduce((s, p) => s + p.x, 0) / g.points.length;
-              const cy = g.points.reduce((s, p) => s + p.y, 0) / g.points.length;
+              const minY = Math.min(...g.points.map((p) => p.y));
+              const maxY = Math.max(...g.points.map((p) => p.y));
+              const labelX = g.center.x;
+              const numberY = Math.max(minY - 30, 25);
+              const labelY = Math.min(maxY + 30, CANVAS_H - 15);
+
               return (
                 <motion.g
-                  key={`g-${gi}`}
-                  initial={{ opacity: 0, y: -20 }}
+                  key={`lbl-${gi}`}
+                  initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4, delay: gi * 0.15 }}
+                  transition={{ delay: gi * 0.15 }}
                 >
-                  <circle cx={cx} cy={cy - 30} r={18} fill="#fbbf24" stroke="#fff" strokeWidth={2} />
+                  {showNumbers && (
+                    <>
+                      <circle
+                        cx={labelX}
+                        cy={numberY}
+                        r={20}
+                        fill="#fbbf24"
+                        stroke="#ffffff"
+                        strokeWidth={2}
+                      />
+                      <text
+                        x={labelX}
+                        y={numberY + 6}
+                        textAnchor="middle"
+                        fontSize="16"
+                        fontWeight="bold"
+                        fill="#1e293b"
+                      >
+                        {g.points.length}
+                      </text>
+                    </>
+                  )}
                   <text
-                    x={cx}
-                    y={cy - 24}
+                    x={labelX}
+                    y={showNumbers ? labelY + 20 : numberY}
                     textAnchor="middle"
-                    fontSize="18"
+                    fontSize="15"
                     fontWeight="bold"
-                    fill="#1e293b"
-                  >
-                    {g.value}
-                  </text>
-                  <text
-                    x={cx}
-                    y={cy + 60}
-                    textAnchor="middle"
-                    fontSize="11"
-                    fill="#cbd5e1"
+                    fill="#fbbf24"
                   >
                     {g.label}
                   </text>
@@ -390,137 +306,231 @@ const LineMethodViz: React.FC<LineMethodVizProps> = ({ a, b, autoPlay = true }) 
             })}
         </svg>
       </div>
-
-      {/* الخطوة 5: النتيجة النهائية */}
-      {step >= 5 && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mt-3 p-3 rounded-2xl bg-gradient-to-l from-emerald-500/20 to-emerald-700/20 border border-emerald-400/40 text-center"
-        >
-          <p className="text-sm text-white/70 font-body mb-1">النتيجة النهائية:</p>
-          <p className="text-3xl font-black font-display text-emerald-300" dir="ltr">
-            {a} × {b} = {a * b}
-          </p>
-        </motion.div>
-      )}
-
-      {/* شرح الخطوة الحالية */}
-      <div className="mt-3 p-3 rounded-2xl bg-white/5 border border-white/10 text-center">
-        <p className="text-sm text-white/80 font-body">
-          {step === 0 && '👀 استعد لمشاهدة الطريقة...'}
-          {step === 1 && `✏️ خطوط الرقم ${a} (${aStr.split('').join(' + ')} خط)`}
-          {step === 2 && `✏️ خطوط الرقم ${b} (${bStr.split('').join(' + ')} خط)`}
-          {step === 3 && '🔴 تظهر نقاط التقاطع...'}
-          {step === 4 && '🎯 نجمّع النقاط: آحاد ← عشرات ← مئات'}
-          {step === 5 && `🎉 الناتج = ${a * b}`}
-        </p>
-      </div>
     </div>
   );
 };
 
-// =====================================================================
+// ============================================================
 // مكوّن عرض الشبكة (Lattice)
-// =====================================================================
-const LatticeViz: React.FC<{ a: number; b: number }> = ({ a, b }) => {
-  const [step, setStep] = useState(0);
+// ============================================================
+interface LatticeProps {
+  a: number;
+  b: number;
+  animate?: boolean;
+}
+
+const LatticeViz: React.FC<LatticeProps> = ({ a, b, animate = true }) => {
+  const [step, setStep] = useState(animate ? 0 : 3);
+
   const aStr = String(a);
   const bStr = String(b);
-
-  useEffect(() => {
-    setStep(0);
-    const timer = setInterval(() => {
-      setStep((s) => (s >= 4 ? s : s + 1));
-    }, 1300);
-    return () => clearInterval(timer);
-  }, [a, b]);
+  const aLen = aStr.length;
+  const bLen = bStr.length;
+  const numDiags = aLen + bLen - 1;
 
   const cells: Array<{ i: number; j: number; val: number; tens: number; ones: number }> = [];
-  for (let i = 0; i < aStr.length; i++) {
-    for (let j = 0; j < bStr.length; j++) {
+  for (let i = 0; i < aLen; i++) {
+    for (let j = 0; j < bLen; j++) {
       const val = Number(aStr[i]) * Number(bStr[j]);
       cells.push({ i, j, val, tens: Math.floor(val / 10), ones: val % 10 });
     }
   }
 
-  // أقطار الشبكة
-  const diagonals: Array<{ cells: typeof cells; sum: number }> = [];
-  const n = aStr.length + bStr.length - 1;
-  for (let d = 0; d < n; d++) {
-    const diagCells = cells.filter((c) => c.i + (bStr.length - 1 - c.j) === d);
-    if (diagCells.length > 0) {
-      const sum = diagCells.reduce((s, c) => s + (c.i === 0 || c.j === bStr.length - 1 ? c.ones : c.ones) + (c.i > 0 || c.j < bStr.length - 1 ? 0 : 0), 0);
-      // حساب مجموع القطر بشكل صحيح:
-      // كل خلية تساهم بالعشرات أو الآحاد حسب موضع الخلية في القطر
-      diagonals.push({ cells: diagCells, sum });
+  const diagonalResults = useMemo(() => {
+    const diags: Array<{ digit: number; displayOrder: number }> = [];
+    let carry = 0;
+    for (let d = 0; d < numDiags; d++) {
+      let sum = carry;
+      for (const cell of cells) {
+        const cellDiag = (aLen - 1 - cell.i) + (bLen - 1 - cell.j);
+        if (cellDiag === d) sum += cell.ones;
+        if (cellDiag === d - 1) sum += cell.tens;
+      }
+      const digit = sum % 10;
+      carry = Math.floor(sum / 10);
+      diags.push({ digit, displayOrder: d });
     }
-  }
+    while (carry > 0) {
+      diags.push({ digit: carry % 10, displayOrder: diags.length });
+      carry = Math.floor(carry / 10);
+    }
+    return diags;
+  }, [a, b, aLen, bLen, numDiags, cells]);
+
+  useEffect(() => {
+    if (!animate) {
+      setStep(3);
+      return;
+    }
+    setStep(0);
+    const timers = [
+      setTimeout(() => setStep(1), 400),
+      setTimeout(() => setStep(2), 1500),
+      setTimeout(() => setStep(3), 2600),
+    ];
+    return () => timers.forEach(clearTimeout);
+  }, [a, b, animate]);
+
+  const cellSize = Math.min(70, 240 / Math.max(aLen, bLen));
 
   return (
-    <div className="w-full">
-      <div className="bg-white rounded-2xl p-3 inline-block w-full" dir="ltr">
-        <div className="flex justify-center">
-          <div>
-            <div className="flex" style={{ paddingRight: 40 }}>
-              {bStr.split('').map((d, j) => (
-                <div key={j} className="w-16 text-center font-bold text-purple-700 text-lg">{d}</div>
-              ))}
+    <div className="w-full flex justify-center">
+      <div className="bg-white rounded-2xl p-3 inline-block" dir="ltr">
+        {/* رأس الجدول (أرقام b) */}
+        <div className="flex" style={{ paddingLeft: 40 }}>
+          {bStr.split('').map((d, j) => (
+            <div
+              key={j}
+              className="text-center font-bold text-purple-700"
+              style={{ width: cellSize }}
+            >
+              {d}
             </div>
-            {aStr.split('').map((aDigit, i) => (
-              <div key={i} className="flex items-center">
-                <div className="w-10 text-center font-bold text-purple-700 text-lg">{aDigit}</div>
-                <div className="flex">
-                  {bStr.split('').map((_, j) => {
-                    const cell = cells.find((c) => c.i === i && c.j === j)!;
-                    return (
-                      <div key={j} className="w-16 h-16 border-2 border-purple-300 relative bg-purple-50">
-                        <div className="absolute inset-0 flex flex-col">
-                          <div className="flex-1 flex items-center justify-center text-blue-600 font-bold text-lg">
-                            {cell.tens}
-                          </div>
-                          <div className="flex-1 flex items-center justify-center text-red-600 font-bold text-lg border-t-2 border-purple-300">
-                            {cell.ones}
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            ))}
-          </div>
+          ))}
         </div>
-      </div>
 
-      <div className="mt-3 p-3 rounded-2xl bg-white/5 border border-white/10 text-center">
-        <p className="text-sm text-white/80 font-body">
-          {step === 0 && '📋 نضرب كل رقم في الخلايا...'}
-          {step >= 1 && '🔢 نبدأ بجمع الأقطار من اليمين لليسار'}
-          {step >= 2 && '💡 عند تجاوز 9 → نحمل الرقم للمنزلة التالية'}
-          {step >= 3 && `🎯 النتيجة: ${a * b}`}
-        </p>
-      </div>
+        {/* الصفوف */}
+        {aStr.split('').map((aDigit, i) => (
+          <div key={i} className="flex items-center">
+            <div
+              className="font-bold text-purple-700 text-center"
+              style={{ width: 40 }}
+            >
+              {aDigit}
+            </div>
+            {bStr.split('').map((_, j) => {
+              const cell = cells.find((c) => c.i === i && c.j === j)!;
+              const cellDiag = (aLen - 1 - i) + (bLen - 1 - j);
+              const show = step >= 1;
+              return (
+                <div
+                  key={j}
+                  className="border border-purple-300 relative bg-purple-50"
+                  style={{ width: cellSize, height: cellSize }}
+                >
+                  {show && (
+                    <div className="absolute inset-0 flex flex-col">
+                      <div className="flex-1 flex items-center justify-center text-blue-600 font-bold text-base">
+                        {cell.tens}
+                      </div>
+                      <div className="flex-1 flex items-center justify-center text-red-600 font-bold text-base border-t border-purple-300">
+                        {cell.ones}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        ))}
 
-      {step >= 3 && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mt-3 p-3 rounded-2xl bg-gradient-to-l from-emerald-500/20 to-emerald-700/20 border border-emerald-400/40 text-center"
-        >
-          <p className="text-sm text-white/70 font-body mb-1">النتيجة النهائية:</p>
-          <p className="text-3xl font-black font-display text-emerald-300" dir="ltr">
-            {a} × {b} = {a * b}
-          </p>
-        </motion.div>
-      )}
+        {/* صف النتيجة */}
+        {step >= 2 && (
+          <div className="mt-3 flex justify-center gap-1" dir="ltr">
+            {diagonalResults
+              .slice()
+              .reverse()
+              .map((d, idx) => (
+                <motion.div
+                  key={idx}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: idx * 0.12 }}
+                  className="w-10 h-10 rounded-lg bg-emerald-500 flex items-center justify-center text-white font-bold text-lg"
+                >
+                  {d.digit}
+                </motion.div>
+              ))}
+          </div>
+        )}
+
+        {/* النتيجة النهائية */}
+        {step >= 3 && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="mt-3 text-center"
+          >
+            <span className="text-sm text-gray-600">الناتج: </span>
+            <span className="text-2xl font-black text-emerald-600">{a * b}</span>
+          </motion.div>
+        )}
+      </div>
     </div>
   );
 };
 
-// =====================================================================
+// ============================================================
+// بيانات المراحل
+// ============================================================
+interface StageData {
+  id: Stage;
+  label: string;
+  watchExamples: { lattice: Problem; lines: Problem };
+  tryProblems: Problem[];
+}
+
+const STAGE_DATA: Record<Stage, StageData> = {
+  1: {
+    id: 1,
+    label: 'منزلتين × منزلة',
+    watchExamples: {
+      lattice: { a: 62, b: 8 },
+      lines: { a: 44, b: 6 },
+    },
+    tryProblems: [
+      { a: 62, b: 8 },   // شبكة
+      { a: 32, b: 4 },
+      { a: 23, b: 6 },
+      { a: 41, b: 5 },
+      { a: 14, b: 7 },
+    ],
+  },
+  2: {
+    id: 2,
+    label: '٣ منازل × منزلة',
+    watchExamples: {
+      lattice: { a: 312, b: 3 },
+      lines: { a: 321, b: 3 },
+    },
+    tryProblems: [
+      { a: 312, b: 3 },  // شبكة
+      { a: 213, b: 4 },
+      { a: 123, b: 5 },
+      { a: 421, b: 2 },
+      { a: 132, b: 6 },
+    ],
+  },
+  3: {
+    id: 3,
+    label: 'منزلتين × منزلتين',
+    watchExamples: {
+      lattice: { a: 32, b: 12 },
+      lines: { a: 14, b: 23 },
+    },
+    tryProblems: [
+      { a: 32, b: 12 },  // شبكة
+      { a: 13, b: 21 },
+      { a: 21, b: 13 },
+      { a: 14, b: 22 },
+      { a: 12, b: 32 },
+    ],
+  },
+};
+
+// ============================================================
+// دوال مساعدة
+// ============================================================
+function getColumnsForValue(value: number): number {
+  if (value < 10) return 1;
+  if (value < 100) return 2;
+  if (value < 1000) return 3;
+  return 4;
+}
+
+// ============================================================
 // الشاشة الرئيسية
-// =====================================================================
+// ============================================================
 interface Props {
   onBack: () => void;
   onComplete?: (stars: number) => void;
@@ -529,63 +539,97 @@ interface Props {
 const MultiplicationScreen: React.FC<Props> = ({ onBack, onComplete }) => {
   const [stage, setStage] = useState<Stage>(1);
   const [mode, setMode] = useState<'watch' | 'try'>('watch');
-  const [watchIndex, setWatchIndex] = useState(0);
-  const [problems, setProblems] = useState<Problem[]>(() => generateProblems(1));
-  const [idx, setIdx] = useState(0);
-  const [answer, setAnswer] = useState('');
+  const [watchIdx, setWatchIdx] = useState<0 | 1>(0); // 0 = lattice, 1 = lines
+  const [tryIdx, setTryIdx] = useState(0);
+  const [abacusValue, setAbacusValue] = useState(0);
   const [feedback, setFeedback] = useState<'ok' | 'no' | null>(null);
-  const [showHint, setShowHint] = useState(false);
+  const [attempts, setAttempts] = useState(0);
   const [score, setScore] = useState(0);
 
-  const current = problems[idx];
+  const stageData = STAGE_DATA[stage];
+  const watchExample =
+    watchIdx === 0 ? stageData.watchExamples.lattice : stageData.watchExamples.lines;
+  const currentProblem = stageData.tryProblems[tryIdx];
+  const isTryLattice = tryIdx === 0;
 
-  // مسائل وضع الشاهد
-  const watchExamples: Problem[] = useMemo(() => {
-    if (stage === 1) return [{ a: 62, b: 8, r: 496 }, { a: 32, b: 4, r: 128 }, { a: 21, b: 6, r: 126 }];
-    if (stage === 2) return [{ a: 312, b: 3, r: 936 }, { a: 213, b: 4, r: 852 }, { a: 123, b: 7, r: 861 }];
-    return [{ a: 13, b: 21, r: 273 }, { a: 32, b: 12, r: 384 }, { a: 14, b: 23, r: 322 }];
-  }, [stage]);
-
-  const watchCurrent = watchExamples[watchIndex];
-
+  // إعادة تعيين عند تغيير المرحلة
   const changeStage = (s: Stage) => {
     setStage(s);
-    setProblems(generateProblems(s));
-    setIdx(0);
-    setAnswer('');
+    setTryIdx(0);
+    setWatchIdx(0);
+    setAbacusValue(0);
     setFeedback(null);
-    setShowHint(false);
+    setAttempts(0);
     setScore(0);
-    setWatchIndex(0);
   };
 
-  const handleSubmit = () => {
-    if (!current) return;
-    if (Number(answer) === current.r) {
+  // إعادة تعيين عند تغيير الوضع
+  const changeMode = (m: 'watch' | 'try') => {
+    setMode(m);
+    setTryIdx(0);
+    setWatchIdx(0);
+    setAbacusValue(0);
+    setFeedback(null);
+    setAttempts(0);
+    setScore(0);
+  };
+
+  // التحقق من الإجابة
+  const handleCheck = () => {
+    if (!currentProblem) return;
+    const correct = currentProblem.a * currentProblem.b;
+    if (abacusValue === correct) {
       setFeedback('ok');
       setScore((s) => s + 1);
       setTimeout(() => {
-        if (idx + 1 >= problems.length) {
-          if (onComplete) onComplete(Math.max(1, Math.round(((score + 1) / problems.length) * 3)));
+        if (tryIdx + 1 >= stageData.tryProblems.length) {
+          if (onComplete) {
+            const stars = Math.max(1, Math.round(((score + 1) / stageData.tryProblems.length) * 3));
+            onComplete(stars);
+          }
         } else {
-          setIdx(idx + 1);
-          setAnswer('');
+          setTryIdx(tryIdx + 1);
+          setAbacusValue(0);
           setFeedback(null);
-          setShowHint(false);
+          setAttempts(0);
         }
-      }, 1200);
+      }, 1500);
     } else {
       setFeedback('no');
-      setShowHint(true);
-      setTimeout(() => setFeedback(null), 1500);
+      setAttempts((a) => a + 1);
     }
   };
 
+  // مسح المعداد
+  const handleClear = () => {
+    setAbacusValue(0);
+  };
+
+  // الانتقال للسؤال التالي
+  const handleNext = () => {
+    if (tryIdx + 1 < stageData.tryProblems.length) {
+      setTryIdx(tryIdx + 1);
+      setAbacusValue(0);
+      setFeedback(null);
+      setAttempts(0);
+    }
+  };
+
+  const columns = currentProblem
+    ? getColumnsForValue(currentProblem.a * currentProblem.b)
+    : 3;
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-900 via-indigo-950 to-slate-900 text-white p-4 pb-24" dir="rtl">
+    <div
+      className="min-h-screen bg-gradient-to-b from-slate-900 via-indigo-950 to-slate-900 text-white p-4 pb-24"
+      dir="rtl"
+    >
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
-        <button onClick={onBack} className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition">
+        <button
+          onClick={onBack}
+          className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition"
+        >
           <ArrowRight className="w-6 h-6" />
         </button>
         <h1 className="text-base sm:text-xl font-bold bg-gradient-to-r from-amber-300 to-purple-400 bg-clip-text text-transparent">
@@ -596,19 +640,15 @@ const MultiplicationScreen: React.FC<Props> = ({ onBack, onComplete }) => {
 
       {/* Stage Selector */}
       <div className="flex gap-2 mb-4 overflow-x-auto pb-1">
-        {[
-          { id: 1 as Stage, label: 'منزلتين × منزلة' },
-          { id: 2 as Stage, label: '٣ منازل × منزلة' },
-          { id: 3 as Stage, label: 'منزلتين × منزلتين' },
-        ].map((s) => (
+        {[1, 2, 3].map((s) => (
           <button
-            key={s.id}
-            onClick={() => changeStage(s.id)}
+            key={s}
+            onClick={() => changeStage(s as Stage)}
             className={`px-3 py-2 rounded-xl whitespace-nowrap font-bold text-xs sm:text-sm transition ${
-              stage === s.id ? 'bg-purple-600 shadow-lg' : 'bg-white/10 hover:bg-white/20'
+              stage === s ? 'bg-purple-600 shadow-lg' : 'bg-white/10 hover:bg-white/20'
             }`}
           >
-            {s.label}
+            {STAGE_DATA[s as Stage].label}
           </button>
         ))}
       </div>
@@ -616,16 +656,16 @@ const MultiplicationScreen: React.FC<Props> = ({ onBack, onComplete }) => {
       {/* Mode Selector */}
       <div className="flex gap-2 mb-6 bg-white/5 p-1 rounded-2xl">
         <button
-          onClick={() => setMode('watch')}
-          className={`flex-1 py-3 rounded-xl font-bold transition flex items-center justify-center gap-2 ${
+          onClick={() => changeMode('watch')}
+          className={`flex-1 py-3 rounded-xl font-bold transition flex items-center justify-center gap-2 text-sm ${
             mode === 'watch' ? 'bg-purple-600' : 'text-white/60'
           }`}
         >
           <Eye className="w-5 h-5" /> شاهد
         </button>
         <button
-          onClick={() => setMode('try')}
-          className={`flex-1 py-3 rounded-xl font-bold transition flex items-center justify-center gap-2 ${
+          onClick={() => changeMode('try')}
+          className={`flex-1 py-3 rounded-xl font-bold transition flex items-center justify-center gap-2 text-sm ${
             mode === 'try' ? 'bg-purple-600' : 'text-white/60'
           }`}
         >
@@ -633,99 +673,159 @@ const MultiplicationScreen: React.FC<Props> = ({ onBack, onComplete }) => {
         </button>
       </div>
 
-      {/* ============ Watch Mode ============ */}
-      {mode === 'watch' && watchCurrent && (
+      {/* ======================= Watch Mode ======================= */}
+      {mode === 'watch' && (
         <div className="space-y-4">
-          {/* المعادلة */}
+          {/* Sub-selector: Lattice or Lines */}
+          <div className="flex gap-2 bg-white/5 p-1 rounded-2xl">
+            <button
+              onClick={() => setWatchIdx(0)}
+              className={`flex-1 py-2 rounded-xl font-bold text-xs transition ${
+                watchIdx === 0 ? 'bg-amber-500 text-black' : 'text-white/60'
+              }`}
+            >
+              مثال شبكة (Lattice)
+            </button>
+            <button
+              onClick={() => setWatchIdx(1)}
+              className={`flex-1 py-2 rounded-xl font-bold text-xs transition ${
+                watchIdx === 1 ? 'bg-emerald-500 text-black' : 'text-white/60'
+              }`}
+            >
+              مثال خطوط
+            </button>
+          </div>
+
+          {/* عنوان المثال */}
           <div className="bg-white/5 rounded-2xl p-4 text-center">
-            <p className="text-sm text-white/60 mb-2">مثال {watchIndex + 1} من {watchExamples.length}</p>
+            <p className="text-xs text-white/60 mb-2">
+              {watchIdx === 0 ? 'المثال الأول: طريقة الشبكة' : 'المثال الثاني: طريقة الخطوط'}
+            </p>
             <p className="text-3xl font-black font-display text-white" dir="ltr">
-              <span className="text-amber-300">{watchCurrent.a}</span>
+              <span className="text-amber-300">{watchExample.a}</span>
               <span className="text-white/60 mx-3">×</span>
-              <span className="text-emerald-300">{watchCurrent.b}</span>
+              <span className="text-emerald-300">{watchExample.b}</span>
               <span className="text-white/60 mx-3">=</span>
-              <span className="text-purple-300">؟</span>
+              <span className="text-purple-300">
+                {watchExample.a * watchExample.b}
+              </span>
             </p>
           </div>
 
-          {/* طريقة الخطوط */}
+          {/* الرسم */}
           <div className="bg-white/5 rounded-2xl p-3">
-            <h3 className="font-bold mb-2 flex items-center gap-2 text-sm">
-              <span className="bg-emerald-500 text-black rounded-lg px-2 py-1 text-xs">طريقة الخطوط القطرية</span>
-            </h3>
-            <LineMethodViz a={watchCurrent.a} b={watchCurrent.b} autoPlay key={`${stage}-${watchIndex}`} />
-          </div>
-
-          {/* طريقة الشبكة (فقط في المرحلة 3) */}
-          {stage === 3 && (
-            <div className="bg-white/5 rounded-2xl p-3">
-              <h3 className="font-bold mb-2 flex items-center gap-2 text-sm">
-                <span className="bg-amber-500 text-black rounded-lg px-2 py-1 text-xs">طريقة الشبكة (Lattice)</span>
-              </h3>
-              <LatticeViz a={watchCurrent.a} b={watchCurrent.b} />
-            </div>
-          )}
-
-          {/* أزرار التنقل بين الأمثلة */}
-          <div className="flex gap-2">
-            <button
-              onClick={() => setWatchIndex((i) => Math.max(0, i - 1))}
-              disabled={watchIndex === 0}
-              className="flex-1 py-3 rounded-xl bg-white/10 font-bold disabled:opacity-30"
-            >
-              السابق
-            </button>
-            <button
-              onClick={() => setWatchIndex((i) => Math.min(watchExamples.length - 1, i + 1))}
-              disabled={watchIndex >= watchExamples.length - 1}
-              className="flex-1 py-3 rounded-xl bg-purple-600 font-bold disabled:opacity-30"
-            >
-              التالي
-            </button>
+            {watchIdx === 0 ? (
+              <LatticeViz a={watchExample.a} b={watchExample.b} animate key={`wl-${stage}`} />
+            ) : (
+              <LineMethodViz
+                a={watchExample.a}
+                b={watchExample.b}
+                showNumbers
+                animate
+                key={`wln-${stage}`}
+              />
+            )}
           </div>
 
           {/* قاعدة الحمل */}
           <div className="bg-amber-500/20 border border-amber-500/40 rounded-2xl p-4 text-sm">
-            <p className="font-bold mb-2">💡 قاعدة الحمل:</p>
-            <p className="text-white/80">
+            <p className="font-bold mb-2 flex items-center gap-2">
+              <Lightbulb className="w-5 h-5 text-amber-300" /> قاعدة الحمل:
+            </p>
+            <p className="text-white/80 leading-relaxed">
               إذا تجاوز مجموع النقاط في أي مجموعة الرقم 9 → نحتفظ بالآحاد ونحمل العشرات للمنزلة التالية (يسارًا).
             </p>
           </div>
         </div>
       )}
 
-      {/* ============ Try Mode ============ */}
-      {mode === 'try' && current && (
+      {/* ======================= Try Mode ======================= */}
+      {mode === 'try' && currentProblem && (
         <div className="space-y-4">
+          {/* Progress */}
           <div className="text-center">
-            <span className="text-sm text-white/60">السؤال {idx + 1} من {problems.length} — النقاط: {score}</span>
+            <span className="text-sm text-white/60">
+              السؤال {tryIdx + 1} من {stageData.tryProblems.length} — النقاط: {score}
+            </span>
           </div>
 
-          <div className="bg-white/5 rounded-3xl p-6 text-center">
-            <div className="text-4xl font-bold mb-4" dir="ltr">
-              <span className="text-amber-300">{current.a}</span>
+          {/* Problem */}
+          <div className="bg-white/5 rounded-3xl p-5 text-center">
+            <p className="text-xs text-white/50 mb-2">
+              {isTryLattice ? '🟨 طريقة الشبكة' : '🟩 طريقة الخطوط'}
+            </p>
+            <div className="text-4xl font-bold" dir="ltr">
+              <span className="text-amber-300">{currentProblem.a}</span>
               <span className="text-white/60 mx-3">×</span>
-              <span className="text-emerald-300">{current.b}</span>
+              <span className="text-emerald-300">{currentProblem.b}</span>
               <span className="text-white/60 mx-3">=</span>
               <span className="text-purple-300">؟</span>
             </div>
-            <input
-              type="number"
-              value={answer}
-              onChange={(e) => setAnswer(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
-              placeholder="اكتب الإجابة"
-              className="w-full max-w-xs mx-auto block bg-slate-800 border-2 border-purple-500/50 rounded-2xl px-4 py-3 text-center text-2xl font-bold text-white outline-none focus:border-amber-400"
-              dir="ltr"
-            />
-            <button
-              onClick={handleSubmit}
-              className="mt-4 px-8 py-3 bg-gradient-to-l from-purple-600 to-amber-500 rounded-2xl font-bold flex items-center gap-2 mx-auto"
-            >
-              <Check className="w-5 h-5" /> تحقق
-            </button>
           </div>
 
+          {/* Viz */}
+          <div className="bg-white/5 rounded-2xl p-3">
+            {isTryLattice ? (
+              <LatticeViz a={currentProblem.a} b={currentProblem.b} animate={false} key={`tl-${stage}-${tryIdx}`} />
+            ) : (
+              <LineMethodViz
+                a={currentProblem.a}
+                b={currentProblem.b}
+                showNumbers={false}
+                animate={false}
+                key={`tln-${stage}-${tryIdx}`}
+              />
+            )}
+          </div>
+
+          {/* Hint text for lines mode */}
+          {!isTryLattice && (
+            <div className="bg-emerald-500/15 border border-emerald-500/30 rounded-2xl p-3 text-xs text-center">
+              <p className="text-emerald-200">
+                💡 عُدّ النقاط الخضراء في كل مجموعة، ثم أدخل الإجابة على المعداد.
+              </p>
+            </div>
+          )}
+
+          {/* Soroban for answer */}
+          <div className="bg-white/5 rounded-2xl p-3">
+            <p className="text-xs text-white/60 mb-3 text-center">
+              مثّل الإجابة على المعداد:
+            </p>
+            <div className="flex justify-center">
+              <InteractiveSoroban
+                columns={columns}
+                value={abacusValue}
+                onValueChange={setAbacusValue}
+              />
+            </div>
+          </div>
+
+          {/* Current value display */}
+          <div className="text-center">
+            <span className="text-sm text-white/60">القيمة الحالية: </span>
+            <span className="text-2xl font-bold text-amber-300">{abacusValue}</span>
+          </div>
+
+          {/* Buttons */}
+          {!feedback && (
+            <div className="flex gap-2">
+              <button
+                onClick={handleClear}
+                className="flex-1 py-3 rounded-xl bg-white/10 hover:bg-white/20 font-bold flex items-center justify-center gap-2"
+              >
+                <RotateCcw className="w-4 h-4" /> مسح
+              </button>
+              <button
+                onClick={handleCheck}
+                className="flex-1 py-3 rounded-xl bg-gradient-to-l from-purple-600 to-amber-500 font-bold flex items-center justify-center gap-2"
+              >
+                <Check className="w-5 h-5" /> تحقق
+              </button>
+            </div>
+          )}
+
+          {/* Feedback */}
           <AnimatePresence>
             {feedback === 'ok' && (
               <motion.div
@@ -736,6 +836,9 @@ const MultiplicationScreen: React.FC<Props> = ({ onBack, onComplete }) => {
               >
                 <Check className="w-8 h-8 text-emerald-400 mx-auto mb-2" />
                 <p className="font-bold text-emerald-300">إجابة صحيحة! 🎉</p>
+                <p className="text-xs text-white/60 mt-1">
+                  {tryIdx + 1 < stageData.tryProblems.length ? 'جاري الانتقال...' : 'انتهت المرحلة!'}
+                </p>
               </motion.div>
             )}
             {feedback === 'no' && (
@@ -747,18 +850,31 @@ const MultiplicationScreen: React.FC<Props> = ({ onBack, onComplete }) => {
               >
                 <X className="w-8 h-8 text-red-400 mx-auto mb-2" />
                 <p className="font-bold text-red-300">حاول مرة أخرى</p>
+                <p className="text-xs text-white/60 mt-1">
+                  عدد المحاولات: {attempts}
+                </p>
+                <button
+                  onClick={() => {
+                    setFeedback(null);
+                    setAbacusValue(0);
+                  }}
+                  className="mt-3 px-6 py-2 bg-white/10 hover:bg-white/20 rounded-xl text-sm font-bold"
+                >
+                  إعادة المحاولة
+                </button>
               </motion.div>
             )}
           </AnimatePresence>
 
-          {/* تلميح مرئي */}
-          {showHint && (
-            <div className="bg-white/5 rounded-2xl p-3">
-              <p className="font-bold mb-3 flex items-center gap-2 text-sm">
-                <Lightbulb className="w-5 h-5 text-amber-300" /> الحل خطوة بخطوة:
-              </p>
-              <LineMethodViz a={current.a} b={current.b} autoPlay={false} key={`hint-${idx}`} />
-            </div>
+          {/* Skip button */}
+          {!feedback && (
+            <button
+              onClick={handleNext}
+              disabled={tryIdx + 1 >= stageData.tryProblems.length}
+              className="w-full py-2 rounded-xl bg-white/5 hover:bg-white/10 text-white/50 text-xs disabled:opacity-30"
+            >
+              تخطي
+            </button>
           )}
         </div>
       )}
