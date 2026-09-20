@@ -1,5 +1,6 @@
 // ============================================================
 // types.ts — الأنواع المركزية لمشروع SorobanMind
+// الإصدار: 2.0 (بعد إعادة الهيكلة)
 // ============================================================
 
 // ------------------------------------------------------------
@@ -29,7 +30,7 @@ export type AvatarId = CharacterType;
 /** مفتاح التخزين في localStorage */
 export const CHARACTER_STORAGE_KEY = 'soroban_companion';
 
-/** قائمة الشخصيات الصالحة — تُستخدم للتحقق */
+/** قائمة الشخصيات الصالحة */
 export const VALID_CHARACTERS: CharacterType[] = [
   'sham',
   'rayan',
@@ -37,13 +38,13 @@ export const VALID_CHARACTERS: CharacterType[] = [
   'joud',
 ];
 
-/** خريطة التوافق مع الإصدارات القديمة من localStorage */
+/** خريطة التوافق مع الإصدارات القديمة */
 export const LEGACY_CHARACTER_MAP: Partial<Record<string, CharacterType>> = {
   fox: 'sham',
   owl: 'bana',
   rabbit: 'rayan',
   panda: 'joud',
-  aya: 'joud', // "آية" القديمة → "جود"
+  aya: 'joud',
 };
 
 /** بيانات وصفية للشخصية */
@@ -123,7 +124,42 @@ export interface DivisionExample {
 }
 
 // ------------------------------------------------------------
-// وحدات التعلّم
+// ✨ أنواع جديدة — نظام القواعد والجداول
+// ------------------------------------------------------------
+
+/** قاعدة فرعية داخل درس (مثل: +1 = +5-4) */
+export interface SubRule {
+  id: string;
+  formula: string;
+  formulaAr: string;
+  story: string;
+  storyAudioText?: string;
+}
+
+/** عمود في جدول التمارين */
+export interface TableColumn {
+  operations: ChainOperation[];
+  answer: number;
+}
+
+/** جدول تمارين (15 عمود × 5 صفوف) */
+export interface RuleTable {
+  id: string;
+  titleAr: string;
+  rule: string;
+  columns: TableColumn[];
+}
+
+/** نشاط ملموس تمهيدي */
+export interface TactileActivity {
+  titleAr: string;
+  materials: string[];
+  steps: string[];
+  goal: string;
+}
+
+// ------------------------------------------------------------
+// وحدات التعلّم (محدّثة)
 // ------------------------------------------------------------
 export interface LearnModule {
   id: number;
@@ -144,8 +180,18 @@ export interface LearnModule {
   story: string;
   storyAudioText?: string;
   examples: (LessonExample | DivisionExample)[];
+
+  // ✨ إضافات جديدة
+  subRules?: SubRule[];
+  tables?: RuleTable[];
+  tactileActivity?: TactileActivity;
+  targetAge?: string;
+  requiresAllPrevious?: boolean;
 }
 
+// ------------------------------------------------------------
+// المستويات
+// ------------------------------------------------------------
 export interface LevelNode {
   id: number;
   name: string;
@@ -154,6 +200,36 @@ export interface LevelNode {
   icon: string;
   xpRequired: number;
 }
+
+// ------------------------------------------------------------
+// نظام التقدم والنجاح
+// ------------------------------------------------------------
+
+/** تقدم الطالب في مستوى واحد */
+export interface StudentProgress {
+  levelId: number;
+  correctAnswers: number;
+  totalAttempts: number;
+  score: number;
+  passed: boolean;
+  attemptsAllowed: number;
+  attemptsUsed: number;
+  lastUpdated: number;
+}
+
+/** قواعد النجاح في المستوى */
+export interface LevelUnlockRules {
+  PASS_THRESHOLD: number;
+  MIN_CORRECT: number;
+  MAX_ATTEMPTS: number;
+}
+
+/** القيم الافتراضية لقواعد النجاح */
+export const LEVEL_RULES: LevelUnlockRules = {
+  PASS_THRESHOLD: 75,
+  MIN_CORRECT: 15,
+  MAX_ATTEMPTS: 5,
+};
 
 // ------------------------------------------------------------
 // المهام (Quests)
@@ -193,12 +269,11 @@ export interface PracticeQuestion {
   choices: number[];
   type?: RuleCategory;
   steps?: LessonStep[];
-  /** رقم الدرس المرتبط بالسؤال (1-12) */
   lessonId?: number;
 }
 
 // ------------------------------------------------------------
-// تمارين السلاسل الطويلة (الدرس 7)
+// تمارين السلاسل الطويلة
 // ------------------------------------------------------------
 export interface ChainOperation {
   value: number;
@@ -207,19 +282,12 @@ export interface ChainOperation {
 
 export interface ChainExercise {
   id: string;
-  /** العمليات المتتالية */
   operations: ChainOperation[];
-  /** النتيجة النهائية */
   answer: number;
-  /** عدد الصفوف (4-15) */
   rows: number;
-  /** عدد المنازل: 1 = آحاد، 2 = عشرات، 3 = مئات */
   digits: 1 | 2 | 3;
-  /** اسم المجموعة */
   groupAr: string;
-  /** مرتبط بالدرس */
   lessonId: number;
-  /** صعوبة: 1-6 */
   difficulty: number;
 }
 
@@ -227,21 +295,13 @@ export interface ChainExercise {
 // إعدادات مستويات الأنزان
 // ------------------------------------------------------------
 export interface AnzanLevelRules {
-  /** المستوى المرتبط بالدرس */
   lessonId: number;
-  /** مفتاح المستوى */
   key: 'beginner' | 'intermediate' | 'advanced' | 'expert' | 'master';
-  /** عدد العمليات */
   operationsCount: number;
-  /** هل تسمح بالطرح */
   allowSubtract: boolean;
-  /** هل تسمح بمنزلتين أو أكثر */
   multiDigit: boolean;
-  /** القاعدة المسيطرة */
   dominantRule: RuleCategory;
-  /** أقصى قيمة للعملية الواحدة */
   maxValue: number;
-  /** الوصف بالعربية */
   labelAr: string;
 }
 
@@ -272,5 +332,5 @@ export interface ProgressData {
   weeklyXP: { day: string; xp: number }[];
 }
 
-/** تقدّم الدروس: مفتاح = رقم الدرس، القيمة = مصفوفة خطوات مكتملة */
+/** تقدّم الدروس */
 export type LessonProgress = Record<number, number[]>;
