@@ -11,30 +11,43 @@ for (let i = 1; i <= 9; i++) {
   }
 }
 
+// ===== أوقات كل سر (بالثواني) =====
+const SECRET_TIMES: Record<number, number> = {
+  5: 5, 6: 6, 7: 8, 8: 8, 9: 5,
+  10: 6, 11: 10, 12: 6, 13: 10, 14: 12,
+  15: 12, 16: 10,
+};
+
+function getTimeForSecret(id: number): number {
+  return SECRET_TIMES[id] || 10;
+}
+
+const QUESTIONS_PER_EXAM = 7;
+
 // ===== توليد أسئلة كل سر =====
 type Question = { q: string; a: number };
 
 function generateQuestions(secretId: number): Question[] {
   const questions: Question[] = [];
-  const shuffle = <T,>(arr: T[]) => arr.sort(() => Math.random() - 0.5);
+  const shuffle = <T,>(arr: T[]) => [...arr].sort(() => Math.random() - 0.5);
 
   if (secretId === 5) {
-    const nums = shuffle([3, 4, 6, 7, 8, 9, 12, 14, 16, 18]).slice(0, 5);
+    const nums = shuffle([3, 4, 6, 7, 8, 9, 12, 14, 16, 18]).slice(0, QUESTIONS_PER_EXAM);
     nums.forEach((n) => questions.push({ q: `5 × ${n}`, a: 5 * n }));
   } else if (secretId === 6) {
-    const nums = shuffle([2, 4, 6, 8, 12, 14, 16, 18, 22, 24]).slice(0, 5);
+    const nums = shuffle([2, 4, 6, 8, 12, 14, 16, 18, 22, 24]).slice(0, QUESTIONS_PER_EXAM);
     nums.forEach((n) => questions.push({ q: `6 × ${n}`, a: 6 * n }));
   } else if (secretId === 7) {
-    const nums = shuffle([2, 3, 4, 5, 6, 7, 8, 9]).slice(0, 5);
+    const nums = shuffle([2, 3, 4, 5, 6, 7, 8, 9, 11, 12]).slice(0, QUESTIONS_PER_EXAM);
     nums.forEach((n) => questions.push({ q: `7 × ${n}`, a: 7 * n }));
   } else if (secretId === 8) {
-    const nums = shuffle([2, 3, 4, 5, 6, 7, 8, 9]).slice(0, 5);
+    const nums = shuffle([2, 3, 4, 5, 6, 7, 8, 9, 11, 12]).slice(0, QUESTIONS_PER_EXAM);
     nums.forEach((n) => questions.push({ q: `8 × ${n}`, a: 8 * n }));
   } else if (secretId === 9) {
-    const nums = shuffle([2, 3, 4, 5, 6, 7, 8, 9]).slice(0, 5);
+    const nums = shuffle([2, 3, 4, 5, 6, 7, 8, 9, 11, 12]).slice(0, QUESTIONS_PER_EXAM);
     nums.forEach((n) => questions.push({ q: `9 × ${n}`, a: 9 * n }));
   } else if (secretId === 10) {
-    const nums = shuffle([3, 5, 6, 7, 9, 11, 12, 13]).slice(0, 5);
+    const nums = shuffle([3, 5, 6, 7, 9, 11, 12, 13, 14]).slice(0, QUESTIONS_PER_EXAM);
     nums.forEach((n) => {
       const is4 = Math.random() > 0.5;
       if (is4) questions.push({ q: `${n} × 4`, a: n * 4 });
@@ -43,28 +56,28 @@ function generateQuestions(secretId: number): Question[] {
   } else if (secretId === 11) {
     const pairs: [number, number][] = [];
     for (let i = 6; i <= 9; i++) for (let j = 6; j <= 9; j++) pairs.push([i, j]);
-    shuffle(pairs).slice(0, 5).forEach(([a, b]) => {
+    shuffle(pairs).slice(0, QUESTIONS_PER_EXAM).forEach(([a, b]) => {
       questions.push({ q: `${a} × ${b}`, a: a * b });
     });
   } else if (secretId === 12) {
-    const nums = shuffle([12, 23, 34, 45, 51, 62, 71, 82, 91, 153, 220]).slice(0, 5);
+    const nums = shuffle([12, 23, 34, 45, 51, 62, 71, 82, 91, 153, 220, 132]).slice(0, QUESTIONS_PER_EXAM);
     nums.forEach((n) => questions.push({ q: `${n} × 11`, a: n * 11 }));
   } else if (secretId === 13) {
-    const nums = shuffle([3, 5, 7, 12, 25, 34, 46, 55, 62, 78]).slice(0, 5);
+    const nums = shuffle([3, 5, 7, 12, 25, 34, 46, 55, 62, 78, 87, 91]).slice(0, QUESTIONS_PER_EXAM);
     nums.forEach((n) => questions.push({ q: `${n} × 99`, a: n * 99 }));
   } else if (secretId === 14) {
-    const nums = shuffle([2, 3, 5, 7, 12, 20, 45, 76, 33, 88]).slice(0, 5);
+    const nums = shuffle([2, 3, 5, 7, 12, 20, 45, 76, 33, 88, 55, 66]).slice(0, QUESTIONS_PER_EXAM);
     nums.forEach((n) => questions.push({ q: `${n} × 999`, a: n * 999 }));
   } else if (secretId === 15) {
     const pairs: [number, number][] = [];
     for (let i = 90; i <= 99; i++) for (let j = 90; j <= 99; j++) pairs.push([i, j]);
-    shuffle(pairs).slice(0, 5).forEach(([a, b]) => {
+    shuffle(pairs).slice(0, QUESTIONS_PER_EXAM).forEach(([a, b]) => {
       questions.push({ q: `${a} × ${b}`, a: a * b });
     });
   } else if (secretId === 16) {
     const pairs: [number, number][] = [];
     for (let i = 101; i <= 108; i++) for (let j = 101; j <= 108; j++) pairs.push([i, j]);
-    shuffle(pairs).slice(0, 5).forEach(([a, b]) => {
+    shuffle(pairs).slice(0, QUESTIONS_PER_EXAM).forEach(([a, b]) => {
       questions.push({ q: `${a} × ${b}`, a: a * b });
     });
   }
@@ -233,7 +246,6 @@ const SECRETS = [
 ];
 
 const BEST_SCORES_KEY = 'soroban_secrets_best_scores';
-const TIME_PER_QUESTION = 20;
 const MAX_ATTEMPTS = 2;
 
 interface Props {
@@ -354,7 +366,7 @@ const MagicSecretsScreen: React.FC<Props> = ({ onBack, onComplete, onXP }) => {
                   <p className="text-xs opacity-90">{s.rule}</p>
                   {best > 0 && (
                     <p className="text-[10px] mt-1 opacity-90">
-                      🏆 أفضل نتيجة: {best}/5
+                      🏆 أفضل نتيجة: {best}/{QUESTIONS_PER_EXAM}
                     </p>
                   )}
                 </div>
@@ -425,9 +437,16 @@ const MagicSecretsScreen: React.FC<Props> = ({ onBack, onComplete, onXP }) => {
                       </div>
                     )}
 
+                    <div className="mt-4 p-3 bg-white/5 border border-white/10 rounded-xl text-sm text-center flex items-center justify-center gap-2">
+                      <Timer className="w-4 h-4 text-amber-300" />
+                      <span className="text-white/70">
+                        {QUESTIONS_PER_EXAM} أسئلة — {getTimeForSecret(s.id)} ثوان لكل سؤال
+                      </span>
+                    </div>
+
                     {best > 0 && (
-                      <div className="mt-4 p-3 bg-gold-400/10 border border-gold-400/30 rounded-xl text-sm text-center">
-                        🏆 أفضل نتيجة لك: {best}/5
+                      <div className="mt-3 p-3 bg-gold-400/10 border border-gold-400/30 rounded-xl text-sm text-center">
+                        🏆 أفضل نتيجة لك: {best}/{QUESTIONS_PER_EXAM}
                       </div>
                     )}
 
@@ -470,7 +489,7 @@ const MagicSecretsScreen: React.FC<Props> = ({ onBack, onComplete, onXP }) => {
             onClose={() => setPracticeSecretId(null)}
             onFinish={(score) => {
               saveBestScore(practiceSecretId, score);
-              if (onXP && score > 0) onXP(score * 5);
+              if (onXP && score > 0) onXP(score * 2);
             }}
           />
         )}
@@ -490,10 +509,11 @@ interface PracticeModalProps {
 
 const PracticeModal: React.FC<PracticeModalProps> = ({ secretId, onClose, onFinish }) => {
   const secret = SECRETS.find((s) => s.id === secretId)!;
+  const timePerQuestion = getTimeForSecret(secretId);
   const [questions] = useState<Question[]>(() => generateQuestions(secretId));
   const [idx, setIdx] = useState(0);
   const [input, setInput] = useState('');
-  const [timeLeft, setTimeLeft] = useState(TIME_PER_QUESTION);
+  const [timeLeft, setTimeLeft] = useState(timePerQuestion);
   const [attempts, setAttempts] = useState(0);
   const [score, setScore] = useState(0);
   const [finished, setFinished] = useState(false);
@@ -501,6 +521,7 @@ const PracticeModal: React.FC<PracticeModalProps> = ({ secretId, onClose, onFini
   const inputRef = useRef<HTMLInputElement>(null);
 
   const currentQ = questions[idx];
+  const total = questions.length;
 
   useEffect(() => {
     if (finished || feedback === 'ok' || !currentQ) return;
@@ -529,7 +550,7 @@ const PracticeModal: React.FC<PracticeModalProps> = ({ secretId, onClose, onFini
       setIdx(idx + 1);
       setInput('');
       setAttempts(0);
-      setTimeLeft(TIME_PER_QUESTION);
+      setTimeLeft(timePerQuestion);
       setFeedback(null);
     }
   };
@@ -544,26 +565,26 @@ const PracticeModal: React.FC<PracticeModalProps> = ({ secretId, onClose, onFini
     if (num === currentQ.a) {
       setFeedback('ok');
       setScore((s) => s + 1);
-      setTimeout(() => advance(), 1000);
+      setTimeout(() => advance(), 800);
     } else if (val.length >= String(currentQ.a).length) {
       const newAttempts = attempts + 1;
       setAttempts(newAttempts);
       if (newAttempts >= MAX_ATTEMPTS) {
         setFeedback('no');
-        setTimeout(() => advance(), 1200);
+        setTimeout(() => advance(), 1000);
       } else {
         setFeedback('no');
         setTimeout(() => {
           setInput('');
           setFeedback(null);
-        }, 700);
+        }, 500);
       }
     }
   };
 
   if (!currentQ) return null;
 
-  const progressPct = ((idx + 1) / questions.length) * 100;
+  const progressPct = ((idx + 1) / total) * 100;
 
   return (
     <motion.div
@@ -598,15 +619,15 @@ const PracticeModal: React.FC<PracticeModalProps> = ({ secretId, onClose, onFini
                 />
               </div>
               <span className="text-xs text-white/60">
-                {idx + 1}/{questions.length}
+                {idx + 1}/{total}
               </span>
             </div>
 
             <div className={`mb-4 p-2 rounded-xl text-center flex items-center justify-center gap-2 ${
-              timeLeft <= 5 ? 'bg-red-500/20 border border-red-500/50' : 'bg-white/5 border border-white/10'
+              timeLeft <= 3 ? 'bg-red-500/20 border border-red-500/50' : 'bg-white/5 border border-white/10'
             }`}>
-              <Timer className={`w-4 h-4 ${timeLeft <= 5 ? 'text-red-400' : 'text-amber-300'}`} />
-              <span className={`font-bold ${timeLeft <= 5 ? 'text-red-300' : 'text-white'}`}>
+              <Timer className={`w-4 h-4 ${timeLeft <= 3 ? 'text-red-400' : 'text-amber-300'}`} />
+              <span className={`font-bold ${timeLeft <= 3 ? 'text-red-300' : 'text-white'}`}>
                 {timeLeft} ثانية
               </span>
             </div>
@@ -658,7 +679,7 @@ const PracticeModal: React.FC<PracticeModalProps> = ({ secretId, onClose, onFini
             </div>
 
             <p className="text-center text-xs text-white/50 mt-4">
-              النقاط: {score}
+              النقاط: {score}/{total}
             </p>
           </>
         ) : (
@@ -666,11 +687,11 @@ const PracticeModal: React.FC<PracticeModalProps> = ({ secretId, onClose, onFini
             <Trophy className="w-16 h-16 text-gold-300 mx-auto mb-4" />
             <h2 className="text-2xl font-bold mb-2">انتهى التمرين!</h2>
             <p className="text-5xl font-black text-amber-300 mb-4">
-              {score}/5
+              {score}/{total}
             </p>
             <p className="text-sm text-white/60 mb-6">
-              {score === 5 ? '🏆 ممتاز! أنت بطل!' :
-               score >= 3 ? '👏 جيد جداً! استمر!' :
+              {score === total ? '🏆 ممتاز! أنت بطل!' :
+               score >= total * 0.6 ? '👏 جيد جداً! استمر!' :
                '💪 حاول مرة أخرى!'}
             </p>
             <button
