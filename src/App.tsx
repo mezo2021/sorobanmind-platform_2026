@@ -132,13 +132,13 @@ function App() {
           )}
 
           {screen === 'learn' && (
-  <LearnScreen
-    onBack={() => handleNavigate('hero-dashboard')}
-    playSound={playSound}
-    onXP={addXP}
-    onNavigate={handleNavigate}
-  />
-)}
+            <LearnScreen
+              onBack={() => handleNavigate('hero-dashboard')}
+              playSound={playSound}
+              onXP={addXP}
+              onNavigate={handleNavigate}
+            />
+          )}
 
           {screen === 'final-exam' && (
             <FinalExam
@@ -204,11 +204,12 @@ function App() {
             />
           )}
 
-          {/* ✅ الأسرار السحرية — محمي */}
+          {/* ✅ الأسرار السحرية — محمي + تمرير onXP */}
           {screen === 'secrets' && examPassed && (
             <MagicSecretsScreen
               onBack={() => handleNavigate('hero-dashboard')}
               onComplete={(stars) => addXP(stars * 10)}
+              onXP={addXP}
             />
           )}
 
