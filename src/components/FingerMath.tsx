@@ -7,11 +7,12 @@ interface FingerMathProps {
 }
 
 interface HandProps {
-  digit: number;   // 0-9
+  digit: number;      // 0-9
   label: string;
+  mirrored?: boolean; // للقلب (لليد اليسرى)
 }
 
-function Hand({ digit, label }: HandProps) {
+function Hand({ digit, label, mirrored = false }: HandProps) {
   const thumbUp = digit >= 5;
   const fingerCount = digit >= 5 ? digit - 5 : digit;
 
@@ -22,6 +23,7 @@ function Hand({ digit, label }: HandProps) {
         height="200"
         viewBox="0 0 200 240"
         xmlns="http://www.w3.org/2000/svg"
+        style={{ transform: mirrored ? 'scaleX(-1)' : 'none' }}
       >
         {/* ظل */}
         <ellipse
@@ -56,7 +58,7 @@ function Hand({ digit, label }: HandProps) {
           );
         })}
 
-        {/* الإبهام — خلف الكف، على اليسار */}
+        {/* الإبهام */}
         <motion.rect
           initial={false}
           animate={{
@@ -72,7 +74,7 @@ function Hand({ digit, label }: HandProps) {
           strokeWidth="3"
         />
 
-        {/* الكف — فوق الأصابع */}
+        {/* الكف */}
         <rect
           x="55"
           y="125"
@@ -125,8 +127,19 @@ export function FingerMath({ value }: FingerMathProps) {
 
   return (
     <div className="flex items-center justify-center gap-6 p-4" dir="rtl">
-      {tens > 0 && <Hand digit={tens} label="اليد اليسرى (العشرات)" />}
+      {/* 
+        في وضع RTL:
+        - العنصر الأول يظهر على اليمين
+        - العنصر الثاني يظهر على اليسار
+      */}
+
+      {/* اليد اليمنى (الآحاد) — على اليمين */}
       <Hand digit={units} label="اليد اليمنى (الآحاد)" />
+
+      {/* اليد اليسرى (العشرات) — على اليسار، مع قلبه */}
+      {tens > 0 && (
+        <Hand digit={tens} label="اليد اليسرى (العشرات)" mirrored />
+      )}
     </div>
   );
 }
