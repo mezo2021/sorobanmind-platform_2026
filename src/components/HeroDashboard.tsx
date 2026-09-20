@@ -28,6 +28,7 @@ import {
   FileText,
   Grid3X3,
   Wand2,
+  Unlock,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -97,7 +98,7 @@ type ActionCard = {
   icon: LucideIcon;
   gradient: string;
   glow: string;
-  requiresExam?: boolean; // ✅ خاصية جديدة: تتطلب اجتياز الامتحان
+  requiresExam?: boolean;
 };
 
 const ACTION_CARDS: ActionCard[] = [
@@ -146,7 +147,6 @@ const ACTION_CARDS: ActionCard[] = [
     gradient: 'from-pink-500 to-purple-700',
     glow: 'shadow-pink-500/40',
   },
-  // ✅ درس الضرب — يتطلب اجتياز الامتحان
   {
     screen: 'multiplication',
     title: 'درس الضرب',
@@ -157,7 +157,6 @@ const ACTION_CARDS: ActionCard[] = [
     glow: 'shadow-indigo-500/40',
     requiresExam: true,
   },
-  // ✅ الأسرار السحرية — يتطلب اجتياز الامتحان
   {
     screen: 'secrets',
     title: 'الأسرار السحرية',
@@ -338,7 +337,6 @@ export function HeroDashboard({
   const [showResetConfirm, setShowResetConfirm] =
     useState(false);
 
-  // ✅ حالة اجتياز الامتحان النهائي
   const [examPassed, setExamPassed] = useState(false);
 
   const quests = useQuests();
@@ -384,7 +382,6 @@ export function HeroDashboard({
       setChildName(savedName);
     }
 
-    // ✅ قراءة نتيجة الامتحان النهائي
     try {
       const raw = localStorage.getItem('soroban_exam_result');
       if (raw) {
@@ -414,12 +411,34 @@ export function HeroDashboard({
     onNavigate(screen);
   };
 
-  // ✅ التحقق من إمكانية فتح بطاقة معينة
   const canOpenCard = (card: ActionCard): boolean => {
     if (card.requiresExam && !examPassed) {
       return false;
     }
     return true;
+  };
+
+  // ✅ وضع الاختبار: فتح كل شيء دفعة واحدة
+  const handleTestUnlock = () => {
+    try {
+      // 1. اجتياز الامتحان النهائي
+      localStorage.setItem(
+        'soroban_exam_result',
+        JSON.stringify({ score: 100, passed: true, date: Date.now() })
+      );
+
+      // 2. إكمال جميع المستويات 0-9
+      const allLessons = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+      localStorage.setItem(
+        'soroban-completed-lessons',
+        JSON.stringify(allLessons)
+      );
+
+      playSound('whoosh');
+      setTimeout(() => window.location.reload(), 300);
+    } catch (e) {
+      /* ignore */
+    }
   };
 
   const handleReset = () => {
@@ -583,6 +602,19 @@ export function HeroDashboard({
 
               <span className="hidden sm:inline">
                 تغيير الرفيق
+              </span>
+            </button>
+
+            {/* ✅ زر وضع الاختبار */}
+            <button
+              type="button"
+              onClick={handleTestUnlock}
+              className="flex items-center gap-2 px-3 py-2 rounded-2xl bg-emerald-500/15 border border-emerald-400/40 text-emerald-200 hover:bg-emerald-500/25 transition-all text-xs font-body"
+              title="فتح كل الدروس للاختبار"
+            >
+              <Unlock className="w-4 h-4" />
+              <span className="hidden sm:inline">
+                فتح الكل
               </span>
             </button>
 
