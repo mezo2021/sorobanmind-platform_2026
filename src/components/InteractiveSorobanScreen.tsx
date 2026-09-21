@@ -24,9 +24,8 @@ export function InteractiveSorobanScreen({
   const [totalValue, setTotalValue] = useState(0);
 
   const handleValueChange = useCallback((value: number) => {
-    setTotalValue(value);
-    playSound('bead');
-  }, [playSound]);
+  setTotalValue(value);
+}, []);
 
   const handleReset = () => {
     playSound('whoosh');
