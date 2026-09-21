@@ -2,7 +2,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import {
   BookOpen, Dumbbell, Eye, Swords, Calculator, Lock,
-  ArrowLeft, Sparkles, Flame, Brain, Zap, Palette, Trash2,
+  Sparkles, Flame, Brain, Zap, Palette, Trash2,
   Unlock, X, Grid3X3, Wand2, Hash, Divide, FileText,
   type LucideIcon,
 } from 'lucide-react';
@@ -268,94 +268,100 @@ export function HeroDashboard({
   const characterInfo = CHARACTER_INFO[companion];
 
   return (
-    <div dir="rtl" className="px-3 sm:px-6 py-6 max-w-6xl mx-auto">
-      {/* WELCOME HEADER */}
+    <div dir="rtl" className="px-3 sm:px-6 py-6 max-w-5xl mx-auto">
+      {/* ═══════════════════════════════════════════════════════
+          WELCOME HEADER
+      ═══════════════════════════════════════════════════════ */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="glass-card p-5 sm:p-6 mb-6 overflow-hidden relative"
+        className="glass-card p-5 sm:p-7 mb-6 overflow-hidden relative"
       >
         <div className="absolute top-0 right-0 w-48 h-48 bg-purple-500/10 rounded-full blur-3xl" />
         <div className="absolute bottom-0 left-0 w-40 h-40 bg-electric-500/10 rounded-full blur-3xl" />
 
-        <div className="relative flex items-center justify-between flex-wrap gap-3">
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <Sparkles className="w-5 h-5 text-gold-300" />
-              <span className="text-xs text-gold-300 font-bold font-body">
-                أكاديمية الأبطال الصغار
-              </span>
-            </div>
-            <h2 className="text-2xl sm:text-3xl font-extrabold font-display text-white">
-              مرحباً يا {childName || 'أيها البطل'}!
-            </h2>
-            <p className="text-white/60 font-body text-sm mt-1">
-              واصل رحلتك في إتقان الحساب الذهني بالسوروبان
-            </p>
+        <div className="relative">
+          <div className="flex items-center gap-2 mb-2">
+            <Sparkles className="w-5 h-5 text-gold-300" />
+            <span className="text-xs sm:text-sm text-gold-300 font-bold font-body">
+              أكاديمية الأبطال الصغار
+            </span>
           </div>
 
-          <div className="flex items-center gap-2 flex-wrap">
-            <div className="text-center px-4 py-2 rounded-2xl bg-purple-500/15 border border-purple-400/20">
-              <p className="text-2xl font-extrabold text-purple-300 font-display">
+          <h2 className="text-3xl sm:text-4xl font-extrabold font-display text-white mb-2">
+            مرحباً يا {childName || 'أيها البطل'}!
+          </h2>
+          <p className="text-white/60 font-body text-sm sm:text-base mb-5">
+            واصل رحلتك في إتقان الحساب الذهني بالسوروبان
+          </p>
+
+          {/* الإحصائيات */}
+          <div className="grid grid-cols-2 gap-3 mb-5">
+            <div className="text-center px-4 py-3 rounded-2xl bg-purple-500/15 border border-purple-400/20">
+              <p className="text-3xl font-extrabold text-purple-300 font-display">
                 {toArabicNumber(xp)}
               </p>
-              <p className="text-[10px] text-white/50 font-body">نقطة خبرة</p>
+              <p className="text-xs text-white/60 font-body mt-1">نقطة خبرة</p>
             </div>
 
-            <div className="text-center px-4 py-2 rounded-2xl bg-orange-500/15 border border-orange-400/20">
-              <div className="flex items-center justify-center gap-1">
-                <Flame className="w-4 h-4 text-orange-300" />
-                <p className="text-2xl font-extrabold text-orange-300 font-display">
+            <div className="text-center px-4 py-3 rounded-2xl bg-orange-500/15 border border-orange-400/20">
+              <div className="flex items-center justify-center gap-1.5">
+                <Flame className="w-5 h-5 text-orange-300" />
+                <p className="text-3xl font-extrabold text-orange-300 font-display">
                   {toArabicNumber(streak)}
                 </p>
               </div>
-              <p className="text-[10px] text-white/50 font-body">أيام متتالية</p>
+              <p className="text-xs text-white/60 font-body mt-1">أيام متتالية</p>
             </div>
           </div>
-        </div>
 
-        <div className="relative flex items-center gap-2 mt-4 flex-wrap">
-          <button
-            type="button"
-            onClick={() => { playSound('click'); setShowSelector(true); }}
-            className="flex items-center gap-2 px-3 py-2 rounded-2xl bg-gradient-to-br from-purple-500/20 to-electric-500/20 border border-purple-400/30 text-purple-200 hover:from-purple-500/30 hover:to-electric-500/30 transition-all text-xs font-body"
-          >
-            <Palette className="w-4 h-4" />
-            <span>تغيير الرفيق</span>
-          </button>
+          {/* أزرار التحكم */}
+          <div className="flex items-center gap-2 flex-wrap">
+            <button
+              type="button"
+              onClick={() => { playSound('click'); setShowSelector(true); }}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-gradient-to-br from-purple-500/20 to-electric-500/20 border border-purple-400/30 text-purple-200 hover:from-purple-500/30 hover:to-electric-500/30 transition-all text-sm font-body"
+            >
+              <Palette className="w-4 h-4" />
+              <span>تغيير الرفيق</span>
+            </button>
 
-          <button
-            type="button"
-            onClick={handleTestUnlock}
-            className="flex items-center gap-2 px-3 py-2 rounded-2xl bg-emerald-500/20 border border-emerald-400/50 text-emerald-100 hover:bg-emerald-500/30 transition-all text-xs font-bold font-body"
-            title="فتح كل الدروس والامتحانات للاختبار"
-          >
-            <Unlock className="w-4 h-4" />
-            <span>فتح الكل</span>
-          </button>
+            <button
+              type="button"
+              onClick={handleTestUnlock}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-emerald-500/20 border border-emerald-400/50 text-emerald-100 hover:bg-emerald-500/30 transition-all text-sm font-bold font-body"
+              title="فتح كل الدروس والامتحانات للاختبار"
+            >
+              <Unlock className="w-4 h-4" />
+              <span>فتح الكل</span>
+            </button>
 
-          <button
-            type="button"
-            onClick={() => { playSound('click'); setShowResetConfirm(true); }}
-            className="flex items-center gap-2 px-3 py-2 rounded-2xl bg-red-500/10 border border-red-400/30 text-red-300 hover:bg-red-500/20 transition-all text-xs font-body"
-          >
-            <Trash2 className="w-4 h-4" />
-            <span>تصفير</span>
-          </button>
+            <button
+              type="button"
+              onClick={() => { playSound('click'); setShowResetConfirm(true); }}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-red-500/10 border border-red-400/30 text-red-300 hover:bg-red-500/20 transition-all text-sm font-body"
+            >
+              <Trash2 className="w-4 h-4" />
+              <span>تصفير</span>
+            </button>
+          </div>
         </div>
       </motion.div>
 
-      {/* HERO COMPANION CARD */}
+      {/* ═══════════════════════════════════════════════════════
+          HERO COMPANION CARD
+      ═══════════════════════════════════════════════════════ */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.05 }}
-        className="glass-card p-5 sm:p-6 mb-6 overflow-hidden relative"
+        className="glass-card p-5 sm:p-6 mb-8 overflow-hidden relative"
       >
         <div className="absolute -top-24 -right-24 w-64 h-64 rounded-full bg-violet-500/15 blur-3xl" />
         <div className="absolute -bottom-24 -left-24 w-64 h-64 rounded-full bg-electric-500/10 blur-3xl" />
 
-        <div className="relative grid grid-cols-1 md:grid-cols-[180px_1fr_auto] items-center gap-5">
+        <div className="relative grid grid-cols-1 md:grid-cols-[200px_1fr] items-center gap-6">
+          {/* الأفاتار */}
           <div className="relative flex justify-center">
             <motion.div
               animate={{ y: [0, -5, 0], rotate: [-1, 1, -1] }}
@@ -363,7 +369,9 @@ export function HeroDashboard({
               className="relative"
             >
               <div className="absolute inset-0 rounded-full bg-violet-500/20 blur-3xl scale-75" />
-              <div className={`relative w-36 h-36 sm:w-40 sm:h-40 rounded-[2rem] bg-gradient-to-br ${characterInfo.color} flex items-center justify-center shadow-2xl border border-white/20 overflow-hidden`}>
+              <div
+                className={`relative w-40 h-40 sm:w-48 sm:h-48 rounded-[2rem] bg-gradient-to-br ${characterInfo.color} flex items-center justify-center shadow-2xl border border-white/20 overflow-hidden`}
+              >
                 <div className="absolute inset-0 bg-white/10" />
                 <div className="relative">
                   <Companion character={companion} xp={xp} />
@@ -372,45 +380,52 @@ export function HeroDashboard({
             </motion.div>
           </div>
 
+          {/* المعلومات */}
           <div className="text-center md:text-right">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-violet-500/15 border border-violet-400/20 mb-2">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-violet-500/15 border border-violet-400/20 mb-3">
               <Sparkles className="w-4 h-4 text-violet-300" />
-              <span className="text-xs font-bold text-violet-200 font-body">رفيق رحلتك</span>
+              <span className="text-xs font-bold text-violet-200 font-body">
+                رفيق رحلتك
+              </span>
             </div>
-            <h3 className="text-3xl sm:text-4xl font-black font-display text-white">{characterInfo.name}</h3>
-            <p className={`text-sm font-bold font-body mt-1 ${characterInfo.lightColor}`}>{characterInfo.title}</p>
-            <p className="text-sm text-white/60 font-body mt-3 leading-relaxed">{characterInfo.message}</p>
 
-            <div className="flex items-center justify-center md:justify-start gap-2 mt-4 flex-wrap">
-              <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/5 border border-white/10">
+            <h3 className="text-4xl sm:text-5xl font-black font-display text-white mb-2">
+              {characterInfo.name}
+            </h3>
+            <p className={`text-lg font-bold font-body mb-4 ${characterInfo.lightColor}`}>
+              {characterInfo.title}
+            </p>
+            <p className="text-base text-white/70 font-body leading-relaxed mb-5">
+              {characterInfo.message}
+            </p>
+
+            <div className="flex items-center justify-center md:justify-start gap-2 flex-wrap">
+              <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white/5 border border-white/10">
                 <Brain className="w-4 h-4 text-purple-300" />
-                <span className="text-xs text-white/60 font-body">تدريب العقل</span>
+                <span className="text-sm text-white/70 font-body">تدريب العقل</span>
               </div>
-              <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/5 border border-white/10">
+              <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white/5 border border-white/10">
                 <Zap className="w-4 h-4 text-gold-300" />
-                <span className="text-xs text-white/60 font-body">تطوير السرعة</span>
+                <span className="text-sm text-white/70 font-body">تطوير السرعة</span>
               </div>
-            </div>
-          </div>
-
-          <div className="flex md:flex-col gap-2 justify-center">
-            <button
-              type="button"
-              onClick={() => { playSound('click'); setShowSelector(true); }}
-              className="flex-1 md:flex-none px-4 py-3 rounded-2xl bg-violet-500/15 border border-violet-400/20 text-violet-200 hover:bg-violet-500/25 transition-all text-xs font-bold font-body"
-            >
-              تغيير الرفيق
-            </button>
-            <div className="px-4 py-3 rounded-2xl bg-white/5 border border-white/10 text-center">
-              <p className="text-lg font-black text-gold-300 font-display">{toArabicNumber(xp)}</p>
-              <p className="text-[10px] text-white/40 font-body">خبرة البطل</p>
             </div>
           </div>
         </div>
       </motion.div>
 
-      {/* MAIN ACTION CARDS */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-8">
+      {/* ═══════════════════════════════════════════════════════
+          MAIN ACTION CARDS
+      ═══════════════════════════════════════════════════════ */}
+      <div className="mb-4">
+        <h3 className="text-xl sm:text-2xl font-extrabold font-display text-white mb-1">
+          🎮 اختر نشاطك
+        </h3>
+        <p className="text-sm text-white/50 font-body">
+          ابدأ رحلتك من أي مكان تريده
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
         {ACTION_CARDS.map((card, i) => {
           const Icon = card.icon;
           const isLocked = !canOpenCard(card);
@@ -421,36 +436,45 @@ export function HeroDashboard({
               type="button"
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.06, type: 'spring', stiffness: 200, damping: 20 }}
+              transition={{
+                delay: i * 0.05,
+                type: 'spring',
+                stiffness: 200,
+                damping: 20,
+              }}
               whileHover={!isLocked ? { scale: 1.03, y: -4 } : {}}
               whileTap={!isLocked ? { scale: 0.97 } : {}}
               onClick={() => {
                 if (isLocked) { playSound('whoosh'); return; }
                 handleNav(card.screen);
               }}
-              className={`group relative glass-card p-4 text-center overflow-hidden ${
+              className={`group relative glass-card p-5 text-center overflow-hidden ${
                 isLocked ? 'opacity-70 cursor-not-allowed' : ''
               }`}
             >
-              <div className={`absolute inset-0 bg-gradient-to-br ${card.gradient} opacity-0 group-hover:opacity-15 transition-opacity duration-500`} />
+              <div
+                className={`absolute inset-0 bg-gradient-to-br ${card.gradient} opacity-0 group-hover:opacity-15 transition-opacity duration-500`}
+              />
 
-              <div className={`relative inline-flex w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-br ${card.gradient} items-center justify-center shadow-xl ${card.glow} mb-2 ${
-                isLocked ? 'grayscale' : ''
-              }`}>
+              <div
+                className={`relative inline-flex w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br ${card.gradient} items-center justify-center shadow-xl ${card.glow} mb-3 ${
+                  isLocked ? 'grayscale' : ''
+                }`}
+              >
                 {isLocked ? (
-                  <Lock className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
+                  <Lock className="w-7 h-7 sm:w-8 sm:h-8 text-white" />
                 ) : (
-                  <Icon className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
+                  <Icon className="w-7 h-7 sm:w-8 sm:h-8 text-white" />
                 )}
               </div>
 
-              <h3 className="text-sm sm:text-base font-extrabold font-display text-white mb-0.5">
+              <h4 className="text-lg sm:text-xl font-extrabold font-display text-white mb-1">
                 {card.title}
-              </h3>
-              <p className="text-[9px] sm:text-[10px] text-white/40 font-body mb-1.5">
+              </h4>
+              <p className="text-xs text-white/40 font-body mb-2">
                 {card.titleEn}
               </p>
-              <p className="text-[11px] sm:text-xs text-white/60 font-body leading-snug">
+              <p className="text-sm text-white/70 font-body leading-relaxed">
                 {isLocked ? '🔒 اجتز الامتحان النهائي لفتح هذا الدرس' : card.desc}
               </p>
             </motion.button>
@@ -458,7 +482,9 @@ export function HeroDashboard({
         })}
       </div>
 
-      {/* CHARACTER SELECTOR MODAL */}
+      {/* ═══════════════════════════════════════════════════════
+          CHARACTER SELECTOR MODAL
+      ═══════════════════════════════════════════════════════ */}
       <AnimatePresence>
         {showSelector && (
           <motion.div
@@ -488,7 +514,9 @@ export function HeroDashboard({
         )}
       </AnimatePresence>
 
-      {/* RESET CONFIRMATION */}
+      {/* ═══════════════════════════════════════════════════════
+          RESET CONFIRMATION
+      ═══════════════════════════════════════════════════════ */}
       <AnimatePresence>
         {showResetConfirm && (
           <motion.div
@@ -508,7 +536,9 @@ export function HeroDashboard({
               <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-red-500/20 border border-red-400/30 flex items-center justify-center">
                 <Trash2 className="w-8 h-8 text-red-300" />
               </div>
-              <h3 className="text-xl font-extrabold font-display text-white mb-2">تصفير التقدم؟</h3>
+              <h3 className="text-xl font-extrabold font-display text-white mb-2">
+                تصفير التقدم؟
+              </h3>
               <p className="text-sm text-white/60 font-body mb-6 leading-relaxed">
                 سيتم حذف جميع نقاط الخبرة، الشارات، والدروس المكتملة.
                 <br />
