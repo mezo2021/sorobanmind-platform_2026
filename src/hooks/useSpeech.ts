@@ -2,10 +2,10 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 
 interface UseSpeechOptions {
   enabled?: boolean;
-  rate?: number;   // 0.1 - 10
-  pitch?: number;  // 0 - 2
-  volume?: number; // 0 - 1
-  lang?: string;   // 'ar-SA'
+  rate?: number;
+  pitch?: number;
+  volume?: number;
+  lang?: string;
 }
 
 export function useSpeech({
@@ -20,7 +20,6 @@ export function useSpeech({
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
   const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
 
-  // التحقق من دعم المتصفح
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const supported = 'speechSynthesis' in window;
@@ -42,12 +41,16 @@ export function useSpeech({
     };
   }, []);
 
-  // دالة النطق
   const speak = useCallback(
-    (text: string, options?: { rate?: number; pitch?: number; lang?: string }) => {
-      if (!enabled || !isSupported || !text) return;
+    (
+      text: string,
+      options?: { rate?: number; pitch?: number; lang?: string; onEnd?: () => void }
+    ) => {
+      if (!enabled || !isSupported || !text) {
+        if (options?.onEnd) options.onEnd();
+        return;
+      }
 
-      // إيقاف أي نطق سابق
       window.speechSynthesis.cancel();
 
       const utterance = new SpeechSynthesisUtterance(text);
@@ -56,15 +59,18 @@ export function useSpeech({
       utterance.pitch = options?.pitch ?? pitch;
       utterance.volume = volume;
 
-      // اختيار صوت عربي إذا وُجد
       const arabicVoice = voices.find((v) => v.lang.startsWith('ar'));
-      if (arabicVoice) {
-        utterance.voice = arabicVoice;
-      }
+      if (arabicVoice) utterance.voice = arabicVoice;
 
       utterance.onstart = () => setIsSpeaking(true);
-      utterance.onend = () => setIsSpeaking(false);
-      utterance.onerror = () => setIsSpeaking(false);
+      utterance.onend = () => {
+        setIsSpeaking(false);
+        if (options?.onEnd) options.onEnd();
+      };
+      utterance.onerror = () => {
+        setIsSpeaking(false);
+        if (options?.onEnd) options.onEnd();
+      };
 
       utteranceRef.current = utterance;
       window.speechSynthesis.speak(utterance);
@@ -72,7 +78,6 @@ export function useSpeech({
     [enabled, isSupported, lang, rate, pitch, volume, voices]
   );
 
-  // إيقاف النطق
   const stop = useCallback(() => {
     if (isSupported) {
       window.speechSynthesis.cancel();
