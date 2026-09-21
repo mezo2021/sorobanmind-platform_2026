@@ -40,6 +40,7 @@ export function NameInputModal({ onSave, onSkip }: NameInputModalProps) {
       transition={{ type: 'spring', stiffness: 250, damping: 25 }}
       className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl border border-white/10"
       dir="rtl"
+      style={{ pointerEvents: 'auto' }}
     >
       {/* Icon */}
       <motion.div
@@ -59,7 +60,7 @@ export function NameInputModal({ onSave, onSkip }: NameInputModalProps) {
         سنستخدم اسمك لتخصيص تجربتك في الأكاديمية
       </p>
 
-      {/* Input */}
+      {/* Input — ✅ تم إصلاحه */}
       <div className="mb-5">
         <input
           type="text"
@@ -72,7 +73,21 @@ export function NameInputModal({ onSave, onSkip }: NameInputModalProps) {
           placeholder="اكتب اسمك هنا..."
           maxLength={20}
           autoFocus
+          autoComplete="off"
+          autoCorrect="off"
+          autoCapitalize="off"
+          spellCheck={false}
           dir="rtl"
+          inputMode="text"
+          style={{
+            pointerEvents: 'auto',
+            touchAction: 'manipulation',
+            userSelect: 'text',
+            WebkitUserSelect: 'text',
+            WebkitTouchCallout: 'default',
+            position: 'relative',
+            zIndex: 10,
+          }}
           className="w-full px-4 py-4 rounded-2xl bg-white/10 border-2 border-white/20 text-white text-lg font-bold font-body text-center placeholder:text-white/30 placeholder:font-normal focus:outline-none focus:border-purple-400/60 transition-colors"
         />
         {error && (
