@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowRight, Printer, Award, Home, Edit3, Sparkles } from 'lucide-react';
-import { QRCodeSVG } from 'qrcode.react';
 import CertificateLogo from '@/components/CertificateLogo';
 import CertificateMedal from '@/components/CertificateMedal';
 import {
@@ -441,17 +440,19 @@ const CertificateScreen: React.FC<Props> = ({ onBack, playSound, onGoHome }) => 
                 </p>
               </div>
 
+              {/* QR Code من خدمة خارجية — بدون مكتبة */}
               <div className="flex flex-col items-center" style={{ flexShrink: 0 }}>
                 <div
                   className="p-1 rounded"
                   style={{ background: '#FDF8E7', border: '1px solid rgba(184,134,11,0.4)' }}
                 >
-                  <QRCodeSVG
-                    value={data.verificationUrl}
-                    size={44}
-                    bgColor="#FDF8E7"
-                    fgColor="#5D3A1A"
-                    level="M"
+                  <img
+                    src={`https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(data.verificationUrl)}&bgcolor=FDF8E7&color=5D3A1A&margin=2`}
+                    alt="QR Code"
+                    width={44}
+                    height={44}
+                    style={{ display: 'block' }}
+                    loading="lazy"
                   />
                 </div>
                 <p className="text-[7px] mt-0.5" style={{ color: '#7B5D0A' }}>للتحقق</p>
