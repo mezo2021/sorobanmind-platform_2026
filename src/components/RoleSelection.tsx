@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Swords, Shield, Star, TrendingUp, Brain, ArrowRight } from 'lucide-react';
 import type { Role } from '@/types';
 import { CharacterSelector, type CharacterType } from './CharacterSelector';
+import { NameInputModal } from './NameInputModal';
 
 interface RoleSelectionProps {
   onSelect: (role: Role) => void;
@@ -12,7 +13,7 @@ interface RoleSelectionProps {
 const COMPANION_STORAGE_KEY = 'soroban_companion';
 const NAME_STORAGE_KEY = 'soroban_child_name';
 
-type Step = 'idle' | 'companion';
+type Step = 'idle' | 'name' | 'companion';
 
 export function RoleSelection({ onSelect, playSound }: RoleSelectionProps) {
   const [step, setStep] = useState<Step>('idle');
@@ -21,16 +22,19 @@ export function RoleSelection({ onSelect, playSound }: RoleSelectionProps) {
   const handleSelect = (role: Role) => {
     if (role === 'hero') {
       const savedCompanion = localStorage.getItem(COMPANION_STORAGE_KEY);
+      const savedName = localStorage.getItem(NAME_STORAGE_KEY);
 
-      if (savedCompanion) {
-        // ✅ كل شيء محفوظ → انتقل مباشرة (استخدم الاسم الافتراضي إن لم يوجد)
-        if (!localStorage.getItem(NAME_STORAGE_KEY)) {
-          localStorage.setItem(NAME_STORAGE_KEY, 'البطل');
-        }
+      if (savedCompanion && savedName) {
+        // ✅ كل شيء محفوظ → انتقل مباشرة
         playSound('whoosh');
         onSelect(role);
+      } else if (!savedName) {
+        // ✅ لا يوجد اسم → اعرض إدخال الاسم أولاً
+        playSound('click');
+        setPendingRole(role);
+        setStep('name');
       } else {
-        // لا يوجد رفيق → اعرض اختيار الرفيق فقط
+        // يوجد اسم لكن لا يوجد رفيق → اعرض اختيار الرفيق
         playSound('click');
         setPendingRole(role);
         setStep('companion');
@@ -41,10 +45,24 @@ export function RoleSelection({ onSelect, playSound }: RoleSelectionProps) {
     }
   };
 
+  const handleNameSaved = (name: string) => {
+    localStorage.setItem(NAME_STORAGE_KEY, name);
+    // ✅ بعد الاسم → اختيار الرفيق
+    const savedCompanion = localStorage.getItem(COMPANION_STORAGE_KEY);
+    if (savedCompanion) {
+      // إذا كان الرفيق محفوظاً، انطلق مباشرة
+      setStep('idle');
+      if (pendingRole) {
+        playSound('whoosh');
+        onSelect(pendingRole);
+      }
+    } else {
+      setStep('companion');
+    }
+  };
+
   const handleCompanionSelected = (companion: CharacterType) => {
     localStorage.setItem(COMPANION_STORAGE_KEY, companion);
-    // ✅ حفظ الاسم الافتراضي مباشرة
-    localStorage.setItem(NAME_STORAGE_KEY, 'البطل');
     setStep('idle');
     if (pendingRole) {
       playSound('whoosh');
@@ -201,8 +219,22 @@ export function RoleSelection({ onSelect, playSound }: RoleSelectionProps) {
         <span>منصة تعليمية تفاعلية للحساب الذهني بالعداد الياباني</span>
       </motion.div>
 
-      {/* ✅ مودال اختيار الرفيق فقط */}
+      {/* ✅ Modals — الاسم أولاً، ثم الرفيق */}
       <AnimatePresence>
+        {step === 'name' && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4"
+          >
+            <NameInputModal
+              onSave={handleNameSaved}
+              onSkip={() => handleNameSaved('البطل')}
+            />
+          </motion.div>
+        )}
+
         {step === 'companion' && (
           <motion.div
             initial={{ opacity: 0 }}
