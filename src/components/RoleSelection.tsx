@@ -1,8 +1,8 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState } from 'react';
 import { Swords, Shield, Star, TrendingUp, Brain, ArrowRight } from 'lucide-react';
-import type { Role } from '@/types';
-import { CharacterSelector, type CharacterType } from './CharacterSelector';
+import type { Role, CharacterType } from '@/types';
+import { CharacterSelector } from './CharacterSelector';
 import { NameInputModal } from './NameInputModal';
 
 interface RoleSelectionProps {
