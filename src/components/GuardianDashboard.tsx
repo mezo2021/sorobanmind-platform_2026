@@ -4,7 +4,8 @@ import {
   ArrowRight, TrendingUp, Target, Clock, Award,
   Brain, Calendar, Zap, CheckCircle2, BarChart3,
   Star, Eye, Crown, Diamond, Trophy, Lock as LockBadge,
-  Swords, ShieldCheck, Circle, Lock, Volume2,
+  Swords, ShieldCheck, Circle, Lock, Volume2, RefreshCw,
+  Home, Sparkles,
   type LucideIcon,
 } from 'lucide-react';
 import { LEVELS, BADGES } from '@/data';
@@ -30,6 +31,8 @@ interface GuardianDashboardProps {
   childXP: number;
   childStreak: number;
   childLevel: number;
+  /** ✅ اختياري: للتبديل إلى وضع البطل */
+  onSwitchToHero?: () => void;
 }
 
 interface AnzanStats {
@@ -112,6 +115,7 @@ export function GuardianDashboard({
   childXP,
   childStreak,
   childLevel,
+  onSwitchToHero,
 }: GuardianDashboardProps) {
   const [savedName, setSavedName] = useState(childName);
   const [completed, setCompleted] = useState<number[]>([]);
@@ -124,10 +128,12 @@ export function GuardianDashboard({
   });
   const [weeklyXP, setWeeklyXP] = useState<{ day: string; xp: number }[]>([]);
   const [skills, setSkills] = useState(calculateSkills());
+  const [lastRefresh, setLastRefresh] = useState(Date.now());
 
   const quests = useQuests();
 
-  useEffect(() => {
+  // ✅ دالة إعادة القراءة
+  const loadAllData = () => {
     const name = localStorage.getItem('soroban_child_name');
     if (name) setSavedName(name);
 
@@ -146,7 +152,7 @@ export function GuardianDashboard({
 
     try {
       const saved = localStorage.getItem(ANZAN_KEY);
-      if (saved) setAnzanStats({ ...anzanStats, ...JSON.parse(saved) });
+      if (saved) setAnzanStats((prev) => ({ ...prev, ...JSON.parse(saved) }));
     } catch { /* ignore */ }
 
     setAnzanBadges(loadAnzanBadges());
@@ -154,7 +160,7 @@ export function GuardianDashboard({
 
     try {
       const saved = localStorage.getItem(PRACTICE_KEY);
-      if (saved) setPracticeStats({ ...practiceStats, ...JSON.parse(saved) });
+      if (saved) setPracticeStats((prev) => ({ ...prev, ...JSON.parse(saved) }));
     } catch { /* ignore */ }
 
     try {
@@ -172,7 +178,18 @@ export function GuardianDashboard({
     } catch { /* ignore */ }
 
     setSkills(calculateSkills());
+    setLastRefresh(Date.now());
+  };
+
+  useEffect(() => {
+    loadAllData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const handleRefresh = () => {
+    playSound('click');
+    loadAllData();
+  };
 
   const accuracy = practiceStats.totalProblems > 0
     ? Math.round((practiceStats.correctAnswers / practiceStats.totalProblems) * 100)
@@ -217,10 +234,20 @@ export function GuardianDashboard({
   ];
   const earnedAudioCount = audioAnzanBadgeList.filter(b => b.earned).length;
 
+  // ✅ وقت آخر تحديث
+  const lastRefreshText = (() => {
+    const diff = Date.now() - lastRefresh;
+    const sec = Math.floor(diff / 1000);
+    if (sec < 5) return 'الآن';
+    if (sec < 60) return `قبل ${toArabicNumber(sec)} ثانية`;
+    const min = Math.floor(sec / 60);
+    return `قبل ${toArabicNumber(min)} دقيقة`;
+  })();
+
   return (
     <div className="px-3 sm:px-6 py-6 max-w-5xl mx-auto" dir="rtl">
-      {/* Back */}
-      <div className="flex items-center gap-3 mb-6">
+      {/* ═══════════════ أزرار الرأس ═══════════════ */}
+      <div className="flex items-center gap-2 mb-6 flex-wrap">
         <button
           onClick={() => { playSound('click'); onBack(); }}
           className="btn-ghost !px-3 !py-2"
@@ -228,9 +255,35 @@ export function GuardianDashboard({
           <ArrowRight className="w-5 h-5" />
           <span className="hidden sm:inline">تبديل الدور</span>
         </button>
+
+        <button
+          onClick={handleRefresh}
+          className="flex items-center gap-2 px-3 py-2 rounded-2xl bg-blue-500/15 border border-blue-400/30 text-blue-200 hover:bg-blue-500/25 transition-all text-sm font-body"
+          title="إعادة قراءة البيانات"
+        >
+          <RefreshCw className="w-4 h-4" />
+          <span>تحديث البيانات</span>
+        </button>
+
+        {onSwitchToHero && (
+          <button
+            onClick={() => { playSound('click'); onSwitchToHero(); }}
+            className="flex items-center gap-2 px-3 py-2 rounded-2xl bg-purple-500/15 border border-purple-400/30 text-purple-200 hover:bg-purple-500/25 transition-all text-sm font-body"
+            title="العودة إلى وضع البطل"
+          >
+            <Home className="w-4 h-4" />
+            <span>وضع البطل</span>
+          </button>
+        )}
+
+        <div className="flex-1" />
+
+        <span className="text-[10px] text-white/40 font-body">
+          آخر تحديث: {lastRefreshText}
+        </span>
       </div>
 
-      {/* Child overview */}
+      {/* ═══════════════ نظرة عامة على الطفل ═══════════════ */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -246,9 +299,14 @@ export function GuardianDashboard({
           >
             <Brain className="w-9 h-9 sm:w-11 sm:h-11 text-white" />
           </motion.div>
-          <div>
-            <p className="text-sm text-white/50 font-body">تقدم الطفل</p>
-            <h2 className="text-2xl sm:text-3xl font-extrabold font-display text-white">{savedName}</h2>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-1">
+              <Sparkles className="w-4 h-4 text-gold-300" />
+              <p className="text-xs text-gold-300 font-body font-bold">تقدم الطفل</p>
+            </div>
+            <h2 className="text-2xl sm:text-3xl font-extrabold font-display text-white truncate">
+              {savedName}
+            </h2>
             <p className="text-sm text-emerald2-300 font-body mt-0.5">
               مستوى {toArabicNumber(childLevel)} · {toArabicNumber(completedLevels)}/{toArabicNumber(LEVELS.length)} دروس مكتملة
             </p>
@@ -256,7 +314,7 @@ export function GuardianDashboard({
         </div>
       </motion.div>
 
-      {/* Stats grid */}
+      {/* ═══════════════ الإحصائيات ═══════════════ */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
         {stats.map((stat, i) => {
           const Icon = stat.icon;
@@ -268,8 +326,8 @@ export function GuardianDashboard({
               transition={{ delay: i * 0.08, type: 'spring', stiffness: 200, damping: 20 }}
               className="glass-card p-4 sm:p-5 text-center"
             >
-              <div className={`inline-flex w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-gradient-to-br ${stat.gradient} items-center justify-center shadow-lg ${stat.glow} mb-3`}>
-                <Icon className="w-6 h-6 text-white" />
+              <div className={`inline-flex w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-br ${stat.gradient} items-center justify-center shadow-lg ${stat.glow} mb-3`}>
+                <Icon className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
               </div>
               <p className="text-2xl sm:text-3xl font-extrabold font-display text-white mb-0.5">{stat.value}</p>
               <p className="text-xs sm:text-sm text-white/60 font-body">{stat.label}</p>
@@ -279,7 +337,7 @@ export function GuardianDashboard({
         })}
       </div>
 
-      {/* المهارات الأربع */}
+      {/* ═══════════════ المهارات ═══════════════ */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -325,10 +383,9 @@ export function GuardianDashboard({
                   transition={{ delay: 0.35 + i * 0.08, duration: 0.8 }}
                 />
               </div>
-              {skill.note && (
+              {skill.note ? (
                 <p className="text-[10px] text-amber-300/80 font-body mt-1.5">{skill.note}</p>
-              )}
-              {!skill.note && (
+              ) : (
                 <p className="text-[10px] text-white/40 font-body mt-1.5">{skill.descriptionAr}</p>
               )}
             </motion.div>
@@ -336,7 +393,7 @@ export function GuardianDashboard({
         </div>
       </motion.div>
 
-      {/* شارات الأنزان البصري */}
+      {/* ═══════════════ شارات الأنزان البصري ═══════════════ */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -383,7 +440,7 @@ export function GuardianDashboard({
         </div>
       </motion.div>
 
-      {/* ✅ شارات الأنزان السماعي */}
+      {/* ═══════════════ شارات الأنزان السماعي ═══════════════ */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -430,7 +487,7 @@ export function GuardianDashboard({
         </div>
       </motion.div>
 
-      {/* الشارات العامة */}
+      {/* ═══════════════ الشارات العامة ═══════════════ */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -500,7 +557,7 @@ export function GuardianDashboard({
         )}
       </motion.div>
 
-      {/* المغامرات النشطة */}
+      {/* ═══════════════ المغامرات النشطة ═══════════════ */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -556,7 +613,7 @@ export function GuardianDashboard({
         </div>
       </motion.div>
 
-      {/* خارطة المستويات */}
+      {/* ═══════════════ خارطة المستويات ═══════════════ */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -583,7 +640,7 @@ export function GuardianDashboard({
         </div>
       </motion.div>
 
-      {/* نشاط الأسبوع */}
+      {/* ═══════════════ نشاط الأسبوع ═══════════════ */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -616,7 +673,7 @@ export function GuardianDashboard({
         </div>
       </motion.div>
 
-      {/* إحصائيات مفصلة */}
+      {/* ═══════════════ إحصائيات مفصلة ═══════════════ */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-6">
         <motion.div
           initial={{ opacity: 0, x: 20 }}
@@ -628,7 +685,9 @@ export function GuardianDashboard({
             <CheckCircle2 className="w-5 h-5 text-emerald2-400" />
             <p className="text-sm text-white/60 font-body">مسائل محلولة</p>
           </div>
-          <p className="text-3xl font-extrabold font-display text-white">{toArabicNumber(practiceStats.totalProblems)}</p>
+          <p className="text-3xl font-extrabold font-display text-white">
+            {toArabicNumber(practiceStats.totalProblems)}
+          </p>
           <p className="text-xs text-emerald2-300 font-body mt-1">
             {toArabicNumber(practiceStats.correctAnswers)} إجابة صحيحة
           </p>
@@ -644,7 +703,9 @@ export function GuardianDashboard({
             <Clock className="w-5 h-5 text-electric-400" />
             <p className="text-sm text-white/60 font-body">جولات الأنزان</p>
           </div>
-          <p className="text-3xl font-extrabold font-display text-white">{toArabicNumber(anzanStats.totalRounds)}</p>
+          <p className="text-3xl font-extrabold font-display text-white">
+            {toArabicNumber(anzanStats.totalRounds)}
+          </p>
           <p className="text-xs text-electric-300 font-body mt-1">
             {toArabicNumber(anzanStats.totalCorrect)} إجابة صحيحة
           </p>
@@ -660,12 +721,14 @@ export function GuardianDashboard({
             <Award className="w-5 h-5 text-gold-400" />
             <p className="text-sm text-white/60 font-body">رقم قياسي أنزان</p>
           </div>
-          <p className="text-3xl font-extrabold font-display text-white">{toArabicNumber(anzanStats.highScore)}</p>
+          <p className="text-3xl font-extrabold font-display text-white">
+            {toArabicNumber(anzanStats.highScore)}
+          </p>
           <p className="text-xs text-gold-300 font-body mt-1">أعلى نتيجة</p>
         </motion.div>
       </div>
 
-      {/* تقدم المستويات */}
+      {/* ═══════════════ تقدم المستويات ═══════════════ */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
