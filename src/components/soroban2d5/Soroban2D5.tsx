@@ -16,7 +16,6 @@ interface Soroban2D5Props {
   size?: 'sm' | 'md' | 'lg' | 'auto';
 }
 
-/** ✅ قياس الشاشة لضبط الحجم */
 function useResponsiveSize() {
   const [size, setSize] = useState<'sm' | 'md' | 'lg'>(() => {
     if (typeof window === 'undefined') return 'md';
@@ -40,41 +39,41 @@ function useResponsiveSize() {
   return size;
 }
 
-/** ✅ إعدادات كل حجم — مضبوطة لضمان ظهور كل الخرزات */
+/** ✅ إعدادات مضبوطة — يراعي كل الخرزات + زر التصفير + اسم العمود */
 const SIZE_CONFIG = {
   sm: {
-    beadSize: 30,
-    rodWidth: 36,
-    gap: 10,
-    framePadding: 14,
-    innerPadding: 12,
-    height: 300,           // ← ✅ زيادة الارتفاع
-    topPadding: 20,
-    bottomPadding: 30,     // ← ✅ مساحة أكبر للأسفل
+    beadSize: 26,
+    rodWidth: 32,
+    gap: 8,
+    framePadding: 12,
+    innerPadding: 10,
+    height: 340,
+    topPadding: 32,      // ← مساحة لاسم العمود
+    bottomPadding: 40,   // ← مساحة لزر التصفير
     titleSize: 'text-base',
     valueSize: 'text-2xl',
   },
   md: {
-    beadSize: 38,
-    rodWidth: 46,
-    gap: 14,
-    framePadding: 18,
-    innerPadding: 14,
-    height: 360,
-    topPadding: 28,
-    bottomPadding: 36,
+    beadSize: 34,
+    rodWidth: 42,
+    gap: 12,
+    framePadding: 16,
+    innerPadding: 12,
+    height: 400,
+    topPadding: 40,
+    bottomPadding: 44,
     titleSize: 'text-lg',
     valueSize: 'text-3xl',
   },
   lg: {
-    beadSize: 48,
-    rodWidth: 58,
-    gap: 20,
-    framePadding: 26,
-    innerPadding: 18,
-    height: 440,
-    topPadding: 36,
-    bottomPadding: 44,
+    beadSize: 44,
+    rodWidth: 52,
+    gap: 18,
+    framePadding: 24,
+    innerPadding: 16,
+    height: 480,
+    topPadding: 48,
+    bottomPadding: 52,
     titleSize: 'text-2xl',
     valueSize: 'text-5xl',
   },
@@ -139,12 +138,10 @@ export function Soroban2D5({
 
   return (
     <div className="w-full flex flex-col items-center gap-3 sm:gap-5">
-      {/* العنوان */}
       <h3 className={`${cfg.titleSize} font-bold text-amber-900`}>
         🧮 عداد السوروبان
       </h3>
 
-      {/* الإطار الخشبي */}
       <motion.div
         initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
@@ -160,7 +157,7 @@ export function Soroban2D5({
           maxWidth: '100%',
         }}
       >
-        {/* ✅ الإطار الداخلي — بدون overflow مخفي */}
+        {/* ✅ الإطار الداخلي — overflow visible */}
         <div
           className="relative rounded-xl sm:rounded-2xl"
           style={{
@@ -170,7 +167,6 @@ export function Soroban2D5({
             overflow: 'visible',
           }}
         >
-          {/* الأعمدة */}
           <div
             className="flex flex-row-reverse items-center justify-center"
             style={{
@@ -206,7 +202,6 @@ export function Soroban2D5({
           )}
         </div>
 
-        {/* أزرار التحكم */}
         {interactive && (
           <div className="flex justify-center gap-2 mt-3 sm:mt-4">
             <button
@@ -220,7 +215,6 @@ export function Soroban2D5({
         )}
       </motion.div>
 
-      {/* عرض القيمة الحالية */}
       {showValue && (
         <AnimatePresence mode="popLayout">
           <motion.div
@@ -240,7 +234,6 @@ export function Soroban2D5({
         </AnimatePresence>
       )}
 
-      {/* تعليمات */}
       <p className="text-[10px] sm:text-sm text-amber-700 text-center max-w-md px-2">
         💡 اضغط على الخرزة لتفعيلها. الخرزة العلوية = <strong>5</strong>،
         السفلية = <strong>1</strong>.
