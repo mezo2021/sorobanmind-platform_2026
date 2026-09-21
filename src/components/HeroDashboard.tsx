@@ -227,23 +227,19 @@ export function HeroDashboard({
     return true;
   };
 
-  // ✅ فتح كل شيء (امتحان + دروس + شارات الأنزان)
   const handleTestUnlock = () => {
     try {
-      // 1. اجتياز الامتحان
       localStorage.setItem(
         'soroban_exam_result',
         JSON.stringify({ score: 100, passed: true, date: Date.now() })
       );
 
-      // 2. إكمال كل الدروس
       const allLessons = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
       localStorage.setItem(
         'soroban-completed-lessons',
         JSON.stringify(allLessons)
       );
 
-      // 3. منح شارات الأنزان الأربعة
       localStorage.setItem(
         'soroban_anzan_badges',
         JSON.stringify({
@@ -318,7 +314,6 @@ export function HeroDashboard({
           </div>
         </div>
 
-        {/* ⚙️ أزرار التحكم - الآن ظاهرة على الموبايل */}
         <div className="relative flex items-center gap-2 mt-4 flex-wrap">
           <button
             type="button"
@@ -329,7 +324,6 @@ export function HeroDashboard({
             <span>تغيير الرفيق</span>
           </button>
 
-          {/* ✅ زر "فتح الكل" — ظاهر على الموبايل */}
           <button
             type="button"
             onClick={handleTestUnlock}
