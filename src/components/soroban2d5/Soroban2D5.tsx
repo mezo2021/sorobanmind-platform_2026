@@ -16,6 +16,7 @@ interface Soroban2D5Props {
   size?: 'sm' | 'md' | 'lg' | 'auto';
 }
 
+/** ✅ قياس الشاشة لضبط الحجم تلقائياً */
 function useResponsiveSize() {
   const [size, setSize] = useState<'sm' | 'md' | 'lg'>(() => {
     if (typeof window === 'undefined') return 'md';
@@ -39,7 +40,12 @@ function useResponsiveSize() {
   return size;
 }
 
-/** ✅ إعدادات مضبوطة — يراعي كل الخرزات + زر التصفير + اسم العمود */
+/** 
+ * ✅ إعدادات الأحجام
+ * - height: ارتفاع كل عمود
+ * - topPadding: مساحة لأسماء الأعمدة (فوق)
+ * - bottomPadding: مساحة لزر التصفير (أسفل)
+ */
 const SIZE_CONFIG = {
   sm: {
     beadSize: 26,
@@ -48,8 +54,8 @@ const SIZE_CONFIG = {
     framePadding: 12,
     innerPadding: 10,
     height: 340,
-    topPadding: 32,      // ← مساحة لاسم العمود
-    bottomPadding: 40,   // ← مساحة لزر التصفير
+    topPadding: 30,
+    bottomPadding: 8,
     titleSize: 'text-base',
     valueSize: 'text-2xl',
   },
@@ -60,8 +66,8 @@ const SIZE_CONFIG = {
     framePadding: 16,
     innerPadding: 12,
     height: 400,
-    topPadding: 40,
-    bottomPadding: 44,
+    topPadding: 36,
+    bottomPadding: 10,
     titleSize: 'text-lg',
     valueSize: 'text-3xl',
   },
@@ -72,8 +78,8 @@ const SIZE_CONFIG = {
     framePadding: 24,
     innerPadding: 16,
     height: 480,
-    topPadding: 48,
-    bottomPadding: 52,
+    topPadding: 44,
+    bottomPadding: 12,
     titleSize: 'text-2xl',
     valueSize: 'text-5xl',
   },
@@ -101,10 +107,12 @@ export function Soroban2D5({
   const playSound = useBeadSound();
   const vibrate = useBeadHaptics();
 
+  // ✅ الحجم (auto أو محدد)
   const responsiveSize = useResponsiveSize();
   const finalSize = size === 'auto' ? responsiveSize : size;
   const cfg = SIZE_CONFIG[finalSize];
 
+  // ✅ على الشاشات الصغيرة، نقلل الأعمدة للعرض
   const visibleColumns = (() => {
     if (finalSize === 'sm' && columns > 4) {
       return Math.min(4, columns);
@@ -112,19 +120,23 @@ export function Soroban2D5({
     return columns;
   })();
 
+  // ✅ نأخذ آخر `visibleColumns` (الأقل مرتبة = الآحاد والعشرات)
   const displayedStates = colStates.slice(-visibleColumns);
   const displayOffset = columns - visibleColumns;
 
+  // ✅ مزامنة القيمة الأولية
   useEffect(() => {
     if (initialValue > 0) setValue(initialValue);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // ✅ وضع "شاهد"
   useEffect(() => {
     if (demoValue !== undefined) setValue(demoValue);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [demoValue]);
 
+  // ✅ إبلاغ الأب بأي تغيير
   useEffect(() => {
     onValueChange?.(totalValue);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -138,10 +150,12 @@ export function Soroban2D5({
 
   return (
     <div className="w-full flex flex-col items-center gap-3 sm:gap-5">
+      {/* العنوان */}
       <h3 className={`${cfg.titleSize} font-bold text-amber-900`}>
         🧮 عداد السوروبان
       </h3>
 
+      {/* الإطار الخشبي */}
       <motion.div
         initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
@@ -157,7 +171,7 @@ export function Soroban2D5({
           maxWidth: '100%',
         }}
       >
-        {/* ✅ الإطار الداخلي — overflow visible */}
+        {/* الإطار الداخلي */}
         <div
           className="relative rounded-xl sm:rounded-2xl"
           style={{
@@ -167,6 +181,7 @@ export function Soroban2D5({
             overflow: 'visible',
           }}
         >
+          {/* الأعمدة */}
           <div
             className="flex flex-row-reverse items-center justify-center"
             style={{
@@ -195,13 +210,15 @@ export function Soroban2D5({
             })}
           </div>
 
+          {/* ✅ ملاحظة عند إخفاء أعمدة على الجوال */}
           {displayOffset > 0 && (
-            <p className="text-center text-[10px] text-amber-700 mt-2 font-body">
-              ✨ يتم عرض {visibleColumns} أعمدة على هذه الشاشة (من أصل {columns})
+            <p className="text-center text-[10px] text-amber-700 mt-1 font-body">
+              ✨ يتم عرض {visibleColumns} أعمدة (من أصل {columns})
             </p>
           )}
         </div>
 
+        {/* أزرار التحكم */}
         {interactive && (
           <div className="flex justify-center gap-2 mt-3 sm:mt-4">
             <button
@@ -215,6 +232,7 @@ export function Soroban2D5({
         )}
       </motion.div>
 
+      {/* عرض القيمة الحالية */}
       {showValue && (
         <AnimatePresence mode="popLayout">
           <motion.div
@@ -234,6 +252,7 @@ export function Soroban2D5({
         </AnimatePresence>
       )}
 
+      {/* تعليمات */}
       <p className="text-[10px] sm:text-sm text-amber-700 text-center max-w-md px-2">
         💡 اضغط على الخرزة لتفعيلها. الخرزة العلوية = <strong>5</strong>،
         السفلية = <strong>1</strong>.
