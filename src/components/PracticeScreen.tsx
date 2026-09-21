@@ -10,10 +10,16 @@ const PRACTICE_STORAGE_KEY = 'soroban_practice_stats';
 const SESSION_SIZE = 10;
 const MAX_ATTEMPTS = 2;
 
+// ✅ إعدادات أسئلة الضرب والقسمة
+const MULT_RANGE = [2, 3, 4, 5, 6, 7, 8, 9];   // مضاعفات شائعة (نتجنب 1 و 0 للتبسيط)
+const MULT_QUESTIONS_COUNT = 3;                // عدد أسئلة الضرب في الجلسة
+const DIV_QUESTIONS_COUNT = 2;                 // عدد أسئلة القسمة في الجلسة
+
 interface PracticeQuestion {
   question: string;
   answer: number;
   lessonId: number;
+  type: 'learn' | 'mult' | 'div';
 }
 
 interface PracticeStats {
@@ -77,6 +83,61 @@ function getColumnsForValue(value: number): number {
   return 4;
 }
 
+/** ✅ توليد سؤال ضرب بسيط */
+function generateMultQuestion(): PracticeQuestion {
+  const a = MULT_RANGE[Math.floor(Math.random() * MULT_RANGE.length)];
+  const b = MULT_RANGE[Math.floor(Math.random() * MULT_RANGE.length)];
+  return {
+    question: `${a} × ${b}`,
+    answer: a * b,
+    lessonId: -1,
+    type: 'mult',
+  };
+}
+
+/** ✅ توليد سؤال قسمة بسيط (مكافئ لضرب) */
+function generateDivQuestion(): PracticeQuestion {
+  const b = MULT_RANGE[Math.floor(Math.random() * MULT_RANGE.length)];
+  const result = MULT_RANGE[Math.floor(Math.random() * MULT_RANGE.length)];
+  const a = b * result;
+  return {
+    question: `${a} ÷ ${b}`,
+    answer: result,
+    lessonId: -1,
+    type: 'div',
+  };
+}
+
+/** ✅ توليد مجموعة فريدة من أسئلة الضرب والقسمة */
+function generateExtraQuestions(): PracticeQuestion[] {
+  const extras: PracticeQuestion[] = [];
+  const seen = new Set<string>();
+
+  // 3 أسئلة ضرب
+  let attempts = 0;
+  while (extras.filter((q) => q.type === 'mult').length < MULT_QUESTIONS_COUNT && attempts < 50) {
+    const q = generateMultQuestion();
+    if (!seen.has(q.question)) {
+      seen.add(q.question);
+      extras.push(q);
+    }
+    attempts++;
+  }
+
+  // 2 أسئلة قسمة
+  attempts = 0;
+  while (extras.filter((q) => q.type === 'div').length < DIV_QUESTIONS_COUNT && attempts < 50) {
+    const q = generateDivQuestion();
+    if (!seen.has(q.question)) {
+      seen.add(q.question);
+      extras.push(q);
+    }
+    attempts++;
+  }
+
+  return extras;
+}
+
 interface PracticeScreenProps {
   onBack: () => void;
   playSound: (type: 'click' | 'success' | 'error' | 'bead' | 'whoosh' | 'levelup') => void;
@@ -103,33 +164,43 @@ export function PracticeScreen({ onBack, playSound, onXP, burst }: PracticeScree
   const buildSession = (): PracticeQuestion[] => {
     const pool: PracticeQuestion[] = [];
 
+    // 1) أسئلة من الدروس المكتملة (جمع وطرح)
     for (const lessonId of completed) {
       const mod = LEARN_MODULES.find((m) => m.id === lessonId);
       if (!mod) continue;
 
       for (const ex of mod.examples) {
-        if (!/[+\-×÷]/.test(ex.problemText)) continue;
+        // نقبل كل رموز الطرح (ASCII + Unicode)
+        if (!/[+\-−–—×÷]/.test(ex.problemText)) continue;
 
         pool.push({
           question: ex.problemText.replace(/\s*=\s*؟?\s*$/, '').trim(),
           answer: ex.answer,
           lessonId: mod.id,
+          type: 'learn',
         });
       }
     }
 
-    const shuffled = shuffle(pool);
-    const selected: PracticeQuestion[] = [];
+    // 2) خلط + اختيار أسئلة الجمع والطرح (حتى SESSION_SIZE - عدد الإضافات)
+    const shuffledLearn = shuffle(pool);
+    const selectedLearn: PracticeQuestion[] = [];
     const seen = new Set<string>();
+    const learnLimit = SESSION_SIZE - MULT_QUESTIONS_COUNT - DIV_QUESTIONS_COUNT;
 
-    for (const q of shuffled) {
-      if (selected.length >= SESSION_SIZE) break;
+    for (const q of shuffledLearn) {
+      if (selectedLearn.length >= learnLimit) break;
       if (seen.has(q.question)) continue;
       seen.add(q.question);
-      selected.push(q);
+      selectedLearn.push(q);
     }
 
-    return selected;
+    // 3) ✅ إضافة أسئلة الضرب والقسمة
+    const extras = generateExtraQuestions();
+
+    // 4) دمج الكل + خلط نهائي
+    const combined = [...selectedLearn, ...extras];
+    return shuffle(combined);
   };
 
   // ============ State ============
@@ -139,7 +210,6 @@ export function PracticeScreen({ onBack, playSound, onXP, burst }: PracticeScree
   const [attempts, setAttempts] = useState(0);
   const [feedback, setFeedback] = useState<'idle' | 'correct' | 'wrong' | 'revealed'>('idle');
   const [finished, setFinished] = useState(false);
-  // ✅ قيمة السوروبان الحالية
   const [currentAbacusValue, setCurrentAbacusValue] = useState(0);
 
   // ✅ إعادة بناء الجلسة عند تغيير الدروس المكتملة
@@ -161,10 +231,18 @@ export function PracticeScreen({ onBack, playSound, onXP, burst }: PracticeScree
 
   const question = questions[index];
 
-  const isAddition = question?.question.includes('+') && !question?.question.includes('-');
-  const isSubtraction = question?.question.includes('-') && !question?.question.includes('÷');
-  const isMultiplication = question?.question.includes('×');
-  const isDivision = question?.question.includes('÷');
+  // ✅ يكتشف كل رموز الطرح (عربي، يونيكود، ASCII)
+  const hasMinus = Boolean(
+    question?.question.includes('-') ||
+    question?.question.includes('−') ||
+    question?.question.includes('–') ||
+    question?.question.includes('—')
+  );
+
+  const isAddition = Boolean(question?.question.includes('+')) && !hasMinus;
+  const isSubtraction = hasMinus && !question?.question.includes('÷');
+  const isMultiplication = Boolean(question?.question.includes('×'));
+  const isDivision = Boolean(question?.question.includes('÷'));
 
   // ============ منطق المحاولات ============
   const handleAttempt = (isCorrect: boolean) => {
@@ -334,6 +412,17 @@ export function PracticeScreen({ onBack, playSound, onXP, burst }: PracticeScree
             المحاولة {toArabicNumber(attempts + 1)}/{toArabicNumber(MAX_ATTEMPTS)}
           </span>
         </div>
+        {/* ✅ شارة نوع السؤال */}
+        {isMultiplication && (
+          <div className="badge bg-purple-500/15 border-purple-400/20">
+            <span className="text-purple-200 text-sm">✖️ ضرب</span>
+          </div>
+        )}
+        {isDivision && (
+          <div className="badge bg-cyan-500/15 border-cyan-400/20">
+            <span className="text-cyan-200 text-sm">➗ قسمة</span>
+          </div>
+        )}
       </div>
 
       {/* بطاقة السؤال */}
