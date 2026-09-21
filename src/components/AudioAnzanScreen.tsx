@@ -4,7 +4,7 @@ import {
   ArrowRight, Play, Zap, Trophy, RotateCcw,
   Brain, Lock, CheckCircle2, Volume2, Plus, Divide,
 } from 'lucide-react';
-import { InteractiveSoroban } from './InteractiveSoroban';
+import { Soroban2D5 } from './soroban2d5/Soroban2D5';
 import { useSpeech } from '@/hooks/useSpeech';
 import {
   loadAudioAnzanBadges, saveAudioAnzanBadges, type AudioAnzanBadges,
@@ -18,7 +18,7 @@ type SectionType = 'addition' | 'multdiv';
 type Phase = 'intro' | 'listening' | 'answer' | 'result';
 type AnzanLevel = 1 | 2 | 3 | 4 | 5;
 
-const SPEED_DELAY = 1200; // 1.2 ثانية
+const SPEED_DELAY = 1200;
 const MAX_ATTEMPTS = 2;
 const CORRECT_TO_MASTER = 10;
 const QUESTIONS_PER_ROUND = 5;
@@ -53,17 +53,6 @@ function getColumnsForValue(value: number): number {
 // ═══════════════════════════════════════════════════════════════
 // فحص الدروس
 // ═══════════════════════════════════════════════════════════════
-function isLessonsCompleted(): boolean {
-  try {
-    const raw = localStorage.getItem('soroban-completed-lessons');
-    if (!raw) return false;
-    const completed: number[] = JSON.parse(raw);
-    return [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].every((id) => completed.includes(id));
-  } catch {
-    return false;
-  }
-}
-
 function isExamPassed(): boolean {
   try {
     const raw = localStorage.getItem('soroban_exam_result');
@@ -118,7 +107,6 @@ type AudioQuestion = {
   isDivision?: boolean;
 };
 
-// جمع وطرح سماعي (مثل البصري)
 function generateAdditionQuestion(level: AnzanLevel): AudioQuestion {
   const count = level + 2;
   const operations: AudioOperation[] = [];
@@ -151,31 +139,18 @@ function generateAdditionQuestion(level: AnzanLevel): AudioQuestion {
   return { operations, answer: current, level };
 }
 
-// ضرب (من الأسرار السحرية حصراً)
 const SECRETS_MULTIPLICATION_POOL: Array<{ a: number; b: number }> = [
-  // جدول الـ 5
   { a: 5, b: 3 }, { a: 5, b: 4 }, { a: 5, b: 6 }, { a: 5, b: 7 }, { a: 5, b: 8 }, { a: 5, b: 9 },
-  // جدول الـ 6 (زوجية)
   { a: 6, b: 4 }, { a: 6, b: 6 }, { a: 6, b: 8 },
-  // جدول الـ 7
   { a: 7, b: 3 }, { a: 7, b: 4 }, { a: 7, b: 6 }, { a: 7, b: 8 }, { a: 7, b: 9 },
-  // جدول الـ 8
   { a: 8, b: 3 }, { a: 8, b: 4 }, { a: 8, b: 6 }, { a: 8, b: 7 }, { a: 8, b: 9 },
-  // جدول الـ 9
   { a: 9, b: 3 }, { a: 9, b: 4 }, { a: 9, b: 5 }, { a: 9, b: 6 }, { a: 9, b: 7 }, { a: 9, b: 8 },
-  // المضاعفة
   { a: 12, b: 4 }, { a: 14, b: 4 }, { a: 16, b: 4 },
-  // الأصابع
   { a: 7, b: 8 }, { a: 6, b: 7 }, { a: 8, b: 9 },
-  // الضرب في 11
   { a: 34, b: 11 }, { a: 51, b: 11 }, { a: 62, b: 11 }, { a: 82, b: 11 },
-  // الضرب في 99
   { a: 12, b: 99 }, { a: 25, b: 99 }, { a: 34, b: 99 },
-  // الضرب في 999
   { a: 20, b: 999 }, { a: 45, b: 999 },
-  // أصدقاء المئة
   { a: 96, b: 97 }, { a: 95, b: 98 }, { a: 92, b: 97 },
-  // الأعداد فوق 100
   { a: 104, b: 103 }, { a: 105, b: 104 }, { a: 106, b: 103 },
 ];
 
@@ -193,7 +168,6 @@ function generateMultiplicationQuestion(level: AnzanLevel): AudioQuestion {
   };
 }
 
-// قسمة (من درس القسمة حصراً — أرقام سهلة)
 const DIVISION_POOL: Array<{ a: number; b: number }> = [
   { a: 84, b: 2 }, { a: 96, b: 4 }, { a: 75, b: 5 }, { a: 63, b: 3 }, { a: 88, b: 8 },
   { a: 48, b: 6 }, { a: 92, b: 4 }, { a: 56, b: 7 }, { a: 72, b: 9 }, { a: 45, b: 5 },
@@ -218,7 +192,6 @@ function generateDivisionQuestion(level: AnzanLevel): AudioQuestion {
   };
 }
 
-// توليد جولة
 function generateRound(section: SectionType): AudioQuestion[] {
   const questions: AudioQuestion[] = [];
   const usedAnswers = new Set<number>();
@@ -240,7 +213,6 @@ function generateRound(section: SectionType): AudioQuestion[] {
       idx++;
     }
   } else {
-    // ضرب وقسمة منوّع
     while (questions.length < targetCount) {
       let attempts = 0;
       let q: AudioQuestion;
@@ -260,15 +232,6 @@ function generateRound(section: SectionType): AudioQuestion[] {
 // ═══════════════════════════════════════════════════════════════
 // نص القراءة الصوتية
 // ═══════════════════════════════════════════════════════════════
-function operationToSpeech(op: AudioOperation): string {
-  const value = op.value;
-  if (op.operator === '+') return `${value}`;
-  if (op.operator === '-') return `ناقص ${value}`;
-  if (op.operator === '×') return `${value}`;
-  if (op.operator === '÷') return `${value}`;
-  return `${value}`;
-}
-
 function buildSpeechSequence(ops: AudioOperation[]): string[] {
   const parts: string[] = [];
   ops.forEach((op, i) => {
@@ -315,7 +278,6 @@ export function AudioAnzanScreen({ onBack, playSound, onXP, burst }: Props) {
   const currentQ = questions[currentIdx];
   const canStartRound = rounds.count < MAX_ROUNDS_PER_DAY;
 
-  // ✅ حالة فتح الضرب والقسمة
   const multUnlocked = hasAdditionBadge() && isSecretsUnlocked();
   const divUnlocked = hasAdditionBadge() && isDivisionUnlocked();
   const multdivUnlocked = multUnlocked || divUnlocked;
@@ -324,7 +286,6 @@ export function AudioAnzanScreen({ onBack, playSound, onXP, burst }: Props) {
     return () => { stop(); };
   }, [section, phase, stop]);
 
-  // المؤقت
   useEffect(() => {
     if (phase !== 'answer' || !currentQ) return;
     if (timeLeft <= 0) {
@@ -336,7 +297,6 @@ export function AudioAnzanScreen({ onBack, playSound, onXP, burst }: Props) {
     return () => clearTimeout(t);
   }, [phase, timeLeft, currentQ]);
 
-  // ✅ قراءة الأرقام عند بداية السؤال
   useEffect(() => {
     if (phase !== 'listening' || !currentQ) return;
 
@@ -360,6 +320,11 @@ export function AudioAnzanScreen({ onBack, playSound, onXP, burst }: Props) {
     return () => { cancelled = true; };
   }, [phase, currentQ, speak]);
 
+  const getLevelTime = (level: AnzanLevel): number => {
+    const map: Record<AnzanLevel, number> = { 1: 15, 2: 20, 3: 25, 4: 30, 5: 35 };
+    return map[level] || 20;
+  };
+
   const startRound = () => {
     if (!canStartRound) { playSound('error'); return; }
     const qs = generateRound(section);
@@ -375,11 +340,6 @@ export function AudioAnzanScreen({ onBack, playSound, onXP, burst }: Props) {
     setTimeLeft(getLevelTime(qs[0].level));
     setPhase('listening');
     playSound('click');
-  };
-
-  const getLevelTime = (level: AnzanLevel): number => {
-    const map: Record<AnzanLevel, number> = { 1: 15, 2: 20, 3: 25, 4: 30, 5: 35 };
-    return map[level] || 20;
   };
 
   const handleReplay = () => {
@@ -438,14 +398,11 @@ export function AudioAnzanScreen({ onBack, playSound, onXP, burst }: Props) {
     saveRounds(newRounds);
     setRounds(newRounds);
 
-    // ✅ منح الشارات السماعية
     const updatedBadges = { ...badges };
     if (section === 'addition' && correctLevels.length >= CORRECT_TO_MASTER) {
       updatedBadges.master_addition_audio = true;
     }
     if (section === 'multdiv') {
-      // عدّ منفصل للضرب والقسمة
-      // (نبسّط: إذا حقق 10 إجابات صحيحة في القسم، تُمنح الشارتان)
       if (correctLevels.length >= CORRECT_TO_MASTER) {
         if (multUnlocked) updatedBadges.master_multiplication_audio = true;
         if (divUnlocked) updatedBadges.master_division_audio = true;
@@ -538,7 +495,7 @@ export function AudioAnzanScreen({ onBack, playSound, onXP, burst }: Props) {
         )}
       </div>
 
-      {/* ============ INTRO ============ */}
+      {/* INTRO */}
       {phase === 'intro' && (
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
           {!multdivUnlocked && section === 'multdiv' ? (
@@ -578,7 +535,7 @@ export function AudioAnzanScreen({ onBack, playSound, onXP, burst }: Props) {
         </motion.div>
       )}
 
-      {/* ============ LISTENING ============ */}
+      {/* LISTENING */}
       {phase === 'listening' && currentQ && (
         <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="glass-card p-8 text-center">
           <motion.div
@@ -595,7 +552,7 @@ export function AudioAnzanScreen({ onBack, playSound, onXP, burst }: Props) {
         </motion.div>
       )}
 
-      {/* ============ ANSWER ============ */}
+      {/* ANSWER */}
       {phase === 'answer' && currentQ && (
         <div className="space-y-4">
           <div className="text-center">
@@ -613,10 +570,13 @@ export function AudioAnzanScreen({ onBack, playSound, onXP, burst }: Props) {
             </span>
           </div>
 
+          {/* ✅ Soroban2D5 */}
           <div className="flex justify-center">
-            <InteractiveSoroban
+            <Soroban2D5
+              key={`audio-anzan-${currentIdx}`}
               columns={getColumnsForValue(currentQ.answer)}
-              value={abacusValue}
+              interactive={true}
+              showValue={true}
               onValueChange={setAbacusValue}
             />
           </div>
@@ -627,7 +587,8 @@ export function AudioAnzanScreen({ onBack, playSound, onXP, burst }: Props) {
           </div>
 
           <div className="flex gap-2">
-            <button              onClick={() => { setAbacusValue(0); playSound('click'); }}
+            <button
+              onClick={() => { setAbacusValue(0); playSound('click'); }}
               className="flex-1 py-3 rounded-xl bg-white/10 hover:bg-white/20 font-bold flex items-center justify-center gap-2"
             >
               <RotateCcw className="w-4 h-4" /> مسح
@@ -680,7 +641,7 @@ export function AudioAnzanScreen({ onBack, playSound, onXP, burst }: Props) {
         </div>
       )}
 
-      {/* ============ RESULT ============ */}
+      {/* RESULT */}
       {phase === 'result' && (
         <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="glass-card p-6 text-center">
           <Trophy className="w-16 h-16 text-gold-300 mx-auto mb-4" />
