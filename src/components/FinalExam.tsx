@@ -24,7 +24,7 @@ interface FinalExamProps {
 const TOTAL_QUESTIONS = 25;
 const POINTS_PER_QUESTION = 4;
 const PASS_THRESHOLD = 60;
-const MAX_ATTEMPTS = 2; // ✅ محاولتان فقط
+const MAX_ATTEMPTS = 2;
 const COMPLETED_STORAGE_KEY = 'soroban-completed-lessons';
 
 type ExamState = 'intro' | 'running' | 'finished';
@@ -34,18 +34,18 @@ function toArabicNumber(value: number | string): string {
   return String(value).replace(/\d/g, (d) => '٠١٢٣٤٥٦٧٨٩'[Number(d)]);
 }
 
-// ✅ 3 أعمدة كحد أدنى للناتج < 1000
 function getColumnsForValue(value: number): number {
   if (value < 1000) return 3;
   return 6;
 }
 
+// ✅ تصحيح: نستخدم operator من العملية الحالية وليس السابقة
 function questionToString(q: ExamQuestion): string {
   if (!q.operations || q.operations.length === 0) return '';
   const parts: string[] = [String(q.operations[0].value)];
   for (let i = 1; i < q.operations.length; i++) {
-    const prevOp = q.operations[i - 1];
-    parts.push(`${prevOp.operator} ${q.operations[i].value}`);
+    const currentOp = q.operations[i];
+    parts.push(`${currentOp.operator} ${currentOp.value}`);
   }
   return parts.join(' ') + ' = ؟';
 }
@@ -135,19 +135,16 @@ export function FinalExam({ onBack, onComplete, playSound, onGoToLearn }: FinalE
     setAttempts(newAttempts);
 
     if (abacusValue === currentQuestion.answer) {
-      // ✅ إجابة صحيحة
       playSound('success');
       setFeedback('correct');
       const newAnswers = [...answers, { correct: true }];
       setTimeout(() => advance(newAnswers), 1200);
     } else if (newAttempts >= MAX_ATTEMPTS) {
-      // ❌ محاولتان فاشلتان → إظهار الإجابة الصحيحة
       playSound('error');
       setFeedback('revealed');
       const newAnswers = [...answers, { correct: false }];
       setTimeout(() => advance(newAnswers), 2500);
     } else {
-      // ⚠️ محاولة أولى فاشلة → يتاح للطفل محاولة ثانية
       playSound('error');
       setFeedback('wrong');
       setTimeout(() => setFeedback('idle'), 900);
@@ -479,7 +476,6 @@ export function FinalExam({ onBack, onComplete, playSound, onGoToLearn }: FinalE
         />
       </div>
 
-      {/* القيمة الحالية */}
       {feedback === 'idle' && (
         <div className="text-center mb-3">
           <span className="text-xs text-white/60">القيمة الحالية: </span>
@@ -518,7 +514,6 @@ export function FinalExam({ onBack, onComplete, playSound, onGoToLearn }: FinalE
         )}
       </div>
 
-      {/* عرض الإجابة عند الفشل */}
       {feedback === 'revealed' && currentQuestion && (
         <motion.div
           initial={{ opacity: 0, y: 10 }}
