@@ -14,6 +14,47 @@ import {
   type ExamQuestion,
 } from '@/examBank2';
 
+// ═══════════════════════════════════════════════════════════
+// ✅ حفظ/استعادة حالة الامتحان
+// ═══════════════════════════════════════════════════════════
+const EXAM_STATE_KEY = 'soroban_exam_running_state';
+
+interface SavedExamState {
+  tab: 'addition' | 'multdiv';
+  state: 'intro' | 'running' | 'finished';
+  questions: ExamQuestion[];
+  currentIndex: number;
+  answers: Array<{ correct: boolean }>;
+  attempts: number;
+  timestamp: number;
+}
+
+function saveExamState(data: SavedExamState) {
+  try {
+    localStorage.setItem(EXAM_STATE_KEY, JSON.stringify(data));
+  } catch { /* ignore */ }
+}
+
+function loadExamState(): SavedExamState | null {
+  try {
+    const raw = localStorage.getItem(EXAM_STATE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (Date.now() - parsed.timestamp > 2 * 60 * 60 * 1000) {
+      localStorage.removeItem(EXAM_STATE_KEY);
+      return null;
+    }
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+function clearExamState() {
+  try {
+    localStorage.removeItem(EXAM_STATE_KEY);
+  } catch { /* ignore */ }
+}
 interface FinalExamProps {
   onBack: () => void;
   onComplete: (score: number, passed: boolean) => void;
