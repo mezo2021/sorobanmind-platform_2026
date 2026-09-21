@@ -8,7 +8,6 @@
   --bg-glow-2: #0a1a3a;
 }
 
-/* ✅ tap highlight للأزرار فقط (وليس كل العناصر) */
 button {
   -webkit-tap-highlight-color: transparent;
 }
@@ -30,10 +29,8 @@ body {
     radial-gradient(ellipse at 80% 10%, rgba(59, 130, 246, 0.15), transparent 50%),
     radial-gradient(ellipse at 50% 100%, rgba(16, 185, 129, 0.12), transparent 50%),
     var(--bg-base);
-  /* ❌ حذفنا background-attachment: fixed — يسبب تجميد */
 }
 
-/* ✅ إصلاح جذري: السماح بكتابة النصوص في input */
 input,
 textarea {
   -webkit-user-select: text !important;
@@ -42,17 +39,10 @@ textarea {
   pointer-events: auto !important;
 }
 
-/* ✅ منع Pull-to-Refresh */
 html {
   overscroll-behavior-y: contain;
 }
 
-/* ✅ منع التمرير الأفقي */
-body {
-  overflow-x: hidden;
-}
-
-/* ✅ لا نستخدم -webkit-touch-callout على كل العناصر — يسبب تجميد */
 #root {
   min-height: 100vh;
 }
@@ -111,7 +101,6 @@ body {
   }
 }
 
-/* Custom scrollbar */
 ::-webkit-scrollbar {
   width: 10px;
   height: 10px;
@@ -127,7 +116,6 @@ body {
   background: linear-gradient(180deg, #a855f7, #60a5fa);
 }
 
-/* Selection */
 ::selection {
   background: rgba(168, 85, 247, 0.35);
   color: #fff;
