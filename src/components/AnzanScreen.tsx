@@ -1,13 +1,11 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import {
-  ArrowRight, Eye, Play, Zap, Trophy, RotateCcw, Settings2,
-  Brain, Grid3X3, Wand2, Divide, Lock, CheckCircle2, Award,
-  X, Volume2, Square,
+  ArrowRight, Play, Zap, Trophy, RotateCcw,
+  Brain, Lock, CheckCircle2,
 } from 'lucide-react';
 import { InteractiveSoroban } from './InteractiveSoroban';
 import { useSpeech } from '@/hooks/useSpeech';
-import { LEARN_MODULES } from '@/data';
 import {
   loadAnzanBadges, saveAnzanBadges, type AnzanBadges,
 } from '@/examBank2';
@@ -15,11 +13,10 @@ import {
 // ═══════════════════════════════════════════════════════════════
 // الأنواع والثوابت
 // ═══════════════════════════════════════════════════════════════
-type Phase = 'intro' | 'flashing' | 'answer' | 'result';
+type Phase = 'intro' | 'answer' | 'result';
 type SectionType = 'addition' | 'multiplication' | 'division' | 'mixed';
 type AnzanLevel = 1 | 2 | 3 | 4 | 5;
 
-const ANZAN_STORAGE_KEY = 'soroban_anzan_stats';
 const ANZAN_PROGRESS_KEY = 'soroban_anzan_progress';
 const ANZAN_ROUNDS_KEY = 'soroban_anzan_rounds';
 const QUESTIONS_PER_ROUND = 5;
@@ -41,7 +38,7 @@ const SECTION_STORIES: Record<SectionType, string> = {
 };
 
 // ═══════════════════════════════════════════════════════════════
-// حالة تقدم كل مستوى
+// تقدم المستويات (localStorage)
 // ═══════════════════════════════════════════════════════════════
 interface AnzanProgress {
   addition: number[];
@@ -73,7 +70,7 @@ function saveProgress(progress: AnzanProgress) {
 }
 
 // ═══════════════════════════════════════════════════════════════
-// حالة الجولات اليومية
+// الجولات اليومية
 // ═══════════════════════════════════════════════════════════════
 interface RoundsData {
   date: string;
@@ -112,18 +109,8 @@ function isLessonCompleted(id: number): boolean {
   }
 }
 
-function isExamPassed(): boolean {
-  try {
-    const raw = localStorage.getItem('soroban_exam_result');
-    if (!raw) return false;
-    return JSON.parse(raw).passed === true;
-  } catch {
-    return false;
-  }
-}
-
 // ═══════════════════════════════════════════════════════════════
-// بيانات الأقسام والمستويات
+// بيانات المستويات
 // ═══════════════════════════════════════════════════════════════
 interface LevelInfo {
   level: AnzanLevel;
@@ -134,13 +121,12 @@ interface LevelInfo {
 
 function getAdditionLevels(): LevelInfo[] {
   const progress = loadProgress();
-  const unlocked = [true, progress.addition.includes(1), progress.addition.includes(2), progress.addition.includes(3), progress.addition.includes(4)];
   return [
     { level: 1, label: '3 أرقام', time: 15, unlocked: true },
-    { level: 2, label: '4 أرقام', time: 20, unlocked: unlocked[1] },
-    { level: 3, label: '5 أرقام', time: 25, unlocked: unlocked[2] },
-    { level: 4, label: '6 أرقام', time: 30, unlocked: unlocked[3] },
-    { level: 5, label: '7 أرقام', time: 35, unlocked: unlocked[4] },
+    { level: 2, label: '4 أرقام', time: 20, unlocked: progress.addition.includes(1) },
+    { level: 3, label: '5 أرقام', time: 25, unlocked: progress.addition.includes(2) },
+    { level: 4, label: '6 أرقام', time: 30, unlocked: progress.addition.includes(3) },
+    { level: 5, label: '7 أرقام', time: 35, unlocked: progress.addition.includes(4) },
   ];
 }
 
@@ -151,20 +137,12 @@ function getMultiplicationLevels(): LevelInfo[] {
   const lesson3 = isLessonCompleted(3);
   const lesson4 = isLessonCompleted(4);
 
-  const unlocked = [
-    lesson1 && true,
-    lesson1 && progress.multiplication.includes(1),
-    lesson2 && progress.multiplication.includes(2),
-    lesson3 && progress.multiplication.includes(3),
-    lesson4 && progress.multiplication.includes(4),
-  ];
-
   return [
-    { level: 1, label: 'ضرب بسيط', time: 10, unlocked: unlocked[0] },
-    { level: 2, label: 'منزلتين × منزلة', time: 20, unlocked: unlocked[1] },
-    { level: 3, label: '٣ × منزلة', time: 20, unlocked: unlocked[2] },
-    { level: 4, label: 'منزلتين × منزلتين', time: 30, unlocked: unlocked[3] },
-    { level: 5, label: 'الضرب التقاطعي', time: 30, unlocked: unlocked[4] },
+    { level: 1, label: 'ضرب بسيط', time: 10, unlocked: lesson1 },
+    { level: 2, label: 'منزلتين × منزلة', time: 20, unlocked: lesson1 && progress.multiplication.includes(1) },
+    { level: 3, label: '٣ × منزلة', time: 20, unlocked: lesson2 && progress.multiplication.includes(2) },
+    { level: 4, label: 'منزلتين × منزلتين', time: 30, unlocked: lesson3 && progress.multiplication.includes(3) },
+    { level: 5, label: 'الضرب التقاطعي', time: 30, unlocked: lesson4 && progress.multiplication.includes(4) },
   ];
 }
 
@@ -174,43 +152,27 @@ function getDivisionLevels(): LevelInfo[] {
   const lesson7 = isLessonCompleted(7);
   const lesson8 = isLessonCompleted(8);
 
-  const unlocked = [
-    lesson6 && true,
-    lesson6 && progress.division.includes(1),
-    lesson7 && progress.division.includes(2),
-    lesson7 && progress.division.includes(3),
-    lesson8 && progress.division.includes(4),
-  ];
-
   return [
-    { level: 1, label: 'قسمة بسيطة', time: 10, unlocked: unlocked[0] },
-    { level: 2, label: 'مرتبتين ÷ مرتبتين', time: 20, unlocked: unlocked[1] },
-    { level: 3, label: '٣ مراتب ÷ مرتبتين', time: 20, unlocked: unlocked[2] },
-    { level: 4, label: 'سلسلة قسمة', time: 30, unlocked: unlocked[3] },
-    { level: 5, label: 'قسمة ذهنية', time: 30, unlocked: unlocked[4] },
+    { level: 1, label: 'قسمة بسيطة', time: 10, unlocked: lesson6 },
+    { level: 2, label: 'مرتبتين ÷ مرتبتين', time: 20, unlocked: lesson6 && progress.division.includes(1) },
+    { level: 3, label: '٣ مراتب ÷ مرتبتين', time: 20, unlocked: lesson7 && progress.division.includes(2) },
+    { level: 4, label: 'سلسلة قسمة', time: 30, unlocked: lesson7 && progress.division.includes(3) },
+    { level: 5, label: 'قسمة ذهنية', time: 30, unlocked: lesson8 && progress.division.includes(4) },
   ];
 }
 
 function getMixedLevels(): LevelInfo[] {
   const progress = loadProgress();
-  const multLessons = [1, 2, 3, 4, 5].every(id => isLessonCompleted(id));
-  const divLessons = [6, 7, 8].every(id => isLessonCompleted(id));
-  const allDone = multLessons && divLessons;
-
-  const unlocked = [
-    allDone && true,
-    allDone && progress.mixed.includes(1),
-    allDone && progress.mixed.includes(2),
-    allDone && progress.mixed.includes(3),
-    allDone && progress.mixed.includes(4),
-  ];
+  const multDone = [1, 2, 3, 4, 5].every(id => isLessonCompleted(id));
+  const divDone = [6, 7, 8].every(id => isLessonCompleted(id));
+  const allDone = multDone && divDone;
 
   return [
-    { level: 1, label: 'سلسلة قصيرة', time: 20, unlocked: unlocked[0] },
-    { level: 2, label: 'سلسلة متوسطة', time: 25, unlocked: unlocked[1] },
-    { level: 3, label: 'سلسلة طويلة', time: 30, unlocked: unlocked[2] },
-    { level: 4, label: 'مركب سريع', time: 35, unlocked: unlocked[3] },
-    { level: 5, label: 'مركب متقدم', time: 40, unlocked: unlocked[4] },
+    { level: 1, label: 'سلسلة قصيرة', time: 20, unlocked: allDone },
+    { level: 2, label: 'سلسلة متوسطة', time: 25, unlocked: allDone && progress.mixed.includes(1) },
+    { level: 3, label: 'سلسلة طويلة', time: 30, unlocked: allDone && progress.mixed.includes(2) },
+    { level: 4, label: 'مركب سريع', time: 35, unlocked: allDone && progress.mixed.includes(3) },
+    { level: 5, label: 'مركب متقدم', time: 40, unlocked: allDone && progress.mixed.includes(4) },
   ];
 }
 
@@ -237,18 +199,26 @@ function generateQuestion(section: SectionType, level: AnzanLevel): Question {
     const count = level + 2;
     const operations: Array<{ value: number; operator: '+' | '-'; }> = [];
     let current = 0;
-    let twoDigitCount = level === 1 ? 0 : (level === 2 ? 1 : 2);
+    let twoDigitLeft = level === 1 ? 0 : (level === 2 ? 1 : 2);
+
     for (let i = 0; i < count; i++) {
-      const useTwoDigit = twoDigitCount > 0 && i > 0 && Math.random() < 0.4;
+      const useTwoDigit = twoDigitLeft > 0 && i > 0 && Math.random() < 0.4;
       const canSubtract = current > 5 && Math.random() < 0.3;
+
       if (canSubtract) {
-        const value = useTwoDigit ? Math.floor(Math.random() * 15) + 5 : Math.floor(Math.random() * 4) + 1;
-        const safe = Math.min(value, current - 1);
-        operations.push({ value: safe, operator: '-' });
-        current -= safe;
+        const raw = useTwoDigit ? Math.floor(Math.random() * 15) + 5 : Math.floor(Math.random() * 4) + 1;
+        const safe = Math.min(raw, current - 1);
+        if (safe < 1) {
+          const value = Math.floor(Math.random() * 5) + 1;
+          operations.push({ value, operator: '+' });
+          current += value;
+        } else {
+          operations.push({ value: safe, operator: '-' });
+          current -= safe;
+        }
       } else {
         const value = useTwoDigit ? Math.floor(Math.random() * 15) + 5 : Math.floor(Math.random() * 5) + 1;
-        if (useTwoDigit) twoDigitCount--;
+        if (useTwoDigit) twoDigitLeft--;
         operations.push({ value, operator: '+' });
         current += value;
       }
@@ -257,7 +227,7 @@ function generateQuestion(section: SectionType, level: AnzanLevel): Question {
   }
 
   if (section === 'multiplication') {
-    let a: number, b: number;
+    let a = 2, b = 2;
     switch (level) {
       case 1: a = Math.floor(Math.random() * 8) + 2; b = Math.floor(Math.random() * 8) + 2; break;
       case 2: a = Math.floor(Math.random() * 80) + 12; b = Math.floor(Math.random() * 7) + 2; break;
@@ -269,7 +239,7 @@ function generateQuestion(section: SectionType, level: AnzanLevel): Question {
   }
 
   if (section === 'division') {
-    let dividend = 0, divisor = 2, quotient = 2;
+    let dividend = 4, divisor = 2, quotient = 2;
     switch (level) {
       case 1: quotient = Math.floor(Math.random() * 30) + 2; divisor = Math.floor(Math.random() * 8) + 2; dividend = quotient * divisor; break;
       case 2: quotient = Math.floor(Math.random() * 15) + 2; divisor = Math.floor(Math.random() * 40) + 11; dividend = quotient * divisor; break;
@@ -282,8 +252,8 @@ function generateQuestion(section: SectionType, level: AnzanLevel): Question {
 
   // mixed
   const result: Array<{ value: number; operator: '+' | '-' | '×' | '÷'; }> = [];
-  let value = Math.floor(Math.random() * 5) + 4;
-  result.push({ value, operator: '×' });
+  let start = Math.floor(Math.random() * 5) + 4;
+  result.push({ value: start, operator: '×' });
 
   for (let i = 0; i < level; i++) {
     if (i % 2 === 0) {
@@ -305,24 +275,30 @@ function generateQuestion(section: SectionType, level: AnzanLevel): Question {
   return { operations: result, answer, level };
 }
 
+// ✅ توليد 5 أسئلة دائماً (يكرر المستويات المفتوحة إذا لزم)
 function generateRound(section: SectionType): Question[] {
   const levels = getLevelsForSection(section);
   const unlockedLevels = levels.filter(l => l.unlocked).map(l => l.level);
-  const questions: Question[] = [];
-  const answers = new Set<number>();
+  if (unlockedLevels.length === 0) return [];
 
-  for (const level of unlockedLevels) {
+  const questions: Question[] = [];
+  const usedAnswers = new Set<number>();
+  let idx = 0;
+
+  while (questions.length < QUESTIONS_PER_ROUND) {
+    const level = unlockedLevels[idx % unlockedLevels.length];
     let attempts = 0;
     let q: Question;
     do {
       q = generateQuestion(section, level);
       attempts++;
-    } while (answers.has(q.answer) && attempts < 20);
-    answers.add(q.answer);
+    } while (usedAnswers.has(q.answer) && attempts < 30);
+    usedAnswers.add(q.answer);
     questions.push(q);
+    idx++;
   }
 
-  return questions.slice(0, QUESTIONS_PER_ROUND);
+  return questions;
 }
 
 function questionToString(q: Question): string {
@@ -339,12 +315,10 @@ function toArabicNumber(value: number | string): string {
   return String(value).replace(/\d/g, (d) => '٠١٢٣٤٥٦٧٨٩'[Number(d)]);
 }
 
+// ✅ عدد الأعمدة حسب الناتج
 function getColumnsForValue(value: number): number {
-  if (value < 10) return 1;
-  if (value < 100) return 2;
-  if (value < 1000) return 3;
-  if (value < 10000) return 4;
-  return 5;
+  if (value < 1000) return 3;  // 3 أعمدة كحد أدنى
+  return 6;                     // 6 أعمدة للأرقام الكبيرة
 }
 
 function getLevelTime(section: SectionType, level: AnzanLevel): number {
@@ -377,7 +351,7 @@ export function AnzanScreen({ onBack, playSound, onXP, burst }: Props) {
   const [badges, setBadges] = useState<AnzanBadges>(loadAnzanBadges());
   const [rounds, setRounds] = useState<RoundsData>(loadRounds());
 
-  const { speak, stop, isSpeaking } = useSpeech();
+  const { stop } = useSpeech();
 
   const currentQ = questions[currentIdx];
   const levels = getLevelsForSection(section);
@@ -388,6 +362,7 @@ export function AnzanScreen({ onBack, playSound, onXP, burst }: Props) {
     return () => { stop(); };
   }, [section, phase, stop]);
 
+  // ✅ المؤقت يبدأ فقط عند عرض السؤال
   useEffect(() => {
     if (phase !== 'answer' || !currentQ) return;
     if (timeLeft <= 0) {
@@ -410,7 +385,7 @@ export function AnzanScreen({ onBack, playSound, onXP, burst }: Props) {
     setAttempts(0);
     setRoundScore(0);
     setRoundCorrect([]);
-    setTimeLeft(getLevelTime(section, qs[0].level));
+    setTimeLeft(getLevelTime(section, qs[0].level)); // ✅ يبدأ مع السؤال الأول
     setPhase('answer');
     playSound('click');
   };
@@ -451,6 +426,7 @@ export function AnzanScreen({ onBack, playSound, onXP, burst }: Props) {
       setRoundCorrect(newCorrect);
       setRoundScore(newScore);
       setCurrentIdx(currentIdx + 1);
+      // ✅ المؤقت يعود مع بداية السؤال التالي
       setTimeLeft(getLevelTime(section, questions[currentIdx + 1].level));
     } else {
       finishRound(newCorrect, newScore);
@@ -590,13 +566,9 @@ export function AnzanScreen({ onBack, playSound, onXP, burst }: Props) {
                     return (
                       <div key={lv.level} className={`p-3 rounded-xl border ${lv.unlocked ? 'bg-white/5 border-white/10' : 'bg-white/[0.02] border-white/5 opacity-50'}`}>
                         <div className="flex items-center justify-between mb-1.5">
-                          <div className="flex items-center gap-2">
-                            {lv.unlocked ? (
-                              <span className="text-xs font-bold text-white">مستوى {toArabicNumber(lv.level)} — {lv.label}</span>
-                            ) : (
-                              <span className="text-xs font-bold text-white/40">🔒 مستوى {toArabicNumber(lv.level)} — {lv.label}</span>
-                            )}
-                          </div>
+                          <span className={`text-xs font-bold ${lv.unlocked ? 'text-white' : 'text-white/40'}`}>
+                            {lv.unlocked ? '' : '🔒 '}مستوى {toArabicNumber(lv.level)} — {lv.label}
+                          </span>
                           <span className={`text-xs font-bold ${count >= CORRECT_TO_MASTER ? 'text-gold-300' : 'text-white/50'}`}>
                             {toArabicNumber(count)}/{toArabicNumber(CORRECT_TO_MASTER)}
                             {count >= CORRECT_TO_MASTER && ' 🏅'}
