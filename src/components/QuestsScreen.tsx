@@ -1,6 +1,9 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useEffect } from 'react';
-import { ArrowRight, Swords, Eye, Flame, BookOpen, Gift, CheckCircle2, Plus, Sparkles } from 'lucide-react';
+import {
+  ArrowRight, Swords, Eye, Flame, BookOpen, Gift,
+  CheckCircle2, Plus, Sparkles, Lock,
+} from 'lucide-react';
 import { useQuests } from '@/hooks/useQuests';
 import type { Quest } from '@/types';
 
@@ -40,7 +43,7 @@ function saveClaimedQuests(quests: ClaimedQuest[]) {
   } catch { /* ignore */ }
 }
 
-/** ✅ فحص: هل هذه المهمة استُلمت مؤخراً؟ (نسمح بالاستلام مجدداً كل 24 ساعة) */
+/** ✅ فحص: هل استُلمت مؤخراً؟ (نسمح بالاستلام مرة كل 24 ساعة) */
 function isQuestClaimedRecently(claimed: ClaimedQuest[], questId: number): boolean {
   const DAY_MS = 24 * 60 * 60 * 1000;
   const now = Date.now();
@@ -61,7 +64,7 @@ export function QuestsScreen({ onBack, playSound, onXP, burst }: QuestsScreenPro
   const [claimed, setClaimed] = useState<ClaimedQuest[]>(() => loadClaimedQuests());
   const [justClaimed, setJustClaimed] = useState<number | null>(null);
 
-  // ✅ مزامنة عند تحديث التخزين من نوافذ أخرى
+  // ✅ مزامنة بين النوافذ
   useEffect(() => {
     const handleStorage = () => {
       setClaimed(loadClaimedQuests());
@@ -71,7 +74,6 @@ export function QuestsScreen({ onBack, playSound, onXP, burst }: QuestsScreenPro
   }, []);
 
   const handleClaim = (quest: Quest) => {
-    // ✅ حماية: لا يُستلم إن كان مُستلماً حديثاً
     if (isQuestClaimedRecently(claimed, quest.id)) {
       playSound('whoosh');
       return;
@@ -85,14 +87,15 @@ export function QuestsScreen({ onBack, playSound, onXP, burst }: QuestsScreenPro
     setClaimed(newClaimed);
     saveClaimedQuests(newClaimed);
 
-    // ✅ تأثير بصري عند الاستلام
     setJustClaimed(quest.id);
     setTimeout(() => setJustClaimed(null), 1500);
   };
 
+  const completedCount = quests.filter((q) => q.progress >= q.target).length;
+
   return (
     <div className="px-3 sm:px-6 py-6 max-w-4xl mx-auto">
-      {/* رأس الصفحة */}
+      {/* ═══════════ رأس الصفحة ═══════════ */}
       <div className="flex items-center gap-3 mb-6">
         <button
           onClick={() => {
@@ -111,15 +114,15 @@ export function QuestsScreen({ onBack, playSound, onXP, burst }: QuestsScreenPro
             أكمل التحديات واكسب المكافآت
           </p>
         </div>
-        <div className="text-right">
-          <p className="text-2xl font-black text-gold-300 font-display">
-            {toArabicNumber(quests.filter((q) => q.progress >= q.target).length)}
+        <div className="text-center px-3 py-1.5 rounded-xl bg-gold-400/15 border border-gold-400/30">
+          <p className="text-xl font-black text-gold-300 font-display">
+            {toArabicNumber(completedCount)}
           </p>
-          <p className="text-[10px] text-white/40 font-body">مكتملة</p>
+          <p className="text-[10px] text-white/50 font-body">مكتملة</p>
         </div>
       </div>
 
-      {/* شبكة المهام */}
+      {/* ═══════════ شبكة المهام ═══════════ */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {quests.map((quest, i) => {
           const Icon = ICONS[quest.icon] || Swords;
@@ -134,7 +137,7 @@ export function QuestsScreen({ onBack, playSound, onXP, burst }: QuestsScreenPro
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{
-                delay: i * 0.08,
+                delay: i * 0.06,
                 type: 'spring',
                 stiffness: 200,
                 damping: 20,
@@ -148,7 +151,7 @@ export function QuestsScreen({ onBack, playSound, onXP, burst }: QuestsScreenPro
               />
 
               {/* الرأس: أيقونة + معلومات + XP */}
-              <div className="relative flex items-start gap-4 mb-4">
+              <div className="relative flex items-start gap-3 mb-4">
                 <div
                   className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${quest.color} flex items-center justify-center shadow-lg shrink-0 ${
                     isRecentlyClaimed ? 'grayscale' : ''
@@ -167,34 +170,34 @@ export function QuestsScreen({ onBack, playSound, onXP, burst }: QuestsScreenPro
                     {quest.descriptionAr}
                   </p>
                 </div>
-                <div className="shrink-0 text-center">
-                  <p className="text-xl font-extrabold text-gold-300 font-display">
+                <div className="shrink-0 text-center px-2.5 py-1.5 rounded-xl bg-gold-400/15 border border-gold-400/30">
+                  <p className="text-lg font-extrabold text-gold-300 font-display">
                     +{toArabicNumber(quest.xpReward)}
                   </p>
-                  <p className="text-[10px] text-white/40">XP</p>
+                  <p className="text-[9px] text-white/50 font-bold">XP</p>
                 </div>
               </div>
 
               {/* شريط التقدم */}
-              <div className="flex items-center gap-3 mb-3">
+              <div className="flex items-center gap-3 mb-4">
                 <div className="flex-1 h-3 rounded-full bg-white/10 overflow-hidden">
                   <motion.div
                     className={`h-full rounded-full bg-gradient-to-r ${quest.color}`}
                     initial={{ width: 0 }}
                     animate={{ width: `${pct}%` }}
                     transition={{
-                      delay: 0.3 + i * 0.08,
+                      delay: 0.3 + i * 0.06,
                       duration: 0.8,
                       ease: 'easeOut',
                     }}
                   />
                 </div>
-                <span className="text-xs text-white/50 font-body whitespace-nowrap">
+                <span className="text-sm text-white/60 font-body whitespace-nowrap font-bold">
                   {toArabicNumber(quest.progress)}/{toArabicNumber(quest.target)}
                 </span>
               </div>
 
-              {/* زر الاستلام / الحالة */}
+              {/* زر الاستلام / الحالة — داخل البطاقة */}
               <AnimatePresence mode="wait">
                 {isJustClaimed ? (
                   <motion.div
@@ -202,7 +205,7 @@ export function QuestsScreen({ onBack, playSound, onXP, burst }: QuestsScreenPro
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0 }}
-                    className="w-full py-2.5 rounded-xl bg-emerald2-500/20 border border-emerald2-400/40 flex items-center justify-center gap-2 text-emerald2-300 font-bold text-sm"
+                    className="w-full py-3 rounded-xl bg-emerald2-500/20 border border-emerald2-400/40 flex items-center justify-center gap-2 text-emerald2-300 font-bold text-sm"
                   >
                     <Sparkles className="w-4 h-4" />
                     <span>+{toArabicNumber(quest.xpReward)} XP! 🎉</span>
@@ -212,7 +215,7 @@ export function QuestsScreen({ onBack, playSound, onXP, burst }: QuestsScreenPro
                     key="claimed"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    className="w-full py-2.5 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center gap-2 text-white/40 font-body text-sm"
+                    className="w-full py-3 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center gap-2 text-white/40 font-body text-sm"
                   >
                     <CheckCircle2 className="w-4 h-4" />
                     <span>تم الاستلام — عد غداً</span>
@@ -225,7 +228,7 @@ export function QuestsScreen({ onBack, playSound, onXP, burst }: QuestsScreenPro
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.97 }}
                     onClick={() => handleClaim(quest)}
-                    className="btn-primary w-full !py-2.5 !text-sm"
+                    className="btn-primary w-full !py-3 !text-sm"
                   >
                     <Gift className="w-4 h-4" /> استلم المكافأة
                   </motion.button>
@@ -234,9 +237,9 @@ export function QuestsScreen({ onBack, playSound, onXP, burst }: QuestsScreenPro
                     key="progress"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    className="flex items-center justify-center gap-2 py-2 text-sm text-white/40 font-body"
+                    className="w-full py-3 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center gap-2 text-white/40 font-body text-sm"
                   >
-                    <CheckCircle2 className="w-4 h-4" />
+                    <Lock className="w-4 h-4" />
                     <span>قيد التقدم...</span>
                   </motion.div>
                 )}
@@ -246,7 +249,7 @@ export function QuestsScreen({ onBack, playSound, onXP, burst }: QuestsScreenPro
         })}
       </div>
 
-      {/* بطاقة المكافأة اليومية */}
+      {/* ═══════════ مكافأة يومية ═══════════ */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -256,15 +259,15 @@ export function QuestsScreen({ onBack, playSound, onXP, burst }: QuestsScreenPro
         <motion.div
           animate={{ rotate: [0, 10, -10, 0] }}
           transition={{ duration: 2, repeat: Infinity }}
-          className="w-12 h-12 rounded-2xl bg-gradient-to-br from-gold-400 to-gold-600 flex items-center justify-center shrink-0"
+          className="w-14 h-14 rounded-2xl bg-gradient-to-br from-gold-400 to-gold-600 flex items-center justify-center shrink-0"
         >
-          <Gift className="w-6 h-6 text-white" />
+          <Gift className="w-7 h-7 text-white" />
         </motion.div>
         <div>
-          <p className="font-bold text-white font-body text-sm">
+          <p className="font-bold text-white font-body text-base">
             مكافأة يومية متاحة!
           </p>
-          <p className="text-xs text-white/50 font-body">
+          <p className="text-sm text-white/50 font-body mt-0.5">
             عد كل يوم للحفاظ على سلسلتك واكسب نقاط إضافية
           </p>
         </div>
