@@ -5,7 +5,6 @@ import type { BeadState } from './useSorobanLogic';
 interface Rod2D5Props {
   state: BeadState;
   columnIndex: number;
-  /** الترتيب الحقيقي للعمود (0 = آحاد، 1 = عشرات ...) */
   displayOrder: number;
   onToggleUpper: () => void;
   onSetLower: (count: number) => void;
@@ -26,26 +25,30 @@ export function Rod2D5({
   const lowerBeads = [0, 1, 2, 3];
 
   // 🎯 حسابات رياضية دقيقة
-  const beadHeight = beadSize * 0.42;    // الارتفاع المرئي للخرزة
-  const gap = 2;                          // فراغ صغير
-  const step = beadHeight + gap;          // مسافة بين الخرزات
+  const beadHeight = beadSize * 0.42;
+  const gap = 3;
+  const step = beadHeight + gap;
 
-  const beamY = height / 2;               // موضع العارضة (الوسط)
+  // ✅ نحتفظ بمساحة 20px أسفل القضيب لزر "تصفير"
+  const rodHeight = height - 24;          // ← القضيب أقصر قليلاً
+  const beamY = rodHeight / 2;
 
-  // ✅ الخرزة العلوية
-  const upperBeadTop = beadHeight + 8;                       // موضع "غير مفعّلة" (قريب من الأعلى)
-  const upperBeadActive = beamY - beadHeight - 6;            // موضع "مفعّلة" (ملتصقة بالعارضة)
+  // ✅ الخرزة العلوية — غير مفعّلة أعلى، مفعّلة عند العارضة
+  const upperBeadTop = 8;
+  const upperBeadActive = beamY - beadHeight - 4;
 
   // ✅ الخرزات السفلية
-  const lowerAreaTop = beamY + 6;                            // أسفل العارضة مباشرة
-  const lowerAreaBottom = height - beadHeight - 8;           // أعلى قليل من أسفل الإطار
+  // غير مفعّلة: من الأسفل للأعلى
+  // مفعّلة: من العارضة للأسفل
+  const lowerAreaTop = beamY + 4;
+  const lowerAreaBottom = rodHeight - beadHeight - 8;
 
   return (
     <div
       className="relative flex flex-col items-center"
       style={{ height, width: beadSize * 1.3 }}
     >
-      {/* القضيب الخلفي */}
+      {/* ═══ القضيب الخلفي ═══ */}
       <div
         style={{
           position: 'absolute',
@@ -53,14 +56,14 @@ export function Rod2D5({
           left: '50%',
           transform: 'translateX(-50%)',
           width: 5,
-          height: '100%',
+          height: rodHeight,
           background: 'linear-gradient(90deg, #5a5a5a 0%, #999 50%, #5a5a5a 100%)',
           borderRadius: 3,
           boxShadow: 'inset 0 0 4px rgba(0,0,0,0.5)',
         }}
       />
 
-      {/* ========== الخرزة العلوية (قيمة 5) ========== */}
+      {/* ═══ الخرزة العلوية (قيمة 5) ═══ */}
       <div
         style={{
           position: 'absolute',
@@ -80,7 +83,7 @@ export function Rod2D5({
         />
       </div>
 
-      {/* ========== العارضة الوسطى ========== */}
+      {/* ═══ العارضة الوسطى ═══ */}
       <div
         style={{
           position: 'absolute',
@@ -94,12 +97,10 @@ export function Rod2D5({
         }}
       />
 
-      {/* ========== الخرزات السفلية (قيمة 1) ========== */}
+      {/* ═══ الخرزات السفلية (قيمة 1) ═══ */}
       {lowerBeads.map((idx) => {
         const isActive = idx < state.lower;
 
-        // مفعّلة: من العارضة للأسفل
-        // غير مفعّلة: من الأسفل للأعلى
         const topActive = lowerAreaTop + idx * step;
         const topInactive = lowerAreaBottom - (3 - idx) * step;
 
@@ -132,14 +133,14 @@ export function Rod2D5({
         );
       })}
 
-      {/* ✅ زر إعادة التصفير — أسفل العمود */}
+      {/* ✅ زر "تصفير" — داخل الإطار (أسفل القضيب) */}
       <button
         type="button"
         onClick={onReset}
         className="absolute text-amber-700 hover:text-amber-900 underline whitespace-nowrap"
         style={{
           fontSize: 10,
-          bottom: -20,
+          bottom: 2,
           left: '50%',
           transform: 'translateX(-50%)',
         }}
@@ -148,12 +149,12 @@ export function Rod2D5({
         ↺ تصفير
       </button>
 
-      {/* ✅ اسم العمود — أعلى العمود */}
+      {/* ✅ اسم العمود — فوق القضيب */}
       <div
         className="absolute text-amber-800 font-bold whitespace-nowrap"
         style={{
           fontSize: 12,
-          top: -22,
+          top: -20,
           left: '50%',
           transform: 'translateX(-50%)',
         }}
