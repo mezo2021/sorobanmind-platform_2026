@@ -5,11 +5,10 @@ import { useBeadHaptics } from './useBeadHaptics';
 
 interface Bead2D5Props {
   color: 'wood' | 'gold' | 'dark' | 'red';
-  active: boolean;         // هل الخرزة مفعّلة؟
+  active: boolean;
   position: 'upper' | 'lower';
   size?: number;
   onClick?: () => void;
-  /** إذا false، لا يتحرك المكوّن داخلياً (الحركة من الأب) */
   animateOffset?: boolean;
 }
 
@@ -42,7 +41,7 @@ export function Bead2D5({
   position,
   size = 48,
   onClick,
-  animateOffset = true,   // ✅ القيمة الافتراضية
+  animateOffset = true,
 }: Bead2D5Props) {
   const playSound = useBeadSound();
   const vibrate = useBeadHaptics();
@@ -53,14 +52,13 @@ export function Bead2D5({
     onClick?.();
   };
 
-  // ✅ إذا animateOffset = false، لا نُحرّك داخلياً (Rod2D5 هو من يُحرّك)
   const offset = animateOffset
     ? position === 'upper'
       ? active
-        ? size * 0.5     // علوية تهبط للأسفل
+        ? size * 0.5
         : 0
       : active
-      ? -size * 0.6      // سفلية ترتفع للأعلى
+      ? -size * 0.6
       : 0
     : 0;
 
@@ -93,7 +91,6 @@ export function Bead2D5({
         transformStyle: 'preserve-3d',
       }}
     >
-      {/* لمعة زجاجية في الأعلى */}
       <span
         style={{
           position: 'absolute',
@@ -107,7 +104,6 @@ export function Bead2D5({
           pointerEvents: 'none',
         }}
       />
-      {/* ثقب الخرزة */}
       <span
         style={{
           position: 'absolute',
