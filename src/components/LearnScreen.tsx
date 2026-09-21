@@ -8,11 +8,11 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { LEARN_MODULES } from '@/data';
-import { Soroban } from './Soroban';
 import { FingerMath } from './FingerMath';
-import { InteractiveSoroban } from './InteractiveSoroban';
 import { SpeechButton } from './SpeechButton';
 import { useSpeech } from '@/hooks/useSpeech';
+// ✅ استيراد Soroban2D5 الجديد بدل Soroban + InteractiveSoroban
+import { Soroban2D5 } from './soroban2d5/Soroban2D5';
 import type { LearnModule, LessonStep, DivisionStep, LessonExample, DivisionExample, Screen } from '@/types';
 
 function toArabicNumber(value: number | string): string {
@@ -288,7 +288,6 @@ export function LearnScreen({ onBack, playSound, onXP, onNavigate }: LearnScreen
     }
   };
 
-  // ✅ بطاقات المستوى المتقدم
   const ADVANCED_CARDS = [
     {
       id: 'multiplication',
@@ -360,9 +359,7 @@ export function LearnScreen({ onBack, playSound, onXP, onNavigate }: LearnScreen
         </div>
       </div>
 
-      {/* ============================================
-          المستويات الأساسية (0-9)
-      ============================================ */}
+      {/* المستويات الأساسية */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {LEARN_MODULES.map((mod, i) => {
           const Icon = ICONS[mod.icon] || Info;
@@ -431,9 +428,7 @@ export function LearnScreen({ onBack, playSound, onXP, onNavigate }: LearnScreen
         })}
       </div>
 
-      {/* ============================================
-          المستوى المتقدم
-      ============================================ */}
+      {/* المستوى المتقدم */}
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
@@ -516,9 +511,7 @@ export function LearnScreen({ onBack, playSound, onXP, onNavigate }: LearnScreen
         </div>
       </motion.div>
 
-      {/* ============================================
-          نافذة الدرس
-      ============================================ */}
+      {/* نافذة الدرس */}
       <AnimatePresence>
         {selected && (
           <motion.div
@@ -627,6 +620,7 @@ export function LearnScreen({ onBack, playSound, onXP, onNavigate }: LearnScreen
                 </div>
               )}
 
+              {/* ✅ وضع "شاهد" — Soroban2D5 مع demoValue */}
               {currentEx && mode === 'watch' && (
                 <div className="flex justify-center mb-4">
                   <AnimatePresence mode="wait">
@@ -634,20 +628,33 @@ export function LearnScreen({ onBack, playSound, onXP, onNavigate }: LearnScreen
                       {isFingerLesson ? (
                         <FingerMath value={currentEx.answer} />
                       ) : (
-                        <Soroban value={currentEx.answer} columns={getColumnsForValue(currentEx.answer)} />
+                        <Soroban2D5
+                          key={`soroban-watch-${currentExample}`}
+                          columns={getColumnsForValue(currentEx.answer)}
+                          demoValue={currentEx.answer}
+                          interactive={false}
+                          showValue={true}
+                        />
                       )}
                     </motion.div>
                   </AnimatePresence>
                 </div>
               )}
 
+              {/* ✅ وضع "جرّب" — Soroban2D5 تفاعلي */}
               {currentEx && mode === 'try' && (
                 <div className="flex flex-col items-center gap-3 mb-4">
-                  <InteractiveSoroban
-                    columns={getColumnsForValue(currentEx.answer)}
-                    value={abacusValue}
-                    onValueChange={(v) => setAbacusValue(v)}
-                  />
+                  {isFingerLesson ? (
+                    <FingerMath value={abacusValue} interactive onValueChange={setAbacusValue} />
+                  ) : (
+                    <Soroban2D5
+                      key={`soroban-try-${currentExample}`}
+                      columns={getColumnsForValue(currentEx.answer)}
+                      interactive={true}
+                      showValue={true}
+                      onValueChange={(v) => setAbacusValue(v)}
+                    />
+                  )}
 
                   {!isSolved && !showAnswer && (
                     <div className="flex gap-2">
