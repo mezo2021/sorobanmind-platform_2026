@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowRight, CheckCircle2, Trophy, RotateCcw, BookOpen } from 'lucide-react';
 import { LEARN_MODULES } from '@/data';
-import AbacusInput from './AbacusInput';
+import { Soroban2D5 } from './soroban2d5/Soroban2D5';
 
 const COMPLETED_STORAGE_KEY = 'soroban-completed-lessons';
 const PRACTICE_STORAGE_KEY = 'soroban_practice_stats';
@@ -53,7 +53,6 @@ function toArabicNumber(value: number | string): string {
   return String(value).replace(/\d/g, (d) => '٠١٢٣٤٥٦٧٨٩'[Number(d)]);
 }
 
-/** خلط عشوائي */
 function shuffle<T>(arr: T[]): T[] {
   const a = [...arr];
   for (let i = a.length - 1; i > 0; i--) {
@@ -61,6 +60,14 @@ function shuffle<T>(arr: T[]): T[] {
     [a[i], a[j]] = [a[j], a[i]];
   }
   return a;
+}
+
+/** ✅ حساب عدد الأعمدة المطلوبة لعرض القيمة */
+function getColumnsForValue(value: number): number {
+  if (value < 10) return 1;
+  if (value < 100) return 2;
+  if (value < 1000) return 3;
+  return 4;
 }
 
 interface PracticeScreenProps {
@@ -85,18 +92,14 @@ export function PracticeScreen({ onBack, playSound, onXP, burst }: PracticeScree
     }
   }, []);
 
-  // ✅ بناء بنك الأسئلة من الدروس المكتملة
   const buildSession = (): PracticeQuestion[] => {
     const pool: PracticeQuestion[] = [];
 
-    // نأخذ أمثلة من كل درس مكتمل
     for (const lessonId of completed) {
       const mod = LEARN_MODULES.find((m) => m.id === lessonId);
       if (!mod) continue;
 
       for (const ex of mod.examples) {
-        // نتجنب الأسئلة التي ليست حسابية (لا تحتوي على عمليات)
-        // مثال: "ما قيمة الخرزة العلوية؟" — نتجنبها
         if (!/[+\-×÷]/.test(ex.problemText)) continue;
 
         pool.push({
@@ -107,7 +110,6 @@ export function PracticeScreen({ onBack, playSound, onXP, burst }: PracticeScree
       }
     }
 
-    // خلط + اختيار 10 أسئلة فريدة
     const shuffled = shuffle(pool);
     const selected: PracticeQuestion[] = [];
     const seen = new Set<string>();
@@ -175,11 +177,41 @@ export function PracticeScreen({ onBack, playSound, onXP, burst }: PracticeScree
       if (newAttempts >= MAX_ATTEMPTS) {
         playSound('error');
         setFeedback('revealed');
+
+        const stats = loadPracticeStats();
+        savePracticeStats({
+          totalProblems: stats.totalProblems + 1,
+          correctAnswers: stats.correctAnswers,
+          additionProblems: isAddition ? stats.additionProblems + 1 : stats.additionProblems,
+          subtractionProblems: isSubtraction ? stats.subtractionProblems + 1 : stats.subtractionProblems,
+          multiplicationProblems: isMultiplication ? stats.multiplicationProblems + 1 : stats.multiplicationProblems,
+          divisionProblems: isDivision ? stats.divisionProblems + 1 : stats.divisionProblems,
+        });
       } else {
         playSound('error');
         setFeedback('wrong');
         setTimeout(() => setFeedback('idle'), 800);
       }
+    }
+  };
+
+  /**
+   * ✅ التحقق عند تغيّر قيمة السوروبان
+   * - إذا طابق الإجابة → صحيح
+   * - إذا اختلف → خطأ
+   */
+  const handleValueChange = (value: number) => {
+    if (!question) return;
+    if (feedback === 'correct' || feedback === 'revealed') return;
+
+    // فقط إذا كانت القيمة > 0 (تجنب التحقق عند التصفير)
+    if (value === 0) return;
+
+    if (value === question.answer) {
+      handleAttempt(true);
+    } else {
+      // نتحقق فقط عند وصول قيمة غير صفرية
+      // ملاحظة: نحتاج debounce لتجنب رصد كل حركة
     }
   };
 
@@ -333,13 +365,40 @@ export function PracticeScreen({ onBack, playSound, onXP, burst }: PracticeScree
             </motion.div>
           )}
 
+          {/* ✅ Soroban2D5 بدل AbacusInput */}
           {feedback !== 'correct' && feedback !== 'revealed' && (
-            <AbacusInput
-              target={question.answer}
-              onCorrect={() => handleAttempt(true)}
-              onWrong={() => handleAttempt(false)}
-              hint="استخدم الخرزات لتمثيل الإجابة الصحيحة"
-            />
+            <div className="flex flex-col items-center gap-3">
+              <Soroban2D5
+                key={`practice-${index}`}
+                columns={getColumnsForValue(question.answer)}
+                interactive={true}
+                showValue={true}
+                onValueChange={handleValueChange}
+              />
+
+              <p className="text-xs text-white/50 font-body text-center">
+                💡 حرّك الخرزات لتمثيل الإجابة، ثم اضغط "تحقق"
+              </p>
+
+              <button
+                onClick={() => {
+                  // نجمع القيمة الحالية من Soroban2D5 عبر إعادة قراءتها من الـ state
+                  // في هذه النسخة، نستخدم التتبع عبر onValueChange
+                  // يمكن استبدال هذا بزر "تحقق" حقيقي عبر ref (نسخة لاحقة)
+                  // للآن، التحقق يتم تلقائياً عند مطابقة القيمة
+                  const el = document.querySelector('[data-soroban-value]');
+                  if (el) {
+                    const v = Number(el.getAttribute('data-soroban-value') || '0');
+                    if (v === question.answer) handleAttempt(true);
+                    else handleAttempt(false);
+                  }
+                }}
+                className="btn-primary !py-2 !px-6 !text-sm"
+              >
+                <CheckCircle2 className="w-4 h-4" />
+                تحقق
+              </button>
+            </div>
           )}
 
           {(feedback === 'correct' || feedback === 'revealed') && (
