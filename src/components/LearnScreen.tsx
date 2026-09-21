@@ -385,74 +385,147 @@ export function LearnScreen({ onBack, playSound, onXP, onNavigate }: LearnScreen
         </div>
       </div>
 
-      {/* المستويات الأساسية */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {LEARN_MODULES.map((mod, i) => {
-          const Icon = ICONS[mod.icon] || Info;
-          const isDone = completed.includes(mod.id);
-          const isFirstLesson = mod.id === 0;
-          const previousCompleted = completed.includes(mod.id - 1);
-          const isLocked = !isDone && !isFirstLesson && !previousCompleted;
-          const solvedCount = (lessonProgress[mod.id] || []).length;
-          const totalCount = mod.examples.length;
-          const progressPct = totalCount > 0 ? Math.round((solvedCount / totalCount) * 100) : 0;
+      {/* ═══════════════════════════════════════════════════════════
+    🌱 المجموعة 1: البداية (0-2)
+═══════════════════════════════════════════════════════════ */}
+<LevelGroup
+  title="🌱 البداية"
+  subtitle="تعرف على الأصابع والسوروبان"
+  color="from-emerald2-500 to-emerald2-700"
+  modules={LEARN_MODULES.filter((m) => m.id >= 0 && m.id <= 2)}
+  completed={completed}
+  lessonProgress={lessonProgress}
+  onOpen={handleOpen}
+/>
 
-          return (
-            <motion.button
-              key={mod.id}
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.06, type: 'spring', stiffness: 200, damping: 20 }}
-              whileHover={!isLocked ? { scale: 1.03, y: -4 } : {}}
-              whileTap={!isLocked ? { scale: 0.97 } : {}}
-              onClick={() => handleOpen(mod, isLocked)}
-              disabled={isLocked}
-              className="group relative glass-card p-5 text-right overflow-hidden disabled:opacity-50"
+{/* ═══════════════════════════════════════════════════════════
+    📚 المجموعة 2: القواعد الأساسية (3-7)
+═══════════════════════════════════════════════════════════ */}
+<LevelGroup
+  title="📚 القواعد الأساسية"
+  subtitle="الجمع والطرح بكل القواعد"
+  color="from-purple-500 to-purple-700"
+  modules={LEARN_MODULES.filter((m) => m.id >= 3 && m.id <= 7)}
+  completed={completed}
+  lessonProgress={lessonProgress}
+  onOpen={handleOpen}
+/>
+
+{/* ═══════════════════════════════════════════════════════════
+    🏆 المجموعة 3: الإتقان (8-9)
+═══════════════════════════════════════════════════════════ */}
+<LevelGroup
+  title="🏆 الإتقان"
+  subtitle="العمليات المركبة وتحدي السلاسل"
+  color="from-gold-400 to-gold-600"
+  modules={LEARN_MODULES.filter((m) => m.id >= 8 && m.id <= 9)}
+  completed={completed}
+  lessonProgress={lessonProgress}
+  onOpen={handleOpen}
+/>
+
+{/* ═══════════════════════════════════════════════════════════
+    ⭐ المجموعة 4: المستوى المتقدم
+═══════════════════════════════════════════════════════════ */}
+<motion.div
+  initial={{ opacity: 0, y: 30 }}
+  animate={{ opacity: 1, y: 0 }}
+  transition={{ delay: 0.4, type: 'spring', stiffness: 200, damping: 20 }}
+  className="mt-10"
+>
+  <div className="flex items-center gap-3 mb-5">
+    <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-gold-400 to-amber-600 flex items-center justify-center shadow-lg shadow-gold-500/30">
+      <Crown className="w-5 h-5 text-white" />
+    </div>
+    <div className="flex-1">
+      <h3 className="text-lg sm:text-xl font-extrabold font-display text-white">
+        المستوى المتقدم
+      </h3>
+      <p className="text-xs text-white/50 font-body">
+        الضرب والقسمة — بعد الامتحان النهائي
+      </p>
+    </div>
+  </div>
+
+  {!examPassed && (
+    <div className="mb-4 p-4 rounded-2xl bg-amber-500/10 border border-amber-400/30 flex items-start gap-3">
+      <Lock className="w-5 h-5 text-amber-300 shrink-0 mt-0.5" />
+      <p className="text-sm text-amber-100 font-body leading-relaxed">
+        🔒 هذه الدروس تُفتح بعد اجتياز{' '}
+        <span className="font-bold">الامتحان النهائي</span> (٦٠/١٠٠).
+        أكمل المستويات 0-9 ثم تقدّم للامتحان!
+      </p>
+    </div>
+  )}
+
+  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    {ADVANCED_CARDS.map((card, i) => {
+      const Icon = card.icon;
+      const isLocked = !examPassed || !card.available;
+
+      return (
+        <motion.button
+          key={card.id}
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{
+            delay: 0.5 + i * 0.08,
+            type: 'spring',
+            stiffness: 200,
+            damping: 20,
+          }}
+          whileHover={!isLocked ? { scale: 1.05, y: -5 } : {}}
+          whileTap={!isLocked ? { scale: 0.95 } : {}}
+          onClick={() => handleAdvancedClick(card)}
+          className={`group relative glass-card p-5 text-right overflow-hidden ${
+            isLocked ? 'opacity-70 cursor-not-allowed' : ''
+          }`}
+        >
+          <div
+            className={`absolute top-0 right-0 w-24 h-24 rounded-full blur-2xl transition-all ${
+              isLocked
+                ? 'bg-white/5'
+                : 'bg-gold-500/10 group-hover:bg-gold-500/20'
+            }`}
+          />
+
+          <div className="relative flex items-start justify-between mb-3">
+            <div
+              className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${card.gradient} flex items-center justify-center shadow-lg ${
+                isLocked ? 'grayscale' : ''
+              }`}
             >
-              <div className="absolute top-0 right-0 w-24 h-24 bg-purple-500/10 rounded-full blur-2xl group-hover:bg-purple-500/20 transition-all" />
-              <div className="relative flex items-start justify-between mb-3">
-                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-purple-500 to-electric-500 flex items-center justify-center shadow-lg shadow-purple-500/30">
-                  <Icon className="w-6 h-6 text-white" />
-                </div>
-                {isDone ? (
-                  <span className="badge bg-emerald2-500/20 border-emerald2-400/30 text-emerald2-300 text-xs">
-                    <CheckCircle2 className="w-3.5 h-3.5" /> مكتمل
-                  </span>
-                ) : isLocked ? (
-                  <span className="badge bg-white/5 border-white/10 text-white/40 text-xs">
-                    <Lock className="w-3.5 h-3.5" /> مقفل
-                  </span>
-                ) : (
-                  <span className="badge bg-gold-400/20 border-gold-400/30 text-gold-300 text-xs">
-                    متاح
-                  </span>
-                )}
-              </div>
-              <h3 className="text-lg font-extrabold font-display text-white mb-1">{mod.titleAr}</h3>
-              <p className="text-xs text-white/40 font-body mb-2">{mod.title}</p>
-              <p className="text-sm text-white/60 font-body leading-snug mb-2">{mod.descriptionAr}</p>
-
-              {!isLocked && totalCount > 0 && (
-                <div className="mt-2">
-                  <div className="flex items-center gap-2 mb-1">
-                    <div className="flex-1 h-1.5 rounded-full bg-white/10 overflow-hidden">
-                      <motion.div
-                        className="h-full rounded-full bg-gradient-to-r from-emerald2-400 to-electric-400"
-                        initial={{ width: 0 }}
-                        animate={{ width: `${progressPct}%` }}
-                        transition={{ duration: 0.5 }}
-                      />
-                    </div>
-                    <span className="text-[10px] text-white/40 font-body whitespace-nowrap">
-                      {toArabicNumber(solvedCount)}/{toArabicNumber(totalCount)}
-                    </span>
-                  </div>
-                </div>
+              {isLocked ? (
+                <Lock className="w-6 h-6 text-white" />
+              ) : (
+                <Icon className="w-6 h-6 text-white" />
               )}
-            </motion.button>
-          );
-        })}
-      </div>
+            </div>
+            {examPassed ? (
+              <span className="badge bg-emerald2-500/20 border-emerald2-400/30 text-emerald2-300 text-xs">
+                <CheckCircle2 className="w-3.5 h-3.5" /> متاح
+              </span>
+            ) : (
+              <span className="badge bg-white/5 border-white/10 text-white/40 text-xs">
+                <Lock className="w-3.5 h-3.5" /> مقفل
+              </span>
+            )}
+          </div>
+
+          <h3 className="text-lg font-extrabold font-display text-white mb-1">
+            {card.title}
+          </h3>
+          <p className="text-xs text-white/40 font-body mb-2">
+            {card.titleEn}
+          </p>
+          <p className="text-sm text-white/60 font-body leading-snug">
+            {isLocked ? '🔒 اجتز الامتحان النهائي لفتح هذا الدرس' : card.desc}
+          </p>
+        </motion.button>
+      );
+    })}
+  </div>
+</motion.div>
 
       {/* المستوى المتقدم */}
       <motion.div
