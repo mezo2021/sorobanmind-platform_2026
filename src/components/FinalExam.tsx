@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
   ArrowRight, CheckCircle2, Trophy, RotateCcw, Award,
-  SkipForward, FileText, AlertCircle, Lock, BookOpen,
-  Brain, Grid3X3, Wand2, Divide,
+  FileText, AlertCircle, Lock, BookOpen,
+  Brain, Grid3X3,
 } from 'lucide-react';
 import { InteractiveSoroban } from './InteractiveSoroban';
 import { LEARN_MODULES } from '@/data';
@@ -24,7 +24,7 @@ interface FinalExamProps {
 const TOTAL_QUESTIONS = 25;
 const POINTS_PER_QUESTION = 4;
 const PASS_THRESHOLD = 60;
-const MAX_ATTEMPTS_BEFORE_SKIP = 5;
+const MAX_ATTEMPTS = 2; // ✅ محاولتان فقط
 const COMPLETED_STORAGE_KEY = 'soroban-completed-lessons';
 
 type ExamState = 'intro' | 'running' | 'finished';
@@ -34,11 +34,10 @@ function toArabicNumber(value: number | string): string {
   return String(value).replace(/\d/g, (d) => '٠١٢٣٤٥٦٧٨٩'[Number(d)]);
 }
 
+// ✅ 3 أعمدة كحد أدنى للناتج < 1000
 function getColumnsForValue(value: number): number {
-  if (value < 10) return 1;
-  if (value < 100) return 2;
   if (value < 1000) return 3;
-  return 4;
+  return 6;
 }
 
 function questionToString(q: ExamQuestion): string {
@@ -73,7 +72,6 @@ function getCompletedCount(): number {
   }
 }
 
-// ✨ حالة فتح كل امتحان
 function checkExamUnlock() {
   const lessonsCompleted = isLessonsCompleted();
   const badges = loadAnzanBadges();
@@ -94,7 +92,7 @@ export function FinalExam({ onBack, onComplete, playSound, onGoToLearn }: FinalE
   const [questions, setQuestions] = useState<ExamQuestion[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [abacusValue, setAbacusValue] = useState(0);
-  const [feedback, setFeedback] = useState<'idle' | 'correct' | 'wrong'>('idle');
+  const [feedback, setFeedback] = useState<'idle' | 'correct' | 'wrong' | 'revealed'>('idle');
   const [attempts, setAttempts] = useState(0);
   const [answers, setAnswers] = useState<Array<{ correct: boolean }>>([]);
 
@@ -109,7 +107,6 @@ export function FinalExam({ onBack, onComplete, playSound, onGoToLearn }: FinalE
   const currentQuestion = questions[currentIndex];
   const correctCount = answers.filter((a) => a.correct).length;
   const currentScore = correctCount * POINTS_PER_QUESTION;
-  const canSkip = attempts >= MAX_ATTEMPTS_BEFORE_SKIP;
   const totalLevels = LEARN_MODULES.length;
 
   const isCurrentTabUnlocked =
@@ -134,25 +131,27 @@ export function FinalExam({ onBack, onComplete, playSound, onGoToLearn }: FinalE
 
   const handleCheck = () => {
     if (!currentQuestion || feedback !== 'idle') return;
-    setAttempts(attempts + 1);
+    const newAttempts = attempts + 1;
+    setAttempts(newAttempts);
 
     if (abacusValue === currentQuestion.answer) {
+      // ✅ إجابة صحيحة
       playSound('success');
       setFeedback('correct');
       const newAnswers = [...answers, { correct: true }];
-      setTimeout(() => advance(newAnswers), 1100);
+      setTimeout(() => advance(newAnswers), 1200);
+    } else if (newAttempts >= MAX_ATTEMPTS) {
+      // ❌ محاولتان فاشلتان → إظهار الإجابة الصحيحة
+      playSound('error');
+      setFeedback('revealed');
+      const newAnswers = [...answers, { correct: false }];
+      setTimeout(() => advance(newAnswers), 2500);
     } else {
+      // ⚠️ محاولة أولى فاشلة → يتاح للطفل محاولة ثانية
       playSound('error');
       setFeedback('wrong');
       setTimeout(() => setFeedback('idle'), 900);
     }
-  };
-
-  const handleSkip = () => {
-    if (!currentQuestion) return;
-    playSound('click');
-    const newAnswers = [...answers, { correct: false }];
-    advance(newAnswers);
   };
 
   const advance = (finalAnswers: Array<{ correct: boolean }>) => {
@@ -193,7 +192,6 @@ export function FinalExam({ onBack, onComplete, playSound, onGoToLearn }: FinalE
           </button>
         </div>
 
-        {/* Tabs */}
         <div className="flex gap-2 mb-6 bg-white/5 p-1 rounded-2xl">
           <button
             onClick={() => { playSound('click'); setTab('addition'); }}
@@ -241,7 +239,6 @@ export function FinalExam({ onBack, onComplete, playSound, onGoToLearn }: FinalE
                 : 'امتحان ضرب وقسمة — مقفل 🔒'}
           </h2>
 
-          {/* شروط فتح الامتحان */}
           {!unlock.lessonsCompleted && (
             <div className="p-4 rounded-2xl bg-white/5 border border-white/10 mb-4">
               <p className="text-xs text-white/50 font-body mb-2">
@@ -314,7 +311,7 @@ export function FinalExam({ onBack, onComplete, playSound, onGoToLearn }: FinalE
               <div className="flex gap-2 p-3 rounded-2xl bg-electric-500/10 border border-electric-400/30 mb-6 text-right">
                 <AlertCircle className="w-5 h-5 text-electric-300 shrink-0 mt-0.5" />
                 <p className="text-xs text-white/70 font-body leading-relaxed">
-                  لن تظهر الإجابة الصحيحة أثناء الامتحان. يمكنك تخطّي السؤال بعد 5 محاولات.
+                  محاولتان لكل سؤال. عند الفشل في المحاولتين، ستظهر الإجابة الصحيحة وينتقل تلقائياً للسؤال التالي.
                 </p>
               </div>
 
@@ -482,6 +479,14 @@ export function FinalExam({ onBack, onComplete, playSound, onGoToLearn }: FinalE
         />
       </div>
 
+      {/* القيمة الحالية */}
+      {feedback === 'idle' && (
+        <div className="text-center mb-3">
+          <span className="text-xs text-white/60">القيمة الحالية: </span>
+          <span className="text-xl font-bold text-amber-300">{toArabicNumber(abacusValue)}</span>
+        </div>
+      )}
+
       <div className="flex gap-2 mb-3">
         <button
           onClick={handleCheck}
@@ -513,14 +518,19 @@ export function FinalExam({ onBack, onComplete, playSound, onGoToLearn }: FinalE
         )}
       </div>
 
-      {canSkip && feedback === 'idle' && (
-        <button
-          onClick={handleSkip}
-          className="w-full btn-ghost !py-2 !text-sm !border-red-400/30 !text-red-300"
+      {/* عرض الإجابة عند الفشل */}
+      {feedback === 'revealed' && currentQuestion && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="p-4 rounded-2xl bg-red-500/15 border border-red-400/40 text-center"
         >
-          <SkipForward className="w-4 h-4" />
-          تخطي هذا السؤال
-        </button>
+          <p className="text-sm text-white/70 mb-1">الإجابة الصحيحة:</p>
+          <p className="text-3xl font-black text-red-300 font-display">
+            {toArabicNumber(currentQuestion.answer)}
+          </p>
+          <p className="text-xs text-white/50 mt-2">جاري الانتقال للسؤال التالي...</p>
+        </motion.div>
       )}
     </div>
   );
