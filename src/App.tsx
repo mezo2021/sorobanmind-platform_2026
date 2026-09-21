@@ -23,6 +23,9 @@ import MagicSecretsScreen from './screens/MagicSecretsScreen';
 import CrossMultiplicationScreen from './screens/CrossMultiplicationScreen';
 import DivisionScreen from './screens/DivisionScreen';
 
+// ✅ NEW: استيراد سوروبان 2.5D الجديد
+import { Soroban2D5 } from './components/soroban2d5/Soroban2D5';
+
 // ✅ الشاشات التي تتطلب اجتياز الامتحان النهائي
 const EXAM_REQUIRED_SCREENS: Screen[] = [
   'multiplication',
@@ -195,12 +198,31 @@ function App() {
             />
           )}
 
+          {/* ✅ NEW: استبدلنا InteractiveSorobanScreen القديم بـ Soroban2D5 الجديد */}
           {screen === 'soroban' && (
-            <InteractiveSorobanScreen
-              onBack={() => handleNavigate('hero-dashboard')}
-              playSound={playSound}
-              onXP={addXP}
-            />
+            <div className="min-h-screen flex flex-col">
+              <div className="p-4">
+                <button
+                  type="button"
+                  onClick={() => handleNavigate('hero-dashboard')}
+                  className="px-4 py-2 rounded-full bg-amber-100 hover:bg-amber-200 text-amber-900 font-bold shadow-md transition"
+                >
+                  ← رجوع
+                </button>
+              </div>
+              <div className="flex-1 flex items-center justify-center">
+                <Soroban2D5
+                  columns={4}
+                  interactive={true}
+                  showValue={true}
+                  onValueChange={(v) => {
+                    // اختياري: يمكن هنا منح XP عند إتمام تحدي
+                    // addXP(1);
+                    console.log('value =', v);
+                  }}
+                />
+              </div>
+            </div>
           )}
 
           {/* ✅ درس الضرب — محمي */}
