@@ -25,16 +25,13 @@ export function RoleSelection({ onSelect, playSound }: RoleSelectionProps) {
       const savedName = localStorage.getItem(NAME_STORAGE_KEY);
 
       if (savedCompanion && savedName) {
-        // ✅ كل شيء محفوظ → انتقل مباشرة
         playSound('whoosh');
         onSelect(role);
       } else if (!savedName) {
-        // ✅ لا يوجد اسم → اعرض إدخال الاسم أولاً
         playSound('click');
         setPendingRole(role);
         setStep('name');
       } else {
-        // يوجد اسم لكن لا يوجد رفيق → اعرض اختيار الرفيق
         playSound('click');
         setPendingRole(role);
         setStep('companion');
@@ -70,7 +67,7 @@ export function RoleSelection({ onSelect, playSound }: RoleSelectionProps) {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-3 sm:px-6 py-8 sm:py-12">
-      {/* ✅ العنوان */}
+      {/* العنوان */}
       <motion.div
         initial={{ y: -30, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
@@ -102,7 +99,7 @@ export function RoleSelection({ onSelect, playSound }: RoleSelectionProps) {
         </motion.p>
       </motion.div>
 
-      {/* ✅ البطاقات */}
+      {/* البطاقات */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-8 w-full max-w-5xl">
         {/* Hero */}
         <motion.button
@@ -206,7 +203,7 @@ export function RoleSelection({ onSelect, playSound }: RoleSelectionProps) {
         </motion.button>
       </div>
 
-      {/* ✅ ملاحظة سفلية */}
+      {/* ملاحظة سفلية */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -217,14 +214,14 @@ export function RoleSelection({ onSelect, playSound }: RoleSelectionProps) {
         <span>منصة تعليمية تفاعلية للحساب الذهني بالعداد الياباني</span>
       </motion.div>
 
-      {/* ✅ Modals — الاسم أولاً، ثم الرفيق */}
+      {/* Modals */}
       <AnimatePresence>
         {step === 'name' && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-md flex items-center justify-center p-4"
+            className="fixed inset-0 z-[100] bg-black/90 flex items-center justify-center p-4 overflow-y-auto"
             style={{ pointerEvents: 'auto' }}
           >
             <NameInputModal
@@ -239,18 +236,12 @@ export function RoleSelection({ onSelect, playSound }: RoleSelectionProps) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-md flex items-center justify-center p-4"
+            className="fixed inset-0 z-[100] bg-black/90 flex items-center justify-center p-4 overflow-y-auto"
             style={{ pointerEvents: 'auto' }}
           >
-            <motion.div
-              initial={{ scale: 0.85, opacity: 0, y: 30 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.85, opacity: 0, y: 30 }}
-              transition={{ type: 'spring', stiffness: 250, damping: 25 }}
-              className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-3xl p-5 sm:p-7 max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-white/10"
-            >
+            <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-3xl p-5 sm:p-7 max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-white/10">
               <CharacterSelector onSelectCharacter={handleCompanionSelected} />
-            </motion.div>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
