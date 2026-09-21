@@ -14,17 +14,14 @@ import { PracticeScreen } from './components/PracticeScreen';
 import { AnzanScreen } from './components/AnzanScreen';
 import { QuestsScreen } from './components/QuestsScreen';
 import { GuardianDashboard } from './components/GuardianDashboard';
-import InteractiveSorobanScreen from './components/InteractiveSorobanScreen';
 import { BadgeModal } from './components/BadgeModal';
+import { Soroban2D5 } from './components/soroban2d5/Soroban2D5';
 
-// ✅ استيراد الشاشات الجديدة
+// ✅ استيراد الشاشات المتقدمة
 import MultiplicationScreen from './screens/MultiplicationScreen';
 import MagicSecretsScreen from './screens/MagicSecretsScreen';
 import CrossMultiplicationScreen from './screens/CrossMultiplicationScreen';
 import DivisionScreen from './screens/DivisionScreen';
-
-// ✅ NEW: استيراد سوروبان 2.5D الجديد
-import { Soroban2D5 } from './components/soroban2d5/Soroban2D5';
 
 // ✅ الشاشات التي تتطلب اجتياز الامتحان النهائي
 const EXAM_REQUIRED_SCREENS: Screen[] = [
@@ -79,7 +76,6 @@ function App() {
   }, []);
 
   const handleNavigate = useCallback((s: Screen) => {
-    // ✅ الحماية المزدوجة: منع الوصول لشاشات مقفلة
     if (EXAM_REQUIRED_SCREENS.includes(s) && !examPassed) {
       return;
     }
@@ -162,7 +158,6 @@ function App() {
                   );
                 } catch { /* ignore */ }
 
-                // ✅ تحديث حالة القفل فوراً عند نجاح الامتحان
                 if (passed) {
                   setExamPassed(true);
                 }
@@ -198,7 +193,6 @@ function App() {
             />
           )}
 
-          {/* ✅ NEW: استبدلنا InteractiveSorobanScreen القديم بـ Soroban2D5 الجديد */}
           {screen === 'soroban' && (
             <div className="min-h-screen flex flex-col">
               <div className="p-4">
@@ -216,8 +210,6 @@ function App() {
                   interactive={true}
                   showValue={true}
                   onValueChange={(v) => {
-                    // اختياري: يمكن هنا منح XP عند إتمام تحدي
-                    // addXP(1);
                     console.log('value =', v);
                   }}
                 />
@@ -225,7 +217,6 @@ function App() {
             </div>
           )}
 
-          {/* ✅ درس الضرب — محمي */}
           {screen === 'multiplication' && examPassed && (
             <MultiplicationScreen
               onBack={() => handleNavigate('hero-dashboard')}
@@ -233,7 +224,6 @@ function App() {
             />
           )}
 
-          {/* ✅ الضرب التقاطعي — محمي */}
           {screen === 'cross-multiplication' && examPassed && (
             <CrossMultiplicationScreen
               onBack={() => handleNavigate('hero-dashboard')}
@@ -242,7 +232,6 @@ function App() {
             />
           )}
 
-          {/* ✅ الأسرار السحرية — محمي */}
           {screen === 'secrets' && examPassed && (
             <MagicSecretsScreen
               onBack={() => handleNavigate('hero-dashboard')}
@@ -251,7 +240,6 @@ function App() {
             />
           )}
 
-          {/* ✅ القسمة — محمي */}
           {screen === 'division' && examPassed && (
             <DivisionScreen
               onBack={() => handleNavigate('hero-dashboard')}
