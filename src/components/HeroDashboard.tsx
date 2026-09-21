@@ -271,6 +271,22 @@ export function HeroDashboard({
     } catch { /* ignore */ }
   };
 
+  // ✅ معاينة الشهادة (تجريبي) — يضبط نتائج الامتحانين وينتقل للشهادة مباشرة
+  const handlePreviewCertificate = () => {
+    try {
+      localStorage.setItem(
+        'soroban_exam_result',
+        JSON.stringify({ score: 85, passed: true, date: Date.now() })
+      );
+      localStorage.setItem(
+        'soroban_exam2_result',
+        JSON.stringify({ score: 88, passed: true, date: Date.now() })
+      );
+      playSound('whoosh');
+      onNavigate('certificate');
+    } catch { /* ignore */ }
+  };
+
   const handleReset = () => {
     const keysToKeep = ['soroban_companion', 'soroban_child_name'];
     Object.keys(localStorage).forEach((key) => {
@@ -348,6 +364,17 @@ export function HeroDashboard({
           >
             <Unlock className="w-4 h-4" />
             <span>فتح الكل</span>
+          </button>
+
+          {/* ✅ زر معاينة الشهادة (تجريبي) — احذفه بعد الانتهاء من الاختبار */}
+          <button
+            type="button"
+            onClick={handlePreviewCertificate}
+            className="flex items-center gap-2 px-3 py-2 rounded-2xl bg-amber-500/20 border border-amber-400/50 text-amber-100 hover:bg-amber-500/30 transition-all text-xs font-bold font-body"
+            title="معاينة شهادة الإتمام (تجريبي)"
+          >
+            <Award className="w-4 h-4" />
+            <span>معاينة الشهادة</span>
           </button>
 
           <button
