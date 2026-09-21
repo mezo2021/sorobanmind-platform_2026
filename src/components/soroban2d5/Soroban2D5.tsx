@@ -13,7 +13,6 @@ interface Soroban2D5Props {
   showValue?: boolean;
   interactive?: boolean;
   demoValue?: number;
-  /** ✅ حجم السوروبان: 'auto' يقيس الشاشة تلقائياً */
   size?: 'sm' | 'md' | 'lg' | 'auto';
 }
 
@@ -22,9 +21,9 @@ function useResponsiveSize() {
   const [size, setSize] = useState<'sm' | 'md' | 'lg'>(() => {
     if (typeof window === 'undefined') return 'md';
     const w = window.innerWidth;
-    if (w < 480) return 'sm';        // جوال صغير
-    if (w < 768) return 'md';        // جوال كبير / تابلت صغير
-    return 'lg';                     // تابلت / حاسوب
+    if (w < 480) return 'sm';
+    if (w < 768) return 'md';
+    return 'lg';
   });
 
   useEffect(() => {
@@ -41,41 +40,41 @@ function useResponsiveSize() {
   return size;
 }
 
-/** ✅ إعدادات كل حجم */
+/** ✅ إعدادات كل حجم — مضبوطة لضمان ظهور كل الخرزات */
 const SIZE_CONFIG = {
   sm: {
-    beadSize: 28,          // جوال صغير
-    rodWidth: 34,
-    gap: 8,
-    framePadding: 12,
-    innerPadding: 8,
-    height: 260,
-    topPadding: 24,
-    bottomPadding: 24,
+    beadSize: 30,
+    rodWidth: 36,
+    gap: 10,
+    framePadding: 14,
+    innerPadding: 12,
+    height: 300,           // ← ✅ زيادة الارتفاع
+    topPadding: 20,
+    bottomPadding: 30,     // ← ✅ مساحة أكبر للأسفل
     titleSize: 'text-base',
     valueSize: 'text-2xl',
   },
   md: {
-    beadSize: 36,
-    rodWidth: 42,
-    gap: 12,
-    framePadding: 16,
-    innerPadding: 12,
-    height: 320,
-    topPadding: 32,
-    bottomPadding: 32,
+    beadSize: 38,
+    rodWidth: 46,
+    gap: 14,
+    framePadding: 18,
+    innerPadding: 14,
+    height: 360,
+    topPadding: 28,
+    bottomPadding: 36,
     titleSize: 'text-lg',
     valueSize: 'text-3xl',
   },
   lg: {
-    beadSize: 46,
-    rodWidth: 54,
-    gap: 18,
-    framePadding: 24,
-    innerPadding: 16,
-    height: 400,
-    topPadding: 40,
-    bottomPadding: 40,
+    beadSize: 48,
+    rodWidth: 58,
+    gap: 20,
+    framePadding: 26,
+    innerPadding: 18,
+    height: 440,
+    topPadding: 36,
+    bottomPadding: 44,
     titleSize: 'text-2xl',
     valueSize: 'text-5xl',
   },
@@ -103,22 +102,17 @@ export function Soroban2D5({
   const playSound = useBeadSound();
   const vibrate = useBeadHaptics();
 
-  // ✅ الحجم التلقائي أو المحدد
   const responsiveSize = useResponsiveSize();
   const finalSize = size === 'auto' ? responsiveSize : size;
   const cfg = SIZE_CONFIG[finalSize];
 
-  // ✅ على الشاشات الصغيرة، نقلل الأعمدة للعرض
-  // - إذا المستخدم طلب 6 أعمدة على جوال صغير → نعرض فقط الأعمدة المهمة
   const visibleColumns = (() => {
     if (finalSize === 'sm' && columns > 4) {
-      // نعرض الأعمدة من اليمين (الآحاد فصاعداً)
       return Math.min(4, columns);
     }
     return columns;
   })();
 
-  // ✅ نأخذ آخر `visibleColumns` من colStates (الأقل مرتبة = الآحاد والعشرات)
   const displayedStates = colStates.slice(-visibleColumns);
   const displayOffset = columns - visibleColumns;
 
@@ -144,7 +138,7 @@ export function Soroban2D5({
   };
 
   return (
-    <div className="w-full flex flex-col items-center gap-3 sm:gap-6">
+    <div className="w-full flex flex-col items-center gap-3 sm:gap-5">
       {/* العنوان */}
       <h3 className={`${cfg.titleSize} font-bold text-amber-900`}>
         🧮 عداد السوروبان
@@ -166,15 +160,14 @@ export function Soroban2D5({
           maxWidth: '100%',
         }}
       >
-        {/* الإطار الداخلي */}
+        {/* ✅ الإطار الداخلي — بدون overflow مخفي */}
         <div
           className="relative rounded-xl sm:rounded-2xl"
           style={{
             padding: cfg.innerPadding,
             background: 'linear-gradient(180deg, #fef9f0 0%, #f5e6c8 100%)',
             boxShadow: 'inset 0 4px 12px rgba(0,0,0,0.15)',
-            overflowX: 'auto',
-            overflowY: 'hidden',
+            overflow: 'visible',
           }}
         >
           {/* الأعمدة */}
@@ -188,7 +181,6 @@ export function Soroban2D5({
             dir="rtl"
           >
             {displayedStates.map((state, idx) => {
-              // ✅ displayOrder الصحيح مع مراعاة الأعمدة المخفية
               const originalIdx = idx + displayOffset;
               const displayOrder = columns - 1 - originalIdx;
               return (
@@ -207,7 +199,6 @@ export function Soroban2D5({
             })}
           </div>
 
-          {/* ✅ ملاحظة عند إخفاء أعمدة على الجوال */}
           {displayOffset > 0 && (
             <p className="text-center text-[10px] text-amber-700 mt-2 font-body">
               ✨ يتم عرض {visibleColumns} أعمدة على هذه الشاشة (من أصل {columns})
