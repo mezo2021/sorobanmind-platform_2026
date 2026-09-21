@@ -1,11 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowRight, Calculator, Eye, Play, Check, X, Timer, Trophy } from 'lucide-react';
+import { ArrowRight, Calculator, Eye, Play, Check, X, Timer, Trophy, Volume2, Square } from 'lucide-react';
+import { useSpeech } from '@/hooks/useSpeech';
 
 // ===== الأنواع =====
 type CaseType = '2x2' | '3x2' | '4x2' | '5x2' | '3x3';
 
 interface Question { a: number; b: number; answer: number; caseType: CaseType; timeLimit: number; }
+
+// ===== النص الصوتي (قصة الدرس) =====
+const LESSON_STORY =
+  'قبل مئات السنين، اخترع علماء الرياضيات في الهند طريقة سحرية للضرب. سموها الضرب التقاطعي، لأنها تضرب الأرقام بشكل متقاطع كأنها ترقص معاً! تخيّل أن كل رقم يحمل يداً تصافح يد الرقم الآخر. هذه الطريقة تجعل الضرب الكبير يبدو كقصة ممتعة. هيا لنتعلم سرّها!';
 
 const CASE_LABELS: Record<CaseType, string> = {
   '2x2': 'منزلتين × منزلتين',
@@ -64,7 +69,7 @@ const EXAMPLES: Record<CaseType, { a: number; b: number }> = {
   '3x3': { a: 234, b: 567 },
 };
 
-// ===== توليد 15 سؤالاً (3 من كل حالة) =====
+// ===== توليد 15 سؤالاً =====
 function shuffle<T>(arr: T[]): T[] { return [...arr].sort(() => Math.random() - 0.5); }
 
 function generateExam(): Question[] {
@@ -132,31 +137,98 @@ const CrossMultiplicationScreen: React.FC<Props> = ({ onBack, onComplete, onXP }
   const [questions, setQuestions] = useState<Question[]>([]);
   const [examStarted, setExamStarted] = useState(false);
 
+  // ✅ الصوت
+  const { speak, stop, isSpeaking, isSupported } = useSpeech();
+
+  // ✅ إيقاف الصوت عند تغيير الوضع أو الخروج
+  useEffect(() => {
+    return () => { stop(); };
+  }, [mode, stop]);
+
   const startExam = () => {
+    stop();
     setQuestions(generateExam());
     setExamStarted(true);
     setMode('try');
   };
 
+  const changeMode = (m: 'watch' | 'try') => {
+    stop();
+    if (m === 'try') {
+      startExam();
+    } else {
+      setMode('watch');
+      setExamStarted(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-900 via-indigo-950 to-slate-900 text-white p-4 pb-24" dir="rtl">
-      <div className="flex items-center justify-between mb-6">
-        <button onClick={onBack} className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-4 gap-2">
+        <button onClick={onBack} className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition shrink-0">
           <ArrowRight className="w-6 h-6" />
         </button>
-        <h1 className="text-base sm:text-xl font-bold bg-gradient-to-r from-amber-300 to-purple-400 bg-clip-text text-transparent">
+        <h1 className="flex-1 text-center text-sm sm:text-lg font-bold bg-gradient-to-r from-amber-300 to-purple-400 bg-clip-text text-transparent">
           الضرب التقاطعي
         </h1>
-        <Calculator className="w-6 h-6 text-amber-300" />
+        <Calculator className="w-5 h-5 text-amber-300 shrink-0" />
       </div>
 
+      {/* Story Card + Listen Button */}
+      {mode === 'watch' && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-gradient-to-l from-pink-500/15 to-purple-500/15 border border-pink-400/30 rounded-2xl p-4 mb-4"
+        >
+          <div className="flex items-center justify-between gap-2 mb-2">
+            <div className="flex items-center gap-2">
+              <span className="text-lg">📖</span>
+              <span className="text-xs font-bold text-pink-300">القصة:</span>
+            </div>
+            {isSupported && (
+              <button
+                onClick={() => {
+                  if (isSpeaking) { stop(); }
+                  else { speak(LESSON_STORY); }
+                }}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 ${
+                  isSpeaking
+                    ? 'bg-red-500/30 border border-red-400/50 text-red-200'
+                    : 'bg-rose-500/20 border border-rose-400/40 text-rose-200 hover:bg-rose-500/30'
+                }`}
+              >
+                {isSpeaking ? (
+                  <><Square className="w-3.5 h-3.5" /> إيقاف</>
+                ) : (
+                  <><Volume2 className="w-3.5 h-3.5" /> اسمع قصتي</>
+                )}
+              </button>
+            )}
+          </div>
+          <p className="text-sm text-pink-100 font-body leading-relaxed">
+            {LESSON_STORY}
+          </p>
+        </motion.div>
+      )}
+
+      {/* Mode Selector */}
       <div className="flex gap-2 mb-6 bg-white/5 p-1 rounded-2xl">
-        <button onClick={()=>{ setMode('watch'); setExamStarted(false); }}
-          className={`flex-1 py-3 rounded-xl font-bold transition text-sm flex items-center justify-center gap-2 ${mode==='watch'?'bg-purple-600':'text-white/60'}`}>
+        <button
+          onClick={() => changeMode('watch')}
+          className={`flex-1 py-3 rounded-xl font-bold transition text-sm flex items-center justify-center gap-2 ${
+            mode==='watch'?'bg-purple-600':'text-white/60'
+          }`}
+        >
           <Eye className="w-5 h-5" /> شاهد
         </button>
-        <button onClick={startExam}
-          className={`flex-1 py-3 rounded-xl font-bold transition text-sm flex items-center justify-center gap-2 ${mode==='try'?'bg-purple-600':'text-white/60'}`}>
+        <button
+          onClick={() => changeMode('try')}
+          className={`flex-1 py-3 rounded-xl font-bold transition text-sm flex items-center justify-center gap-2 ${
+            mode==='try'?'bg-purple-600':'text-white/60'
+          }`}
+        >
           <Play className="w-5 h-5" /> امتحان
         </button>
       </div>
@@ -166,7 +238,9 @@ const CrossMultiplicationScreen: React.FC<Props> = ({ onBack, onComplete, onXP }
           <div className="flex gap-2 overflow-x-auto pb-1">
             {(['2x2','3x2','4x2','5x2','3x3'] as CaseType[]).map(c => (
               <button key={c} onClick={()=>setWatchCase(c)}
-                className={`px-3 py-2 rounded-xl whitespace-nowrap font-bold text-xs transition ${watchCase===c?'bg-purple-600':'bg-white/10'}`}>
+                className={`px-3 py-2 rounded-xl whitespace-nowrap font-bold text-xs transition ${
+                  watchCase===c?'bg-purple-600':'bg-white/10'
+                }`}>
                 {CASE_LABELS[c]}
               </button>
             ))}
@@ -184,7 +258,7 @@ const CrossMultiplicationScreen: React.FC<Props> = ({ onBack, onComplete, onXP }
       )}
 
       {mode === 'try' && examStarted && questions.length > 0 && (
-        <ExamRunner questions={questions} onClose={() => { setExamStarted(false); setMode('watch'); }}
+        <ExamRunner questions={questions} onClose={() => { stop(); setExamStarted(false); setMode('watch'); }}
           onFinish={(score) => {
             if (onXP && score>0) onXP(score*3);
             if (onComplete) onComplete(Math.max(1, Math.round((score/questions.length)*3)));
