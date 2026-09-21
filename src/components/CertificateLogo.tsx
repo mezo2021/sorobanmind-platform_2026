@@ -1,86 +1,144 @@
-import React from 'react';
-
 interface CertificateLogoProps {
   size?: number;
-  className?: string;
 }
 
-const CertificateLogo: React.FC<CertificateLogoProps> = ({ size = 100, className = '' }) => {
+export default function CertificateLogo({ size = 100 }: CertificateLogoProps) {
   return (
     <svg
       width={size}
       height={size}
       viewBox="0 0 200 200"
       xmlns="http://www.w3.org/2000/svg"
-      className={className}
     >
-      {/* الخلفية الدائرية الذهبية */}
       <defs>
-        <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#FCD34D" />
-          <stop offset="50%" stopColor="#D4AF37" />
+        <radialGradient id="outerRing" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stopColor="#FFF59D" />
+          <stop offset="45%" stopColor="#FFD700" />
+          <stop offset="80%" stopColor="#DAA520" />
+          <stop offset="100%" stopColor="#8B6914" />
+        </radialGradient>
+        <radialGradient id="innerDisc" cx="50%" cy="35%" r="70%">
+          <stop offset="0%" stopColor="#2a1a5e" />
+          <stop offset="100%" stopColor="#0f0a2e" />
+        </radialGradient>
+        <linearGradient id="woodFrame" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stopColor="#E8B888" />
+          <stop offset="50%" stopColor="#C69060" />
+          <stop offset="100%" stopColor="#8B5A2B" />
+        </linearGradient>
+        <linearGradient id="beadGold" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stopColor="#FFF9C4" />
+          <stop offset="50%" stopColor="#FFD700" />
           <stop offset="100%" stopColor="#B8860B" />
         </linearGradient>
-        <linearGradient id="purpleGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#7C3AED" />
-          <stop offset="100%" stopColor="#4C1D95" />
+        <linearGradient id="beadBlue" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stopColor="#B3E5FC" />
+          <stop offset="50%" stopColor="#29B6F6" />
+          <stop offset="100%" stopColor="#0277BD" />
         </linearGradient>
-        <linearGradient id="beadGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-          <stop offset="0%" stopColor="#FCD34D" />
-          <stop offset="100%" stopColor="#D97706" />
-        </linearGradient>
-        <linearGradient id="beadBlueGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-          <stop offset="0%" stopColor="#38BDF8" />
-          <stop offset="100%" stopColor="#0284C7" />
+        <linearGradient id="beamGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stopColor="#5D3A1A" />
+          <stop offset="100%" stopColor="#3A220D" />
         </linearGradient>
       </defs>
 
-      {/* الدائرة الخارجية */}
-      <circle cx="100" cy="100" r="95" fill="url(#purpleGradient)" stroke="url(#goldGradient)" strokeWidth="4" />
-      <circle cx="100" cy="100" r="85" fill="none" stroke="url(#goldGradient)" strokeWidth="1.5" opacity="0.6" />
+      {/* الحلقة الذهبية الخارجية */}
+      <circle cx="100" cy="100" r="98" fill="url(#outerRing)" />
+      <circle cx="100" cy="100" r="90" fill="none" stroke="#8B6914" strokeWidth="1" />
+      <circle cx="100" cy="100" r="88" fill="url(#innerDisc)" />
 
-      {/* زخارف ذهبية */}
-      {[0, 45, 90, 135, 180, 225, 270, 315].map((angle) => (
-        <g key={angle} transform={`rotate(${angle} 100 100)`}>
-          <circle cx="100" cy="12" r="3" fill="url(#goldGradient)" />
+      {/* نقاط زخرفية حول الحلقة */}
+      {Array.from({ length: 32 }).map((_, i) => {
+        const angle = (i * (360 / 32) * Math.PI) / 180;
+        const x = 100 + 94 * Math.cos(angle);
+        const y = 100 + 94 * Math.sin(angle);
+        return <circle key={`d-${i}`} cx={x} cy={y} r="1.2" fill="#FFF59D" />;
+      })}
+
+      {/* قوس علوي: ISA */}
+      <path
+        id="topArc"
+        d="M 30,100 A 70,70 0 0 1 170,100"
+        fill="none"
+      />
+      <text fill="#FFD700" fontSize="13" fontWeight="bold" fontFamily="serif" letterSpacing="3">
+        <textPath href="#topArc" startOffset="50%" textAnchor="middle">
+          ★ INTERNATIONAL SOROBAN ACADEMY ★
+        </textPath>
+      </text>
+
+      {/* قوس سفلي: عربي */}
+      <path
+        id="bottomArc"
+        d="M 170,105 A 70,70 0 0 1 30,105"
+        fill="none"
+      />
+      <text fill="#FFD700" fontSize="11" fontWeight="bold" fontFamily="serif">
+        <textPath href="#bottomArc" startOffset="50%" textAnchor="middle">
+          ★ أكاديمية السوروبان الدولية ★
+        </textPath>
+      </text>
+
+      {/* إطار السوروبان الخشبي */}
+      <rect
+        x="48"
+        y="62"
+        width="104"
+        height="76"
+        rx="5"
+        fill="url(#woodFrame)"
+        stroke="#5D3A1A"
+        strokeWidth="2.5"
+      />
+      <rect x="54" y="68" width="92" height="64" rx="2" fill="#FBF2E0" />
+
+      {/* العارضة الوسطى */}
+      <rect x="54" y="94" width="92" height="5" fill="url(#beamGrad)" />
+
+      {/* القضبان العمودية (5 قضبان) */}
+      {[0, 1, 2, 3, 4].map((i) => (
+        <line
+          key={`rod-${i}`}
+          x1={64 + i * 18}
+          y1="68"
+          x2={64 + i * 18}
+          y2="132"
+          stroke="#8B5A2B"
+          strokeWidth="1.2"
+        />
+      ))}
+
+      {/* خرزات السماء (ذهبية) — واحدة فوق كل قضيب */}
+      {[0, 1, 2, 3, 4].map((i) => (
+        <ellipse
+          key={`heaven-${i}`}
+          cx={64 + i * 18}
+          cy="83"
+          rx="7"
+          ry="5.5"
+          fill="url(#beadGold)"
+          stroke="#8B6914"
+          strokeWidth="0.6"
+        />
+      ))}
+
+      {/* خرزات الأرض (زرقاء) — 4 تحت كل قضيب */}
+      {[0, 1, 2, 3, 4].map((i) => (
+        <g key={`earth-${i}`}>
+          <ellipse cx={64 + i * 18} cy="103" rx="7" ry="5" fill="url(#beadBlue)" stroke="#01579B" strokeWidth="0.6" />
+          <ellipse cx={64 + i * 18} cy="112" rx="7" ry="5" fill="url(#beadBlue)" stroke="#01579B" strokeWidth="0.6" />
+          <ellipse cx={64 + i * 18} cy="121" rx="7" ry="5" fill="url(#beadBlue)" stroke="#01579B" strokeWidth="0.6" />
+          <ellipse cx={64 + i * 18} cy="128" rx="7" ry="5" fill="url(#beadBlue)" stroke="#01579B" strokeWidth="0.6" />
         </g>
       ))}
 
-      {/* السوروبان المصغر */}
-      <g transform="translate(100 100)">
-        {/* الإطار */}
-        <rect x="-50" y="-40" width="100" height="80" rx="6" fill="#1E1B4B" stroke="url(#goldGradient)" strokeWidth="2.5" />
-        
-        {/* العارضة الوسطى */}
-        <rect x="-50" y="-6" width="100" height="4" fill="url(#goldGradient)" rx="2" />
-        
-        {/* القضبان */}
-        {[-38, -19, 0, 19, 38].map((x) => (
-          <line key={x} x1={x} y1="-40" x2={x} y2="40" stroke="#78350F" strokeWidth="2.5" />
-        ))}
-        
-        {/* الخرزات العلوية (ذهبية) */}
-        {[-38, -19, 0, 19, 38].map((x) => (
-          <circle key={`upper-${x}`} cx={x} cy="-20" r="6" fill="url(#beadGradient)" stroke="#FBBF24" strokeWidth="1" />
-        ))}
-        
-        {/* الخرزات السفلية (زرقاء) - الصف العلوي */}
-        {[-38, -19, 0, 19, 38].map((x) => (
-          <circle key={`lower1-${x}`} cx={x} cy="8" r="6" fill="url(#beadBlueGradient)" stroke="#0EA5E9" strokeWidth="1" />
-        ))}
-        
-        {/* الخرزات السفلية (زرقاء) - الصف الثاني */}
-        {[-38, -19, 0, 19, 38].map((x) => (
-          <circle key={`lower2-${x}`} cx={x} cy="22" r="6" fill="url(#beadBlueGradient)" stroke="#0EA5E9" strokeWidth="1" />
-        ))}
-      </g>
-
-      {/* نجوم الزينة */}
-      <g opacity="0.8">
-        <path d="M 100 155 L 102 160 L 107 160 L 103 163 L 105 168 L 100 165 L 95 168 L 97 163 L 93 160 L 98 160 Z" fill="url(#goldGradient)" />
-      </g>
+      {/* نجمة ذهبية أسفل السوروبان */}
+      <polygon
+        points="100,150 103,158 111,158 105,163 107,171 100,166 93,171 95,163 89,158 97,158"
+        fill="#FFD700"
+        stroke="#8B6914"
+        strokeWidth="0.8"
+      />
     </svg>
   );
-};
-
-export default CertificateLogo;
+}
