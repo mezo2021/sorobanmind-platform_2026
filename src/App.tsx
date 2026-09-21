@@ -22,6 +22,7 @@ import MagicSecretsScreen from './screens/MagicSecretsScreen';
 import CrossMultiplicationScreen from './screens/CrossMultiplicationScreen';
 import DivisionScreen from './screens/DivisionScreen';
 
+// ✅ الشاشات التي تتطلب اجتياز الامتحان النهائي
 const EXAM_REQUIRED_SCREENS: Screen[] = [
   'multiplication',
   'secrets',
@@ -38,6 +39,7 @@ function App() {
   const playSound = useSound(stats.soundEnabled);
   const { burst, celebrate } = useConfetti();
 
+  // ✅ قراءة حالة اجتياز الامتحان عند الإقلاع
   useEffect(() => {
     try {
       const raw = localStorage.getItem('soroban_exam_result');
@@ -78,7 +80,14 @@ function App() {
     setScreen('guardian-dashboard');
   }, []);
 
+  // ✅ الانتقال إلى وضع البطل
+  const handleSwitchToHero = useCallback(() => {
+    setRole('hero');
+    setScreen('hero-dashboard');
+  }, []);
+
   const handleNavigate = useCallback((s: Screen) => {
+    // ✅ الحماية المزدوجة: منع الوصول لشاشات مقفلة
     if (EXAM_REQUIRED_SCREENS.includes(s) && !examPassed) {
       return;
     }
@@ -89,6 +98,7 @@ function App() {
 
   return (
     <div className="min-h-screen relative">
+      {/* خلفية متحركة */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
         <motion.div
           className="absolute top-[-10%] right-[-5%] w-72 h-72 rounded-full bg-purple-600/15 blur-3xl"
@@ -162,6 +172,7 @@ function App() {
                   );
                 } catch { /* ignore */ }
 
+                // ✅ تحديث حالة القفل فوراً عند نجاح الامتحان
                 if (passed) {
                   setExamPassed(true);
                 }
@@ -259,6 +270,7 @@ function App() {
               childXP={stats.xp}
               childStreak={stats.streak}
               childLevel={stats.level}
+              onSwitchToHero={handleSwitchToHero}
             />
           )}
         </motion.main>
