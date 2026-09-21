@@ -4,6 +4,7 @@
 
 const ANZAN_KEY = 'soroban_anzan_stats';
 const PRACTICE_KEY = 'soroban_practice_stats';
+const AUDIO_ANZAN_KEY = 'soroban_anzan_audio_badges';
 
 interface AnzanStats {
   highScore: number;
@@ -18,6 +19,12 @@ interface PracticeStats {
   subtractionProblems: number;
   multiplicationProblems: number;
   divisionProblems: number;
+}
+
+interface AudioAnzanBadges {
+  master_addition_audio?: boolean;
+  master_multiplication_audio?: boolean;
+  master_division_audio?: boolean;
 }
 
 function loadAnzanStats(): AnzanStats {
@@ -53,53 +60,49 @@ function loadPracticeStats(): PracticeStats {
   return { totalProblems: 0, correctAnswers: 0, additionProblems: 0, subtractionProblems: 0, multiplicationProblems: 0, divisionProblems: 0 };
 }
 
+function loadAudioAnzanBadges(): AudioAnzanBadges {
+  try {
+    const raw = localStorage.getItem(AUDIO_ANZAN_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
+  }
+}
+
 export interface SkillResult {
   id: string;
   nameAr: string;
   descriptionAr: string;
-  /** النسبة من 0 إلى 100 */
   percentage: number;
-  /** هل المهارة قابلة للقياس حالياً؟ */
   available: boolean;
-  /** رسالة توضيحية */
   note?: string;
 }
 
-/**
- * يحسب جميع المهارات الأربع
- */
 export function calculateSkills(): SkillResult[] {
   const anzan = loadAnzanStats();
   const practice = loadPracticeStats();
+  const audioBadges = loadAudioAnzanBadges();
 
-  // ═══════════════════════════════════════════════
-  // 1. التركيز والانتباه
-  //    المصدر: مدة الجلسات + عدد الجولات
-  //    القياس: عدد جولات الأنزان الكلية / 50 × 100
-  // ═══════════════════════════════════════════════
+  // 1. التركيز
   const concentrationRaw = Math.min(100, (anzan.totalRounds / 50) * 100);
 
-  // ═══════════════════════════════════════════════
-  // 2. التخيل والتصور
-  //    المصدر: نسبة الإجابات الصحيحة في الأنزان
-  // ═══════════════════════════════════════════════
+  // 2. التخيل
   const visualizationRaw = anzan.totalRounds > 0
     ? Math.min(100, (anzan.totalCorrect / anzan.totalRounds) * 100)
     : 0;
 
-  // ═══════════════════════════════════════════════
-  // 3. دقة الملاحظة
-  //    المصدر: نسبة الإجابات الصحيحة في التدريب
-  // ═══════════════════════════════════════════════
+  // 3. الملاحظة
   const observationRaw = practice.totalProblems > 0
     ? Math.min(100, (practice.correctAnswers / practice.totalProblems) * 100)
     : 0;
 
-  // ═══════════════════════════════════════════════
-  // 4. الاستماع (قيد الإنشاء)
-  //    المصدر: تمارين الإملاء (غير موجودة بعد)
-  // ═══════════════════════════════════════════════
-  const listeningRaw = 0;
+  // ✅ 4. الاستماع — من الأنزان السماعي
+  const audioBadgesEarned = [
+    audioBadges.master_addition_audio,
+    audioBadges.master_multiplication_audio,
+    audioBadges.master_division_audio,
+  ].filter(Boolean).length;
+  const listeningRaw = Math.min(100, (audioBadgesEarned / 3) * 100);
 
   return [
     {
@@ -127,9 +130,8 @@ export function calculateSkills(): SkillResult[] {
       id: 'listening',
       nameAr: 'الاستماع والانتباه السمعي',
       descriptionAr: 'قدرة الطفل على الحساب من خلال السماع',
-      percentage: listeningRaw,
-      available: false,
-      note: '🎤 أضف تمارين الإملاء لتفعيل هذه المهارة',
+      percentage: Math.round(listeningRaw),
+      available: true,
     },
   ];
 }
