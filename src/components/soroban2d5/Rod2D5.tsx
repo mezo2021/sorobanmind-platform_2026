@@ -20,25 +20,25 @@ export function Rod2D5({
   onToggleUpper,
   onSetLower,
   onReset,
-  height = 300,
-  beadSize = 30,
+  height = 340,
+  beadSize = 26,
 }: Rod2D5Props) {
   const lowerBeads = [0, 1, 2, 3];
 
-  // 🎯 حساب المواضع الرياضي
-  const beadHeight = beadSize * 0.42;
-  const gap = 2;
-  const step = beadHeight + gap;
+  // 🎯 حسابات رياضية دقيقة
+  const beadHeight = beadSize * 0.42;    // الارتفاع المرئي للخرزة
+  const gap = 2;                          // فراغ صغير
+  const step = beadHeight + gap;          // مسافة بين الخرزات
 
-  const beamY = height / 2;
+  const beamY = height / 2;               // موضع العارضة (الوسط)
 
-  // الخرزة العلوية
-  const upperBeadTop = beadHeight + 4;
-  const upperBeadActive = beamY - beadHeight - 4;
+  // ✅ الخرزة العلوية
+  const upperBeadTop = beadHeight + 8;                       // موضع "غير مفعّلة" (قريب من الأعلى)
+  const upperBeadActive = beamY - beadHeight - 6;            // موضع "مفعّلة" (ملتصقة بالعارضة)
 
-  // الخرزات السفلية
-  const lowerAreaTop = beamY + 4;
-  const lowerAreaBottom = height - beadHeight - 4;
+  // ✅ الخرزات السفلية
+  const lowerAreaTop = beamY + 6;                            // أسفل العارضة مباشرة
+  const lowerAreaBottom = height - beadHeight - 8;           // أعلى قليل من أسفل الإطار
 
   return (
     <div
@@ -52,7 +52,7 @@ export function Rod2D5({
           top: 0,
           left: '50%',
           transform: 'translateX(-50%)',
-          width: 6,
+          width: 5,
           height: '100%',
           background: 'linear-gradient(90deg, #5a5a5a 0%, #999 50%, #5a5a5a 100%)',
           borderRadius: 3,
@@ -85,8 +85,8 @@ export function Rod2D5({
         style={{
           position: 'absolute',
           top: beamY - 3,
-          left: -8,
-          width: beadSize * 1.3 + 16,
+          left: -6,
+          width: beadSize * 1.3 + 12,
           height: 6,
           background: 'linear-gradient(180deg, #3d2817 0%, #1a0f08 100%)',
           borderRadius: 3,
@@ -98,6 +98,8 @@ export function Rod2D5({
       {lowerBeads.map((idx) => {
         const isActive = idx < state.lower;
 
+        // مفعّلة: من العارضة للأسفل
+        // غير مفعّلة: من الأسفل للأعلى
         const topActive = lowerAreaTop + idx * step;
         const topInactive = lowerAreaBottom - (3 - idx) * step;
 
@@ -130,21 +132,31 @@ export function Rod2D5({
         );
       })}
 
-      {/* زر إعادة التصفير أسفل العمود */}
+      {/* ✅ زر إعادة التصفير — أسفل العمود */}
       <button
         type="button"
         onClick={onReset}
-        className="absolute -bottom-8 text-xs text-amber-700 hover:text-amber-900 underline whitespace-nowrap"
-        style={{ fontSize: 11 }}
+        className="absolute text-amber-700 hover:text-amber-900 underline whitespace-nowrap"
+        style={{
+          fontSize: 10,
+          bottom: -20,
+          left: '50%',
+          transform: 'translateX(-50%)',
+        }}
         aria-label="إعادة تصفير العمود"
       >
-        تصفير ↺
+        ↺ تصفير
       </button>
 
-      {/* اسم العمود */}
+      {/* ✅ اسم العمود — أعلى العمود */}
       <div
-        className="absolute -top-7 text-amber-800 font-bold whitespace-nowrap"
-        style={{ fontSize: 13 }}
+        className="absolute text-amber-800 font-bold whitespace-nowrap"
+        style={{
+          fontSize: 12,
+          top: -22,
+          left: '50%',
+          transform: 'translateX(-50%)',
+        }}
       >
         {['آحاد', 'عشرات', 'مئات', 'آلاف', 'عشرات الآلاف', 'مئات الآلاف'][displayOrder] ||
           `عمود ${displayOrder + 1}`}
