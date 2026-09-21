@@ -17,13 +17,11 @@ import { GuardianDashboard } from './components/GuardianDashboard';
 import { BadgeModal } from './components/BadgeModal';
 import { Soroban2D5 } from './components/soroban2d5/Soroban2D5';
 
-// ✅ استيراد الشاشات المتقدمة
 import MultiplicationScreen from './screens/MultiplicationScreen';
 import MagicSecretsScreen from './screens/MagicSecretsScreen';
 import CrossMultiplicationScreen from './screens/CrossMultiplicationScreen';
 import DivisionScreen from './screens/DivisionScreen';
 
-// ✅ الشاشات التي تتطلب اجتياز الامتحان النهائي
 const EXAM_REQUIRED_SCREENS: Screen[] = [
   'multiplication',
   'secrets',
@@ -40,7 +38,6 @@ function App() {
   const playSound = useSound(stats.soundEnabled);
   const { burst, celebrate } = useConfetti();
 
-  // ✅ قراءة حالة اجتياز الامتحان عند الإقلاع
   useEffect(() => {
     try {
       const raw = localStorage.getItem('soroban_exam_result');
@@ -73,6 +70,12 @@ function App() {
   const handleHome = useCallback(() => {
     setRole(null);
     setScreen('role');
+  }, []);
+
+  // ✅ الانتقال إلى لوحة ولي الأمر
+  const handleSwitchToGuardian = useCallback(() => {
+    setRole('guardian');
+    setScreen('guardian-dashboard');
   }, []);
 
   const handleNavigate = useCallback((s: Screen) => {
@@ -130,6 +133,7 @@ function App() {
           {screen === 'hero-dashboard' && (
             <HeroDashboard
               onNavigate={handleNavigate}
+              onSwitchToGuardian={handleSwitchToGuardian}
               playSound={playSound}
               xp={stats.xp}
               streak={stats.streak}
