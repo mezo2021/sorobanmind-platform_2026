@@ -167,10 +167,10 @@ const CertificateScreen: React.FC<Props> = ({ onBack, playSound, onGoHome }) => 
 
           {/* زخارف الزوايا */}
           {[
-            { top: 4, left: 4, rotate: 0 },
-            { top: 4, right: 4, rotate: 90 },
-            { bottom: 4, right: 4, rotate: 180 },
-            { bottom: 4, left: 4, rotate: 270 },
+            { top: 4, left: 4, rotation: 0 },
+            { top: 4, right: 4, rotation: 90 },
+            { bottom: 4, right: 4, rotation: 180 },
+            { bottom: 4, left: 4, rotation: 270 },
           ].map((pos, i) => (
             <svg
               key={i}
@@ -178,7 +178,13 @@ const CertificateScreen: React.FC<Props> = ({ onBack, playSound, onGoHome }) => 
               height="48"
               viewBox="0 0 48 48"
               className="absolute pointer-events-none"
-              style={{ ...pos, transform: `rotate(${pos.rotate}deg)` }}
+              style={{
+                top: pos.top,
+                left: pos.left,
+                right: pos.right,
+                bottom: pos.bottom,
+                transform: `rotate(${pos.rotation}deg)`,
+              } as React.CSSProperties}
             >
               <path d="M 2 2 L 20 2 L 20 6 L 6 6 L 6 20 L 2 20 Z" fill="#B8860B" />
               <circle cx="10" cy="10" r="2.5" fill="#FFD700" stroke="#8B6914" strokeWidth="0.5" />
