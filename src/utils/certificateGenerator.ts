@@ -1,187 +1,120 @@
-// ============================================================
-// certificateGenerator.ts — توليد شهادة PDF
-// ============================================================
-import jsPDF from 'jspdf';
+// ═══════════════════════════════════════════════════════════════
+// مولّد بيانات الشهادة ومولّد PDF
+// ═══════════════════════════════════════════════════════════════
 
-interface CertificateData {
+export type CertificateLevel = 'gold' | 'silver' | 'bronze' | 'pass';
+
+export interface CertificateData {
   studentName: string;
-  finalScore: number;
-  averageScore: number;
-  date: string;
+  exam1Score: number;      // من 100
+  exam2Score: number;      // من 100
+  averageScore: number;    // من 100
+  level: CertificateLevel;
+  levelAr: string;         // "ذهبي" / "فضي" ...
+  levelEn: string;         // "Gold" / "Silver" ...
+  appreciation: string;    // "ممتاز" / "جيد جداً" ...
   certificateNumber: string;
+  issueDate: string;       // ميلادي
+  issueDateHijri: string;  // هجري
+}
+
+// ─────────────────────────────────────────────
+// تحديد المستوى بناءً على المتوسط المئوي
+// ─────────────────────────────────────────────
+export function getLevel(average: number): {
+  level: CertificateLevel;
+  levelAr: string;
+  levelEn: string;
   appreciation: string;
+} {
+  if (average >= 95) {
+    return { level: 'gold', levelAr: 'ذهبي', levelEn: 'Gold', appreciation: 'ممتاز' };
+  }
+  if (average >= 85) {
+    return { level: 'silver', levelAr: 'فضي', levelEn: 'Silver', appreciation: 'جيد جداً' };
+  }
+  if (average >= 75) {
+    return { level: 'bronze', levelAr: 'برونزي', levelEn: 'Bronze', appreciation: 'جيد' };
+  }
+  return { level: 'pass', levelAr: 'مقبول', levelEn: 'Pass', appreciation: 'مقبول' };
 }
 
-function toArabicNumber(value: number | string): string {
-  return String(value).replace(/\d/g, (d) => '٠١٢٣٤٥٦٧٨٩'[Number(d)]);
-}
-
+// ─────────────────────────────────────────────
+// توليد رقم شهادة فريد
+// ─────────────────────────────────────────────
 function generateCertificateNumber(): string {
   const year = new Date().getFullYear();
-  const random = Math.floor(1000 + Math.random() * 9000);
-  return `SNM-${year}-${random}`;
+  const random = Math.floor(Math.random() * 900000) + 100000;
+  return `ISA-${year}-${random}`;
 }
 
-function getAppreciation(score: number): string {
-  if (score >= 90) return 'متميز';
-  if (score >= 80) return 'جيد جداً';
-  if (score >= 70) return 'جيد';
-  if (score >= 60) return 'مقبول';
-  return 'راسب';
+// ─────────────────────────────────────────────
+// التاريخ الهجري التقريبي (بسيط)
+// ─────────────────────────────────────────────
+function toHijriApprox(date: Date): string {
+  // تحويل تقريبي: السنة الميلادية - 622 ثم ضرب 33/32
+  const gregorianYear = date.getFullYear();
+  const hijriYear = Math.floor(((gregorianYear - 622) * 33) / 32);
+  const month = date.getMonth() + 1;
+  const day = date.getDate();
+  return `${hijriYear} / ${String(month).padStart(2, '0')} / ${String(day).padStart(2, '0')} هـ`;
 }
 
+// ─────────────────────────────────────────────
+// توليد بيانات الشهادة الكاملة
+// ─────────────────────────────────────────────
 export function getCertificateData(
   studentName: string,
   exam1Score: number,
   exam2Score: number
 ): CertificateData {
-  const averageScore = Math.round((exam1Score + exam2Score) / 2);
+  const safeName = studentName?.trim() || 'اكتب اسمك الثلاثي';
+  const avg = (exam1Score + exam2Score) / 2;
+  const averageScore = Math.round(avg * 10) / 10; // منزلة عشرية واحدة
+  const { level, levelAr, levelEn, appreciation } = getLevel(averageScore);
+
+  const now = new Date();
+  const issueDate = `${now.getFullYear()} / ${String(now.getMonth() + 1).padStart(2, '0')} / ${String(now.getDate()).padStart(2, '0')} م`;
+
   return {
-    studentName: studentName || 'اكتب اسمك الثلاثي',
-    finalScore: exam1Score + exam2Score,
+    studentName: safeName,
+    exam1Score,
+    exam2Score,
     averageScore,
-    date: new Date().toLocaleDateString('ar-EG'),
+    level,
+    levelAr,
+    levelEn,
+    appreciation,
     certificateNumber: generateCertificateNumber(),
-    appreciation: getAppreciation(averageScore),
+    issueDate,
+    issueDateHijri: toHijriApprox(now),
   };
 }
 
+// ─────────────────────────────────────────────
+// ألوان المستويات
+// ─────────────────────────────────────────────
+export function getLevelColors(level: CertificateLevel) {
+  switch (level) {
+    case 'gold':
+      return { primary: '#FFD700', dark: '#B8860B', light: '#FFF8DC', text: '#7B5D0A' };
+    case 'silver':
+      return { primary: '#C0C0C0', dark: '#808080', light: '#F5F5F5', text: '#4A4A4A' };
+    case 'bronze':
+      return { primary: '#CD7F32', dark: '#8B4513', light: '#F5E6D3', text: '#5D3A1A' };
+    case 'pass':
+    default:
+      return { primary: '#4A90E2', dark: '#2C5AA0', light: '#E3F2FD', text: '#1A3D7A' };
+  }
+}
+
+// ─────────────────────────────────────────────
+// توليد PDF (بسيط — يعتمد على HTML الحالي)
+// ─────────────────────────────────────────────
 export function generateCertificatePDF(data: CertificateData): void {
-  // A4 size in mm: 210 x 297
-  const doc = new jsPDF({
-    orientation: 'landscape',
-    unit: 'mm',
-    format: 'a4',
-  });
-
-  const pageWidth = doc.internal.pageSize.getWidth();
-  const pageHeight = doc.internal.pageSize.getHeight();
-
-  // ===== الخلفية =====
-  doc.setFillColor(253, 251, 245); // بيج فاتح
-  doc.rect(0, 0, pageWidth, pageHeight, 'F');
-
-  // ===== الإطار الذهبي الخارجي =====
-  doc.setDrawColor(212, 175, 55); // ذهبي
-  doc.setLineWidth(3);
-  doc.rect(10, 10, pageWidth - 20, pageHeight - 20);
-
-  // ===== الإطار الذهبي الداخلي =====
-  doc.setDrawColor(184, 134, 11);
-  doc.setLineWidth(1);
-  doc.rect(14, 14, pageWidth - 28, pageHeight - 28);
-
-  // ===== زخارف الزوايا =====
-  const cornerSize = 15;
-  doc.setDrawColor(212, 175, 55);
-  doc.setLineWidth(2);
-
-  // الزاوية العلوية اليسرى
-  doc.line(14, 14 + cornerSize, 14 + cornerSize, 14 + cornerSize);
-  doc.line(14 + cornerSize, 14, 14 + cornerSize, 14 + cornerSize);
-
-  // الزاوية العلوية اليمنى
-  doc.line(pageWidth - 14, 14 + cornerSize, pageWidth - 14 - cornerSize, 14 + cornerSize);
-  doc.line(pageWidth - 14 - cornerSize, 14, pageWidth - 14 - cornerSize, 14 + cornerSize);
-
-  // الزاوية السفلية اليسرى
-  doc.line(14, pageHeight - 14 - cornerSize, 14 + cornerSize, pageHeight - 14 - cornerSize);
-  doc.line(14 + cornerSize, pageHeight - 14, 14 + cornerSize, pageHeight - 14 - cornerSize);
-
-  // الزاوية السفلية اليمنى
-  doc.line(pageWidth - 14, pageHeight - 14 - cornerSize, pageWidth - 14 - cornerSize, pageHeight - 14 - cornerSize);
-  doc.line(pageWidth - 14 - cornerSize, pageHeight - 14, pageWidth - 14 - cornerSize, pageHeight - 14 - cornerSize);
-
-  // ===== الأكاديمية (أعلى) =====
-  doc.setFontSize(14);
-  doc.setTextColor(76, 29, 149); // بنفسجي داكن
-  doc.text('International Soroban Academy', pageWidth / 2, 28, { align: 'center' });
-
-  doc.setFontSize(18);
-  doc.setTextColor(76, 29, 149);
-  doc.text('أكاديمية السوروبان الدولية', pageWidth / 2, 38, { align: 'center' });
-
-  // ===== خط فاصل =====
-  doc.setDrawColor(212, 175, 55);
-  doc.setLineWidth(1);
-  doc.line(pageWidth / 2 - 50, 43, pageWidth / 2 + 50, 43);
-
-  // ===== العنوان الرئيسي =====
-  doc.setFontSize(32);
-  doc.setTextColor(184, 134, 11); // ذهبي داكن
-  doc.text('شهادة إتمام', pageWidth / 2, 65, { align: 'center' });
-
-  // ===== العنوان الفرعي =====
-  doc.setFontSize(18);
-  doc.setTextColor(76, 29, 149);
-  doc.text('دورة السوروبان الدولية', pageWidth / 2, 80, { align: 'center' });
-
-  doc.setFontSize(16);
-  doc.text('في الحساب الذهني', pageWidth / 2, 90, { align: 'center' });
-
-  // ===== خط فاصل =====
-  doc.setDrawColor(212, 175, 55);
-  doc.line(30, 98, pageWidth - 30, 98);
-
-  // ===== النص التمهيدي =====
-  doc.setFontSize(13);
-  doc.setTextColor(51, 51, 51);
-  doc.text('تشهد الأكاديمية بأن الطالب/ة:', pageWidth / 2, 112, { align: 'center' });
-
-  // ===== اسم الطالب =====
-  doc.setFontSize(28);
-  doc.setTextColor(184, 134, 11);
-  doc.text(data.studentName, pageWidth / 2, 130, { align: 'center' });
-
-  // خط تحت الاسم
-  doc.setDrawColor(212, 175, 55);
-  doc.setLineWidth(0.5);
-  doc.line(pageWidth / 2 - 70, 135, pageWidth / 2 + 70, 135);
-
-  // ===== نص الإتمام =====
-  doc.setFontSize(13);
-  doc.setTextColor(51, 51, 51);
-  doc.text('قد أكمل/ت بنجاح متطلبات الدورة،', pageWidth / 2, 148, { align: 'center' });
-  doc.text('وأثبت/ت إتقان/اً للحساب الذهني بالسوروبان.', pageWidth / 2, 156, { align: 'center' });
-
-  // ===== الدرجة =====
-  doc.setFontSize(14);
-  doc.setTextColor(76, 29, 149);
-  doc.text(`الدرجة النهائية: ${toArabicNumber(data.finalScore)} من ${toArabicNumber(200)}`, pageWidth / 2, 172, { align: 'center' });
-
-  doc.setFontSize(13);
-  doc.setTextColor(51, 51, 51);
-  doc.text(`التقدير: ${data.appreciation}`, pageWidth / 2, 180, { align: 'center' });
-
-  // ===== التاريخ ورقم الشهادة =====
-  doc.setFontSize(11);
-  doc.setTextColor(102, 102, 102);
-  doc.text(`التاريخ: ${data.date}`, 30, pageHeight - 30);
-  doc.text(`رقم الشهادة: ${data.certificateNumber}`, pageWidth - 30, pageHeight - 30, { align: 'right' });
-
-  // ===== التوقيع =====
-  // خط التوقيع
-  doc.setDrawColor(76, 29, 149);
-  doc.setLineWidth(0.5);
-  doc.line(pageWidth - 70, pageHeight - 55, pageWidth - 20, pageHeight - 55);
-
-  doc.setFontSize(14);
-  doc.setTextColor(76, 29, 149);
-  doc.text('مصطفى علي أكر', pageWidth - 45, pageHeight - 48, { align: 'center' });
-
-  doc.setFontSize(11);
-  doc.setTextColor(102, 102, 102);
-  doc.text('المدير والمؤسس', pageWidth - 45, pageHeight - 42, { align: 'center' });
-
-  // ===== شعار النجمة الذهبية =====
-  doc.setFillColor(212, 175, 55);
-  doc.circle(pageWidth / 2, pageHeight - 50, 8, 'F');
-
-  doc.setFontSize(9);
-  doc.setTextColor(255, 255, 255);
-  doc.text('★', pageWidth / 2, pageHeight - 48, { align: 'center' });
-
-  // ===== حفظ الملف =====
-  const fileName = `شهادة_${data.studentName.replace(/\s+/g, '_')}_${data.certificateNumber}.pdf`;
-  doc.save(fileName);
+  // ملاحظة: توليد PDF بالعربية يحتاج إعداد خط عربي في jsPDF.
+  // سنستخدم هنا طريقة بديلة: فتح نافذة الطباعة ليختار المستخدم "حفظ كـ PDF".
+  if (typeof window !== 'undefined') {
+    window.print();
+  }
 }
