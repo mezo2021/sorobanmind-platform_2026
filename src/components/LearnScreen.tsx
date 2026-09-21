@@ -11,7 +11,6 @@ import { LEARN_MODULES } from '@/data';
 import { FingerMath } from './FingerMath';
 import { SpeechButton } from './SpeechButton';
 import { useSpeech } from '@/hooks/useSpeech';
-// ✅ استيراد Soroban2D5 الجديد بدل Soroban + InteractiveSoroban
 import { Soroban2D5 } from './soroban2d5/Soroban2D5';
 import type { LearnModule, LessonStep, DivisionStep, LessonExample, DivisionExample, Screen } from '@/types';
 
@@ -87,6 +86,33 @@ function getRuleColor(category: string): string {
 
 function isDivisionExample(ex: LessonExample | DivisionExample): ex is DivisionExample {
   return ex.steps.length > 0 && 'expectedAbacusState' in ex.steps[0];
+}
+
+/**
+ * توليد 4 خيارات (1 صحيح + 3 مضلّلات) لدرس الأصابع
+ */
+function generateChoices(correct: number): number[] {
+  const choices = new Set<number>([correct]);
+
+  const candidates = [
+    correct - 1,
+    correct + 1,
+    correct - 2,
+    correct + 2,
+    correct + 5,
+    correct - 5,
+    correct + 10,
+    Math.max(0, correct - 10),
+  ].filter((n) => n >= 0 && n <= 20 && n !== correct);
+
+  const shuffled = candidates.sort(() => Math.random() - 0.5);
+
+  for (const n of shuffled) {
+    if (choices.size >= 4) break;
+    choices.add(n);
+  }
+
+  return Array.from(choices).sort(() => Math.random() - 0.5);
 }
 
 function AbacusStatePreview({ state, label }: { state: number[]; label: string }) {
@@ -641,11 +667,61 @@ export function LearnScreen({ onBack, playSound, onXP, onNavigate }: LearnScreen
                 </div>
               )}
 
-              {/* ✅ وضع "جرّب" — Soroban2D5 تفاعلي */}
+              {/* ✅ وضع "جرّب" — Soroban2D5 تفاعلي / خيارات لدرس الأصابع */}
               {currentEx && mode === 'try' && (
                 <div className="flex flex-col items-center gap-3 mb-4">
                   {isFingerLesson ? (
-                    <FingerMath value={abacusValue} interactive onValueChange={setAbacusValue} />
+                    /* 🎯 درس الأصابع: عرض الأصابع + خيارات متعددة */
+                    <div className="w-full flex flex-col items-center gap-4">
+                      <FingerMath value={currentEx.answer} />
+
+                      <p className="text-sm text-white/70 font-body text-center">
+                        كم يساوي هذا العدد؟
+                      </p>
+
+                      <div className="grid grid-cols-2 gap-3 w-full max-w-sm">
+                        {generateChoices(currentEx.answer).map((choice) => (
+                          <button
+                            key={choice}
+                            onClick={() => {
+                              setAbacusValue(choice);
+                              if (choice === currentEx.answer) {
+                                playSound('success');
+                                handleExampleSolved();
+                              } else {
+                                playSound('error');
+                                const key = currentExample;
+                                const currentAttempts = (attempts[key] || 0) + 1;
+                                setAttempts({ ...attempts, [key]: currentAttempts });
+                                setFeedbackMsg(
+                                  currentAttempts >= MAX_ATTEMPTS
+                                    ? '❌ لم تصل بعد. يمكنك رؤية الإجابة الآن.'
+                                    : `❌ حاول مرة أخرى. المحاولة ${toArabicNumber(currentAttempts)} من ${toArabicNumber(MAX_ATTEMPTS)}`
+                                );
+                              }
+                            }}
+                            disabled={isSolved}
+                            className={`py-4 rounded-2xl font-display font-black text-3xl transition-all ${
+                              isSolved && choice === currentEx.answer
+                                ? 'bg-emerald2-500/30 border-2 border-emerald2-400 text-emerald2-200 scale-105'
+                                : 'bg-white/10 border-2 border-white/20 text-white hover:bg-white/20 hover:scale-105 active:scale-95'
+                            }`}
+                          >
+                            {toArabicNumber(choice)}
+                          </button>
+                        ))}
+                      </div>
+
+                      {!isSolved && abacusValue !== 0 && (
+                        <button
+                          onClick={() => { setAbacusValue(0); playSound('click'); }}
+                          className="btn-ghost !py-2 !px-4 !text-xs"
+                        >
+                          <RotateCcw className="w-4 h-4" />
+                          مسح الاختيار
+                        </button>
+                      )}
+                    </div>
                   ) : (
                     <Soroban2D5
                       key={`soroban-try-${currentExample}`}
@@ -656,7 +732,8 @@ export function LearnScreen({ onBack, playSound, onXP, onNavigate }: LearnScreen
                     />
                   )}
 
-                  {!isSolved && !showAnswer && (
+                  {/* زر "تحقق" يظهر فقط في وضع السوروبان */}
+                  {!isFingerLesson && !isSolved && !showAnswer && (
                     <div className="flex gap-2">
                       <button onClick={handleCheck} className="btn-primary !py-2 !px-6 !text-sm">
                         <CheckCircle2 className="w-4 h-4" />
@@ -675,6 +752,7 @@ export function LearnScreen({ onBack, playSound, onXP, onNavigate }: LearnScreen
                     </div>
                   )}
 
+                  {/* الرسائل */}
                   {feedbackMsg && !showAnswer && !isSolved && (
                     <p className="text-xs text-white/60 font-body text-center">{feedbackMsg}</p>
                   )}
