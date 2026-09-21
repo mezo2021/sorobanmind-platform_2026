@@ -1,11 +1,11 @@
 import { useState, useCallback, useEffect } from 'react';
 import type { GameStats } from '@/types';
 import { BADGES } from '@/data';
+import { isBadgeEarned } from '@/utils/badgeChecker';
 
 const STORAGE_KEY = 'sorobanmind-stats';
 const LAST_VISIT_KEY = 'soroban_last_visit';
 
-// القيم الافتراضية: ابدأ من الصفر
 const DEFAULT_STATS: GameStats = {
   xp: 0,
   streak: 0,
@@ -37,14 +37,13 @@ export function useGameStats() {
   const [newBadge, setNewBadge] = useState<string | null>(null);
 
   // ============================================================
-  // التحقق اليومي من السلسلة (Streak)
+  // التحقق اليومي من السلسلة
   // ============================================================
   useEffect(() => {
-    const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+    const today = new Date().toISOString().slice(0, 10);
     const lastVisit = localStorage.getItem(LAST_VISIT_KEY);
 
     if (lastVisit !== today) {
-      // يوم جديد
       if (lastVisit) {
         const lastDate = new Date(lastVisit);
         const todayDate = new Date(today);
@@ -53,20 +52,72 @@ export function useGameStats() {
         );
 
         if (diffDays === 1) {
-          // يوم متتالي → زيادة السلسلة
           setStats((prev) => ({ ...prev, streak: prev.streak + 1 }));
         } else if (diffDays > 1) {
-          // انقطعت السلسلة → إعادة من 1
           setStats((prev) => ({ ...prev, streak: 1 }));
         }
       } else {
-        // أول زيارة → streak = 1
         setStats((prev) => ({ ...prev, streak: 1 }));
       }
 
       localStorage.setItem(LAST_VISIT_KEY, today);
     }
   }, []);
+
+  // ============================================================
+  // ✅ فحص الشارات بالإنجاز (يعمل عند كل تغيير في XP/الدروس)
+  // ============================================================
+  const checkBadges = useCallback(() => {
+    setStats((prev) => {
+      const earned = [...prev.earnedBadges];
+      let justEarnedId: string | null = null;
+
+      for (const badge of BADGES) {
+        // ✅ استخدام فحص الشرط بالإنجاز بدل XP
+        if (isBadgeEarned(badge) && !earned.includes(badge.id)) {
+          earned.push(badge.id);
+          justEarnedId = badge.id;
+        }
+      }
+
+      if (justEarnedId) {
+        setNewBadge(justEarnedId);
+        return { ...prev, earnedBadges: earned };
+      }
+
+      return prev;
+    });
+  }, []);
+
+  // ============================================================
+  // ✅ مراقبة التغييرات في localStorage (الأنزان، الدروس، الامتحان)
+  // لإعادة فحص الشارات تلقائياً
+  // ============================================================
+  useEffect(() => {
+    // نفحص عند التحميل الأول
+    checkBadges();
+
+    const handleStorage = (e: StorageEvent) => {
+      const keysToWatch = [
+        'soroban-completed-lessons',
+        'soroban_exam_result',
+        'soroban_anzan_badges',
+      ];
+      if (e.key && keysToWatch.includes(e.key)) {
+        checkBadges();
+      }
+    };
+
+    window.addEventListener('storage', handleStorage);
+
+    // ✅ فحص دوري كل 3 ثوانٍ (للتقاط التغييرات داخل نفس الصفحة)
+    const interval = setInterval(checkBadges, 3000);
+
+    return () => {
+      window.removeEventListener('storage', handleStorage);
+      clearInterval(interval);
+    };
+  }, [checkBadges]);
 
   // ============================================================
   // حفظ تلقائي
@@ -87,28 +138,15 @@ export function useGameStats() {
       const newXp = prev.xp + amount;
       const newLevel = Math.floor(newXp / 100) + 1;
 
-      const earned = [...prev.earnedBadges];
-      let justEarnedId: string | null = null;
-
-      for (const badge of BADGES) {
-        if (newXp >= badge.xpRequired && !earned.includes(badge.id)) {
-          earned.push(badge.id);
-          justEarnedId = badge.id;
-        }
-      }
-
-      if (justEarnedId) {
-        setNewBadge(justEarnedId);
-      }
-
       return {
         ...prev,
         xp: newXp,
         level: newLevel,
-        earnedBadges: earned,
       };
     });
-  }, []);
+    // فحص الشارات بعد إضافة XP (خاصة شارة أسطورة خالدة)
+    setTimeout(checkBadges, 100);
+  }, [checkBadges]);
 
   const clearNewBadge = useCallback(() => {
     setNewBadge(null);
@@ -128,7 +166,15 @@ export function useGameStats() {
     localStorage.removeItem(LAST_VISIT_KEY);
   }, []);
 
-  return { stats, addXP, toggleSound, incrementStreak, newBadge, clearNewBadge, resetStats };
+  return {
+    stats,
+    addXP,
+    toggleSound,
+    incrementStreak,
+    newBadge,
+    clearNewBadge,
+    resetStats,
+  };
 }
 
 export default useGameStats;
