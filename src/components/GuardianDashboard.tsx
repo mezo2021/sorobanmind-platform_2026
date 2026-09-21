@@ -12,6 +12,7 @@ import type { LevelNode } from '@/types';
 import { useQuests } from '@/hooks/useQuests';
 import { loadAnzanBadges, type AnzanBadges } from '@/examBank2';
 import { isBadgeEarned } from '@/utils/badgeChecker';
+import { calculateSkills } from '@/utils/skillsChecker';
 
 function toArabicNumber(value: number | string): string {
   return String(value).replace(/\d/g, (d) => '٠١٢٣٤٥٦٧٨٩'[Number(d)]);
@@ -121,6 +122,7 @@ export function GuardianDashboard({
     totalProblems: 0, correctAnswers: 0, additionProblems: 0, subtractionProblems: 0,
   });
   const [weeklyXP, setWeeklyXP] = useState<{ day: string; xp: number }[]>([]);
+  const [skills, setSkills] = useState(calculateSkills());
 
   const quests = useQuests();
 
@@ -146,7 +148,6 @@ export function GuardianDashboard({
       if (saved) setAnzanStats({ ...anzanStats, ...JSON.parse(saved) });
     } catch { /* ignore */ }
 
-    // ✨ قراءة شارات الأنزان
     setAnzanBadges(loadAnzanBadges());
 
     try {
@@ -167,6 +168,9 @@ export function GuardianDashboard({
         setWeeklyXP(mapped);
       }
     } catch { /* ignore */ }
+
+    // ✅ حساب المهارات
+    setSkills(calculateSkills());
   }, []);
 
   const accuracy = practiceStats.totalProblems > 0
@@ -182,10 +186,8 @@ export function GuardianDashboard({
     { label: 'دقة الإجابات', labelEn: 'Accuracy', value: `${toArabicNumber(accuracy)}٪`, icon: Target, gradient: 'from-emerald2-500 to-emerald2-700', glow: 'shadow-emerald2-500/30' },
   ];
 
-  // ✨ الشارة التالية (بالإنجاز)
   const nextBadge = BADGES.find((b) => !earnedBadges.includes(b.id));
 
-  // ✅ نسبة التقدم نحو الشارة التالية
   const progressPct = (() => {
     if (!nextBadge) return 100;
     const req = nextBadge.requirement;
@@ -199,7 +201,6 @@ export function GuardianDashboard({
     }
   })();
 
-  // ✨ شارات الأنزان الأربعة
   const anzanBadgeList = [
     { id: 'master_addition', label: 'خبير جمع وطرح', icon: '🧠', color: 'from-cyan-500 to-blue-700', earned: !!anzanBadges.master_addition },
     { id: 'master_multiplication', label: 'خبير ضرب', icon: '✖️', color: 'from-indigo-500 to-purple-700', earned: !!anzanBadges.master_multiplication },
@@ -271,6 +272,72 @@ export function GuardianDashboard({
       </div>
 
       {/* ═══════════════════════════════════════════════════════
+          المهارات الأربع
+      ═══════════════════════════════════════════════════════ */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+        className="glass-card p-5 sm:p-6 mb-6"
+      >
+        <div className="flex items-center gap-2 mb-4">
+          <Target className="w-5 h-5 text-emerald2-300" />
+          <h3 className="text-xl font-extrabold font-display text-white">المهارات</h3>
+        </div>
+
+        <div className="space-y-4">
+          {skills.map((skill, i) => (
+            <motion.div
+              key={skill.id}
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.25 + i * 0.08 }}
+            >
+              <div className="flex items-center justify-between mb-1.5">
+                <p className={`text-sm font-bold font-body ${skill.available ? 'text-white/80' : 'text-white/40'}`}>
+                  {skill.nameAr}
+                </p>
+                <span className={`text-xs font-bold font-display ${
+                  !skill.available ? 'text-white/30' :
+                  skill.percentage >= 70 ? 'text-emerald2-300' :
+                  skill.percentage >= 40 ? 'text-gold-300' :
+                  'text-red-300'
+                }`}>
+                  {skill.available ? `${toArabicNumber(skill.percentage)}٪` : 'قريباً'}
+                </span>
+              </div>
+
+              <div className="h-2.5 rounded-full bg-white/10 overflow-hidden">
+                <motion.div
+                  className={`h-full rounded-full ${
+                    !skill.available ? 'bg-white/10' :
+                    skill.percentage >= 70 ? 'bg-gradient-to-r from-emerald2-400 to-emerald2-600' :
+                    skill.percentage >= 40 ? 'bg-gradient-to-r from-gold-400 to-gold-600' :
+                    'bg-gradient-to-r from-red-400 to-red-600'
+                  }`}
+                  initial={{ width: 0 }}
+                  animate={{ width: `${skill.available ? skill.percentage : 0}%` }}
+                  transition={{ delay: 0.35 + i * 0.08, duration: 0.8 }}
+                />
+              </div>
+
+              {skill.note && (
+                <p className="text-[10px] text-amber-300/80 font-body mt-1.5">
+                  {skill.note}
+                </p>
+              )}
+
+              {!skill.note && (
+                <p className="text-[10px] text-white/40 font-body mt-1.5">
+                  {skill.descriptionAr}
+                </p>
+              )}
+            </motion.div>
+          ))}
+        </div>
+      </motion.div>
+
+      {/* ═══════════════════════════════════════════════════════
           شارات الأنزان
       ═══════════════════════════════════════════════════════ */}
       <motion.div
@@ -319,7 +386,7 @@ export function GuardianDashboard({
         </div>
       </motion.div>
 
-      {/* 🏆 BADGES — الشارات العامة (بالإنجاز) */}
+      {/* 🏆 BADGES */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -355,7 +422,6 @@ export function GuardianDashboard({
                 <p className={`text-xs font-bold font-body text-center ${isEarned ? 'text-white/80' : 'text-white/30'}`}>
                   {badge.nameAr}
                 </p>
-                {/* ✅ عرض وصف الشرط بدل XP */}
                 <p className="text-[10px] text-white/40 font-body text-center leading-tight">
                   {badge.descriptionAr}
                 </p>
