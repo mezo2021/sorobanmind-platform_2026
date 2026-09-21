@@ -5,7 +5,7 @@ import {
   FileText, AlertCircle, Lock, BookOpen,
   Brain, Grid3X3,
 } from 'lucide-react';
-import { Soroban2D5 } from './soroban2d5/Soroban2D5';
+import { InteractiveSoroban } from './InteractiveSoroban';
 import { LEARN_MODULES } from '@/data';
 import {
   pickAdditionExam,
@@ -14,47 +14,6 @@ import {
   type ExamQuestion,
 } from '@/examBank2';
 
-// ═══════════════════════════════════════════════════════════
-// ✅ حفظ/استعادة حالة الامتحان
-// ═══════════════════════════════════════════════════════════
-const EXAM_STATE_KEY = 'soroban_exam_running_state';
-
-interface SavedExamState {
-  tab: 'addition' | 'multdiv';
-  state: 'intro' | 'running' | 'finished';
-  questions: ExamQuestion[];
-  currentIndex: number;
-  answers: Array<{ correct: boolean }>;
-  attempts: number;
-  timestamp: number;
-}
-
-function saveExamState(data: SavedExamState) {
-  try {
-    localStorage.setItem(EXAM_STATE_KEY, JSON.stringify(data));
-  } catch { /* ignore */ }
-}
-
-function loadExamState(): SavedExamState | null {
-  try {
-    const raw = localStorage.getItem(EXAM_STATE_KEY);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw);
-    if (Date.now() - parsed.timestamp > 2 * 60 * 60 * 1000) {
-      localStorage.removeItem(EXAM_STATE_KEY);
-      return null;
-    }
-    return parsed;
-  } catch {
-    return null;
-  }
-}
-
-function clearExamState() {
-  try {
-    localStorage.removeItem(EXAM_STATE_KEY);
-  } catch { /* ignore */ }
-}
 interface FinalExamProps {
   onBack: () => void;
   onComplete: (score: number, passed: boolean) => void;
@@ -80,7 +39,6 @@ function getColumnsForValue(value: number): number {
   return 6;
 }
 
-// ✅ تصحيح: نستخدم operator من العملية الحالية وليس السابقة
 function questionToString(q: ExamQuestion): string {
   if (!q.operations || q.operations.length === 0) return '';
   const parts: string[] = [String(q.operations[0].value)];
@@ -145,36 +103,6 @@ export function FinalExam({ onBack, onComplete, playSound, onGoToLearn }: FinalE
     setCompletedCount(getCompletedCount());
   }, []);
 
-// ✅ استعادة حالة الامتحان عند الإقلاع
-useEffect(() => {
-  const saved = loadExamState();
-  if (saved && saved.state === 'running') {
-    setTab(saved.tab);
-    setQuestions(saved.questions);
-    setCurrentIndex(saved.currentIndex);
-    setAnswers(saved.answers);
-    setAttempts(saved.attempts);
-    setState(saved.state);
-  }
-}, []);
-
-// ✅ حفظ الحالة تلقائياً عند كل تغيير
-useEffect(() => {
-  if (state === 'running' && questions.length > 0) {
-    saveExamState({
-      tab,
-      state,
-      questions,
-      currentIndex,
-      answers,
-      attempts,
-      timestamp: Date.now(),
-    });
-  }
-  if (state === 'finished' || state === 'intro') {
-    clearExamState();
-  }
-}, [state, tab, questions, currentIndex, answers, attempts]);
   const currentQuestion = questions[currentIndex];
   const correctCount = answers.filter((a) => a.correct).length;
   const currentScore = correctCount * POINTS_PER_QUESTION;
@@ -238,6 +166,22 @@ useEffect(() => {
       setState('finished');
       if (passed) playSound('levelup');
       else playSound('error');
+
+      // ✅ حفظ النتيجة في localStorage
+      try {
+        if (tab === 'addition') {
+          localStorage.setItem(
+            'soroban_exam_result',
+            JSON.stringify({ score: finalScore, passed, date: Date.now() })
+          );
+        } else {
+          localStorage.setItem(
+            'soroban_exam2_result',
+            JSON.stringify({ score: finalScore, passed, date: Date.now() })
+          );
+        }
+      } catch { /* ignore */ }
+
       onComplete(finalScore, passed);
     }
   };
@@ -539,13 +483,10 @@ useEffect(() => {
         </p>
       </motion.div>
 
-      {/* ✅ Soroban2D5 بدل InteractiveSoroban */}
       <div className="flex justify-center mb-4">
-        <Soroban2D5
-          key={`exam-${currentIndex}`}
+        <InteractiveSoroban
           columns={getColumnsForValue(currentQuestion?.answer ?? 99)}
-          interactive={true}
-          showValue={true}
+          value={abacusValue}
           onValueChange={(v) => setAbacusValue(v)}
         />
       </div>
