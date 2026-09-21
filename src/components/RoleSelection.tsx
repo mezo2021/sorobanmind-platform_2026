@@ -25,16 +25,13 @@ export function RoleSelection({ onSelect, playSound }: RoleSelectionProps) {
       const savedName = localStorage.getItem(NAME_STORAGE_KEY);
 
       if (savedCompanion && savedName) {
-        // كل شيء محفوظ → انتقل مباشرة
         playSound('whoosh');
         onSelect(role);
       } else if (!savedCompanion) {
-        // لا يوجد رفيق → اعرض اختيار الرفيق
         playSound('click');
         setPendingRole(role);
         setStep('companion');
       } else {
-        // يوجد رفيق لكن لا يوجد اسم → اعرض إدخال الاسم
         playSound('click');
         setPendingRole(role);
         setStep('name');
@@ -47,7 +44,6 @@ export function RoleSelection({ onSelect, playSound }: RoleSelectionProps) {
 
   const handleCompanionSelected = (companion: CharacterType) => {
     localStorage.setItem(COMPANION_STORAGE_KEY, companion);
-    // بعد اختيار الرفيق → انتقل لخطوة الاسم
     setStep('name');
   };
 
@@ -61,40 +57,41 @@ export function RoleSelection({ onSelect, playSound }: RoleSelectionProps) {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-4 py-8">
-      {/* Title */}
+    <div className="min-h-screen flex flex-col items-center justify-center px-3 sm:px-6 py-8 sm:py-12">
+      {/* ✅ العنوان — أكبر وأوضح */}
       <motion.div
         initial={{ y: -30, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ type: 'spring', stiffness: 200, damping: 20 }}
-        className="text-center mb-8 sm:mb-12"
+        className="text-center mb-8 sm:mb-14"
       >
         <motion.div
           initial={{ scale: 0, rotate: -180 }}
           animate={{ scale: 1, rotate: 0 }}
           transition={{ type: 'spring', stiffness: 200, damping: 15, delay: 0.2 }}
-          className="inline-flex items-center justify-center w-20 h-20 sm:w-24 sm:h-24 rounded-3xl bg-gradient-to-br from-purple-500 to-electric-500 shadow-2xl shadow-purple-500/40 mb-4"
+          className="inline-flex items-center justify-center w-24 h-24 sm:w-32 sm:h-32 rounded-[2rem] bg-gradient-to-br from-purple-500 to-electric-500 shadow-2xl shadow-purple-500/40 mb-5"
         >
-          <Brain className="w-12 h-12 sm:w-14 sm:h-14 text-white" />
+          <Brain className="w-14 h-14 sm:w-20 sm:h-20 text-white" />
         </motion.div>
-        <h1 className="text-4xl sm:text-6xl font-extrabold font-display shimmer-text mb-2">
+
+        <h1 className="text-5xl sm:text-7xl font-extrabold font-display shimmer-text mb-3">
           SorobanMind
         </h1>
-        <p className="text-xl sm:text-2xl text-white/80 font-body font-semibold">
+        <p className="text-2xl sm:text-4xl text-white/90 font-body font-bold mb-3">
           أكاديمية السوروبان
         </p>
         <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.5 }}
-          className="text-sm sm:text-base text-white/50 mt-3 font-body"
+          className="text-base sm:text-xl text-white/60 mt-2 font-body max-w-md mx-auto leading-relaxed"
         >
           اختر شخصيتك وابدأ مغامرة الحساب الذهني
         </motion.p>
       </motion.div>
 
-      {/* Role Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-8 w-full max-w-4xl">
+      {/* ✅ البطاقات — أكبر وأوضح */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-8 w-full max-w-5xl">
         {/* Hero */}
         <motion.button
           initial={{ x: -50, opacity: 0 }}
@@ -103,44 +100,49 @@ export function RoleSelection({ onSelect, playSound }: RoleSelectionProps) {
           whileHover={{ scale: 1.03, y: -5 }}
           whileTap={{ scale: 0.97 }}
           onClick={() => handleSelect('hero')}
-          className="group relative glass-card p-6 sm:p-8 overflow-hidden text-right"
+          className="group relative glass-card p-7 sm:p-10 overflow-hidden text-right"
         >
           <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 via-transparent to-electric-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
           <motion.div
             animate={{ y: [0, -10, 0] }}
             transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
-            className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-3xl bg-gradient-to-br from-purple-500 to-electric-500 flex items-center justify-center shadow-xl shadow-purple-500/40 mb-5"
+            className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-3xl bg-gradient-to-br from-purple-500 to-electric-500 flex items-center justify-center shadow-xl shadow-purple-500/40 mb-6"
           >
-            <Swords className="w-9 h-9 sm:w-11 sm:h-11 text-white" />
+            <Swords className="w-11 h-11 sm:w-14 sm:h-14 text-white" />
             <motion.div
-              className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-gold-400 flex items-center justify-center"
+              className="absolute -top-2 -right-2 w-8 h-8 rounded-full bg-gold-400 flex items-center justify-center shadow-lg"
               animate={{ rotate: 360 }}
               transition={{ duration: 8, repeat: Infinity, ease: 'linear' }}
             >
-              <Star className="w-3.5 h-3.5 text-gold-900" />
+              <Star className="w-4 h-4 text-gold-900" />
             </motion.div>
           </motion.div>
 
-          <h2 className="text-2xl sm:text-3xl font-extrabold font-display text-white mb-1">
+          <h2 className="text-3xl sm:text-4xl font-extrabold font-display text-white mb-2">
             البطل
           </h2>
-          <p className="text-lg text-purple-300/80 font-body mb-3">Hero (Child)</p>
-          <p className="text-sm text-white/60 font-body mb-5 leading-relaxed">
+          <p className="text-xl text-purple-300/90 font-body mb-4 font-semibold">
+            Hero (Child)
+          </p>
+          <p className="text-base text-white/70 font-body mb-6 leading-relaxed">
             تدرب على السوروبان، العب ألعاب الأنزان، اكسب نقاط الخبرة، وارتقِ في المستويات
           </p>
 
-          <div className="flex flex-wrap gap-2 mb-5">
+          <div className="flex flex-wrap gap-2 mb-6">
             {['تعلّم', 'تدرّب', 'أنزان', 'مغامرات'].map((tag) => (
-              <span key={tag} className="px-3 py-1 rounded-full bg-white/10 border border-white/10 text-xs font-body text-white/70">
+              <span
+                key={tag}
+                className="px-3.5 py-1.5 rounded-full bg-white/10 border border-white/15 text-sm font-body text-white/80"
+              >
                 {tag}
               </span>
             ))}
           </div>
 
-          <div className="flex items-center gap-2 text-purple-300 font-bold text-sm group-hover:gap-3 transition-all">
+          <div className="flex items-center gap-2 text-purple-300 font-bold text-base group-hover:gap-3 transition-all">
             <span>ابدأ المغامرة</span>
-            <ArrowRight className="w-4 h-4 rotate-180" />
+            <ArrowRight className="w-5 h-5 rotate-180" />
           </div>
         </motion.button>
 
@@ -152,49 +154,54 @@ export function RoleSelection({ onSelect, playSound }: RoleSelectionProps) {
           whileHover={{ scale: 1.03, y: -5 }}
           whileTap={{ scale: 0.97 }}
           onClick={() => handleSelect('guardian')}
-          className="group relative glass-card p-6 sm:p-8 overflow-hidden text-right"
+          className="group relative glass-card p-7 sm:p-10 overflow-hidden text-right"
         >
           <div className="absolute inset-0 bg-gradient-to-br from-emerald2-500/20 via-transparent to-gold-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
           <motion.div
             animate={{ y: [0, -10, 0] }}
             transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut', delay: 0.5 }}
-            className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-3xl bg-gradient-to-br from-emerald2-500 to-gold-500 flex items-center justify-center shadow-xl shadow-emerald2-500/40 mb-5"
+            className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-3xl bg-gradient-to-br from-emerald2-500 to-gold-500 flex items-center justify-center shadow-xl shadow-emerald2-500/40 mb-6"
           >
-            <Shield className="w-9 h-9 sm:w-11 sm:h-11 text-white" />
+            <Shield className="w-11 h-11 sm:w-14 sm:h-14 text-white" />
           </motion.div>
 
-          <h2 className="text-2xl sm:text-3xl font-extrabold font-display text-white mb-1">
+          <h2 className="text-3xl sm:text-4xl font-extrabold font-display text-white mb-2">
             ولي الأمر
           </h2>
-          <p className="text-lg text-emerald2-300/80 font-body mb-3">Guardian (Parent)</p>
-          <p className="text-sm text-white/60 font-body mb-5 leading-relaxed">
+          <p className="text-xl text-emerald2-300/90 font-body mb-4 font-semibold">
+            Guardian (Parent)
+          </p>
+          <p className="text-base text-white/70 font-body mb-6 leading-relaxed">
             تابع تقدم طفلك، اطلع على الإحصائيات، وشجعه على الاستمرار في رحلة التعلم
           </p>
 
-          <div className="flex flex-wrap gap-2 mb-5">
+          <div className="flex flex-wrap gap-2 mb-6">
             {['تقارير', 'إحصائيات', 'متابعة', 'تقدم'].map((tag) => (
-              <span key={tag} className="px-3 py-1 rounded-full bg-white/10 border border-white/10 text-xs font-body text-white/70">
+              <span
+                key={tag}
+                className="px-3.5 py-1.5 rounded-full bg-white/10 border border-white/15 text-sm font-body text-white/80"
+              >
                 {tag}
               </span>
             ))}
           </div>
 
-          <div className="flex items-center gap-2 text-emerald2-300 font-bold text-sm group-hover:gap-3 transition-all">
+          <div className="flex items-center gap-2 text-emerald2-300 font-bold text-base group-hover:gap-3 transition-all">
             <span>لوحة المتابعة</span>
-            <ArrowRight className="w-4 h-4 rotate-180" />
+            <ArrowRight className="w-5 h-5 rotate-180" />
           </div>
         </motion.button>
       </div>
 
-      {/* Bottom info */}
+      {/* ✅ ملاحظة سفلية — أكبر */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.6 }}
-        className="flex items-center gap-2 mt-10 text-white/40 text-sm font-body"
+        className="flex items-center gap-3 mt-10 sm:mt-14 text-white/50 text-sm sm:text-base font-body text-center px-4"
       >
-        <TrendingUp className="w-4 h-4" />
+        <TrendingUp className="w-5 h-5 shrink-0" />
         <span>منصة تعليمية تفاعلية للحساب الذهني بالعداد الياباني</span>
       </motion.div>
 
@@ -233,3 +240,5 @@ export function RoleSelection({ onSelect, playSound }: RoleSelectionProps) {
     </div>
   );
 }
+
+export default RoleSelection;
