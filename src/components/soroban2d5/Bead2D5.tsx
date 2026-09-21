@@ -9,24 +9,30 @@ interface Bead2D5Props {
   position: 'upper' | 'lower';
   size?: number;
   onClick?: () => void;
+  /** إذا false، لا يتحرك المكوّن داخلياً (الحركة من الأب) */
+  animateOffset?: boolean;
 }
 
 const COLORS = {
   wood: {
     light: 'linear-gradient(180deg, #c19a6b 0%, #a67c52 50%, #8b6344 100%)',
-    shadow: 'inset 0 2px 4px rgba(255,255,255,0.3), inset 0 -3px 6px rgba(0,0,0,0.4), 0 4px 8px rgba(0,0,0,0.3)',
+    shadow:
+      'inset 0 2px 4px rgba(255,255,255,0.3), inset 0 -3px 6px rgba(0,0,0,0.4), 0 4px 8px rgba(0,0,0,0.3)',
   },
   gold: {
     light: 'linear-gradient(180deg, #f4d47c 0%, #d4a574 50%, #b8860b 100%)',
-    shadow: 'inset 0 2px 6px rgba(255,240,200,0.6), inset 0 -3px 6px rgba(100,60,0,0.4), 0 4px 10px rgba(184,134,11,0.5)',
+    shadow:
+      'inset 0 2px 6px rgba(255,240,200,0.6), inset 0 -3px 6px rgba(100,60,0,0.4), 0 4px 10px rgba(184,134,11,0.5)',
   },
   dark: {
     light: 'linear-gradient(180deg, #8b6f47 0%, #5a3a1f 50%, #3d2817 100%)',
-    shadow: 'inset 0 2px 4px rgba(255,200,150,0.2), inset 0 -3px 6px rgba(0,0,0,0.5), 0 4px 8px rgba(0,0,0,0.4)',
+    shadow:
+      'inset 0 2px 4px rgba(255,200,150,0.2), inset 0 -3px 6px rgba(0,0,0,0.5), 0 4px 8px rgba(0,0,0,0.4)',
   },
   red: {
     light: 'linear-gradient(180deg, #ff7b7b 0%, #c94040 50%, #8b1a1a 100%)',
-    shadow: 'inset 0 2px 4px rgba(255,200,200,0.4), inset 0 -3px 6px rgba(80,0,0,0.5), 0 4px 10px rgba(200,0,0,0.4)',
+    shadow:
+      'inset 0 2px 4px rgba(255,200,200,0.4), inset 0 -3px 6px rgba(80,0,0,0.5), 0 4px 10px rgba(200,0,0,0.4)',
   },
 };
 
@@ -36,6 +42,7 @@ export function Bead2D5({
   position,
   size = 48,
   onClick,
+  animateOffset = true,   // ✅ القيمة الافتراضية
 }: Bead2D5Props) {
   const playSound = useBeadSound();
   const vibrate = useBeadHaptics();
@@ -46,10 +53,16 @@ export function Bead2D5({
     onClick?.();
   };
 
-  // الاتجاه: خرزة علوية مفعّلة = للأسفل، خرزة سفلية مفعّلة = للأعلى
-  const offset = position === 'upper'
-    ? (active ? size * 0.5 : 0)     // علوية تهبط للأسفل
-    : (active ? -size * 0.6 : 0);   // سفلية ترتفع للأعلى
+  // ✅ إذا animateOffset = false، لا نُحرّك داخلياً (Rod2D5 هو من يُحرّك)
+  const offset = animateOffset
+    ? position === 'upper'
+      ? active
+        ? size * 0.5     // علوية تهبط للأسفل
+        : 0
+      : active
+      ? -size * 0.6      // سفلية ترتفع للأعلى
+      : 0
+    : 0;
 
   const { light, shadow } = COLORS[color];
 
@@ -77,7 +90,6 @@ export function Bead2D5({
         border: '1px solid rgba(0,0,0,0.15)',
         cursor: 'pointer',
         position: 'relative',
-        // تأثير 3D
         transformStyle: 'preserve-3d',
       }}
     >
@@ -89,7 +101,8 @@ export function Bead2D5({
           left: '20%',
           width: '40%',
           height: '20%',
-          background: 'radial-gradient(ellipse at center, rgba(255,255,255,0.7) 0%, transparent 70%)',
+          background:
+            'radial-gradient(ellipse at center, rgba(255,255,255,0.7) 0%, transparent 70%)',
           borderRadius: '50%',
           pointerEvents: 'none',
         }}
@@ -103,7 +116,8 @@ export function Bead2D5({
           transform: 'translate(-50%, -50%)',
           width: size * 0.08,
           height: size * 0.08,
-          background: 'radial-gradient(circle, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.2) 60%, transparent 100%)',
+          background:
+            'radial-gradient(circle, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.2) 60%, transparent 100%)',
           borderRadius: '50%',
           pointerEvents: 'none',
         }}
@@ -111,3 +125,5 @@ export function Bead2D5({
     </motion.button>
   );
 }
+
+export default Bead2D5;
