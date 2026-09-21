@@ -2,9 +2,9 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
   ArrowRight, Eye, Play, Zap, Trophy, RotateCcw,
-  Brain, Lock, CheckCircle2, Volume2, Plus, Divide,
+  Brain, Lock, CheckCircle2, Volume2,
 } from 'lucide-react';
-import { InteractiveSoroban } from './InteractiveSoroban';
+import { Soroban2D5 } from './soroban2d5/Soroban2D5';
 import { useSpeech } from '@/hooks/useSpeech';
 import AudioAnzanScreen from './AudioAnzanScreen';
 import {
@@ -261,15 +261,6 @@ function generateQuestion(section: SectionType, level: AnzanLevel): Question {
     else if (op === '÷') answer = Math.floor(answer / result[i + 1].value);
   }
   return { operations: result, answer, level };
-}
-
-function shuffle<T>(arr: T[]): T[] {
-  const a = [...arr];
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-  return a;
 }
 
 function generateRound(section: SectionType): Question[] {
@@ -622,10 +613,13 @@ export function AnzanScreen({ onBack, playSound, onXP, burst }: Props) {
             <p className="text-3xl sm:text-4xl font-black font-display text-white" dir="ltr">{questionToString(currentQ)}</p>
           </div>
 
+          {/* ✅ Soroban2D5 بدل InteractiveSoroban */}
           <div className="flex justify-center">
-            <InteractiveSoroban
+            <Soroban2D5
+              key={`anzan-${currentIdx}`}
               columns={getColumnsForValue(currentQ.answer)}
-              value={abacusValue}
+              interactive={true}
+              showValue={true}
               onValueChange={setAbacusValue}
             />
           </div>
