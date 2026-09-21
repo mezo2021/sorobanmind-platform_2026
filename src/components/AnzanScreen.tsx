@@ -17,7 +17,7 @@ import {
 type Phase = 'intro' | 'answer' | 'result';
 type SectionType = 'addition' | 'multiplication' | 'division' | 'mixed';
 type AnzanLevel = 1 | 2 | 3 | 4 | 5;
-type AnzanMode = 'visual' | 'audio';
+// type AnzanMode = 'visual' | 'audio'; // تمت إزالته واستخدام النوع المباشر في useState
 
 const ANZAN_PROGRESS_KEY = 'soroban_anzan_progress';
 const ANZAN_ROUNDS_KEY = 'soroban_anzan_rounds';
@@ -320,6 +320,7 @@ interface Props {
 }
 
 export function AnzanScreen({ onBack, playSound, onXP, burst }: Props) {
+  // ✅ التعديل هنا: تعريف النوع بشكل صريح داخل useState
   const [anzanMode, setAnzanMode] = useState<'visual' | 'audio'>('visual');
   const [section, setSection] = useState<SectionType>('addition');
   const [phase, setPhase] = useState<Phase>('intro');
