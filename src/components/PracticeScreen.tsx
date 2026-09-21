@@ -40,7 +40,14 @@ function loadPracticeStats(): PracticeStats {
       };
     }
   } catch { /* ignore */ }
-  return { totalProblems: 0, correctAnswers: 0, additionProblems: 0, subtractionProblems: 0, multiplicationProblems: 0, divisionProblems: 0 };
+  return {
+    totalProblems: 0,
+    correctAnswers: 0,
+    additionProblems: 0,
+    subtractionProblems: 0,
+    multiplicationProblems: 0,
+    divisionProblems: 0,
+  };
 }
 
 function savePracticeStats(stats: PracticeStats) {
@@ -92,6 +99,7 @@ export function PracticeScreen({ onBack, playSound, onXP, burst }: PracticeScree
     }
   }, []);
 
+  // ============ بناء بنك الأسئلة ============
   const buildSession = (): PracticeQuestion[] => {
     const pool: PracticeQuestion[] = [];
 
@@ -124,12 +132,15 @@ export function PracticeScreen({ onBack, playSound, onXP, burst }: PracticeScree
     return selected;
   };
 
+  // ============ State ============
   const [questions, setQuestions] = useState<PracticeQuestion[]>(() => buildSession());
   const [index, setIndex] = useState(0);
   const [score, setScore] = useState(0);
   const [attempts, setAttempts] = useState(0);
   const [feedback, setFeedback] = useState<'idle' | 'correct' | 'wrong' | 'revealed'>('idle');
   const [finished, setFinished] = useState(false);
+  // ✅ قيمة السوروبان الحالية
+  const [currentAbacusValue, setCurrentAbacusValue] = useState(0);
 
   // ✅ إعادة بناء الجلسة عند تغيير الدروس المكتملة
   useEffect(() => {
@@ -139,8 +150,14 @@ export function PracticeScreen({ onBack, playSound, onXP, burst }: PracticeScree
     setAttempts(0);
     setFeedback('idle');
     setFinished(false);
+    setCurrentAbacusValue(0);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [completed.length]);
+
+  // ✅ إعادة تعيين قيمة السوروبان عند تغيير السؤال
+  useEffect(() => {
+    setCurrentAbacusValue(0);
+  }, [index]);
 
   const question = questions[index];
 
@@ -149,6 +166,7 @@ export function PracticeScreen({ onBack, playSound, onXP, burst }: PracticeScree
   const isMultiplication = question?.question.includes('×');
   const isDivision = question?.question.includes('÷');
 
+  // ============ منطق المحاولات ============
   const handleAttempt = (isCorrect: boolean) => {
     if (feedback === 'correct' || feedback === 'revealed') return;
 
@@ -195,27 +213,21 @@ export function PracticeScreen({ onBack, playSound, onXP, burst }: PracticeScree
     }
   };
 
-  /**
-   * ✅ التحقق عند تغيّر قيمة السوروبان
-   * - إذا طابق الإجابة → صحيح
-   * - إذا اختلف → خطأ
-   */
+  // ============ تغيّر قيمة السوروبان ============
   const handleValueChange = (value: number) => {
+    setCurrentAbacusValue(value);
     if (!question) return;
     if (feedback === 'correct' || feedback === 'revealed') return;
 
-    // فقط إذا كانت القيمة > 0 (تجنب التحقق عند التصفير)
-    if (value === 0) return;
-
-    if (value === question.answer) {
+    // ✅ التحقق التلقائي عند مطابقة الإجابة (فقط إذا كانت القيمة > 0)
+    if (value > 0 && value === question.answer) {
       handleAttempt(true);
-    } else {
-      // نتحقق فقط عند وصول قيمة غير صفرية
-      // ملاحظة: نحتاج debounce لتجنب رصد كل حركة
     }
   };
 
+  // ============ التنقل ============
   const nextQuestion = () => {
+    setCurrentAbacusValue(0);
     if (index + 1 < questions.length) {
       setIndex(index + 1);
       setAttempts(0);
@@ -233,9 +245,11 @@ export function PracticeScreen({ onBack, playSound, onXP, burst }: PracticeScree
     setAttempts(0);
     setFeedback('idle');
     setFinished(false);
+    setCurrentAbacusValue(0);
     playSound('click');
   };
 
+  // ============ حالة: لا توجد أسئلة ============
   if (!question && !finished) {
     return (
       <div className="px-6 py-6 max-w-2xl mx-auto flex flex-col items-center justify-center min-h-[70vh]">
@@ -249,6 +263,7 @@ export function PracticeScreen({ onBack, playSound, onXP, burst }: PracticeScree
     );
   }
 
+  // ============ حالة: انتهى التدريب ============
   if (finished) {
     return (
       <div className="px-6 py-6 max-w-2xl mx-auto flex flex-col items-center justify-center min-h-[70vh]">
@@ -280,8 +295,10 @@ export function PracticeScreen({ onBack, playSound, onXP, burst }: PracticeScree
     );
   }
 
+  // ============ الشاشة الرئيسية ============
   return (
     <div className="px-3 sm:px-6 py-6 max-w-2xl mx-auto" dir="rtl">
+      {/* الرأس */}
       <div className="flex items-center gap-3 mb-6">
         <button onClick={() => { playSound('click'); onBack(); }} className="btn-ghost !px-3 !py-2">
           <ArrowRight className="w-5 h-5" />
@@ -292,6 +309,7 @@ export function PracticeScreen({ onBack, playSound, onXP, burst }: PracticeScree
         </div>
       </div>
 
+      {/* شريط التقدم */}
       <div className="flex items-center gap-3 mb-5">
         <div className="flex-1 h-3 rounded-full bg-white/10 overflow-hidden">
           <motion.div
@@ -305,6 +323,7 @@ export function PracticeScreen({ onBack, playSound, onXP, burst }: PracticeScree
         </span>
       </div>
 
+      {/* شارات المعلومات */}
       <div className="flex gap-3 mb-5 flex-wrap">
         <div className="badge bg-emerald2-500/15 border-emerald2-400/20">
           <CheckCircle2 className="w-4 h-4 text-emerald2-300" />
@@ -317,6 +336,7 @@ export function PracticeScreen({ onBack, playSound, onXP, burst }: PracticeScree
         </div>
       </div>
 
+      {/* بطاقة السؤال */}
       <AnimatePresence mode="wait">
         <motion.div
           key={index}
@@ -331,6 +351,7 @@ export function PracticeScreen({ onBack, playSound, onXP, burst }: PracticeScree
             {question.question} = ؟
           </p>
 
+          {/* ✅ إجابة صحيحة */}
           {feedback === 'correct' && (
             <motion.div
               initial={{ opacity: 0, y: 10 }}
@@ -342,6 +363,7 @@ export function PracticeScreen({ onBack, playSound, onXP, burst }: PracticeScree
             </motion.div>
           )}
 
+          {/* ❌ محاولة خاطئة */}
           {feedback === 'wrong' && (
             <motion.div
               initial={{ opacity: 0, y: 10 }}
@@ -352,6 +374,7 @@ export function PracticeScreen({ onBack, playSound, onXP, burst }: PracticeScree
             </motion.div>
           )}
 
+          {/* 🔍 الإجابة المكشوفة */}
           {feedback === 'revealed' && (
             <motion.div
               initial={{ opacity: 0, y: 10 }}
@@ -365,7 +388,7 @@ export function PracticeScreen({ onBack, playSound, onXP, burst }: PracticeScree
             </motion.div>
           )}
 
-          {/* ✅ Soroban2D5 بدل AbacusInput */}
+          {/* ✅ السوروبان 2D5 — يظهر عند عدم الإجابة */}
           {feedback !== 'correct' && feedback !== 'revealed' && (
             <div className="flex flex-col items-center gap-3">
               <Soroban2D5
@@ -382,18 +405,14 @@ export function PracticeScreen({ onBack, playSound, onXP, burst }: PracticeScree
 
               <button
                 onClick={() => {
-                  // نجمع القيمة الحالية من Soroban2D5 عبر إعادة قراءتها من الـ state
-                  // في هذه النسخة، نستخدم التتبع عبر onValueChange
-                  // يمكن استبدال هذا بزر "تحقق" حقيقي عبر ref (نسخة لاحقة)
-                  // للآن، التحقق يتم تلقائياً عند مطابقة القيمة
-                  const el = document.querySelector('[data-soroban-value]');
-                  if (el) {
-                    const v = Number(el.getAttribute('data-soroban-value') || '0');
-                    if (v === question.answer) handleAttempt(true);
-                    else handleAttempt(false);
+                  if (currentAbacusValue === question.answer) {
+                    handleAttempt(true);
+                  } else {
+                    handleAttempt(false);
                   }
                 }}
-                className="btn-primary !py-2 !px-6 !text-sm"
+                disabled={currentAbacusValue === 0}
+                className="btn-primary !py-2 !px-6 !text-sm disabled:opacity-40"
               >
                 <CheckCircle2 className="w-4 h-4" />
                 تحقق
@@ -401,6 +420,7 @@ export function PracticeScreen({ onBack, playSound, onXP, burst }: PracticeScree
             </div>
           )}
 
+          {/* زر الانتقال */}
           {(feedback === 'correct' || feedback === 'revealed') && (
             <motion.button
               initial={{ opacity: 0, y: 10 }}
