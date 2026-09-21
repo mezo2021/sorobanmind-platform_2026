@@ -78,8 +78,26 @@ function App() {
   }, []);
 
   const handleNavigate = useCallback((s: Screen) => {
+    // ✅ إعادة قراءة حالة الامتحان من localStorage عند كل تنقل
+    // لضمان عمل زر "معاينة الشهادة" التجريبي دون إعادة تحميل الصفحة
+    let currentlyPassed = examPassed;
+    if (!currentlyPassed) {
+      try {
+        const raw = localStorage.getItem('soroban_exam_result');
+        if (raw) {
+          const data = JSON.parse(raw);
+          if (data?.passed === true) {
+            currentlyPassed = true;
+            setExamPassed(true);
+          }
+        }
+      } catch {
+        /* ignore */
+      }
+    }
+
     // ✅ الحماية المزدوجة: منع الوصول لشاشات مقفلة
-    if (EXAM_REQUIRED_SCREENS.includes(s) && !examPassed) {
+    if (EXAM_REQUIRED_SCREENS.includes(s) && !currentlyPassed) {
       return;
     }
     setScreen(s);
