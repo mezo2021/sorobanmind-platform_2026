@@ -20,28 +20,25 @@ export function Rod2D5({
   onToggleUpper,
   onSetLower,
   onReset,
-  height = 380,
-  beadSize = 44,
+  height = 300,
+  beadSize = 30,
 }: Rod2D5Props) {
   const lowerBeads = [0, 1, 2, 3];
 
   // 🎯 حساب المواضع الرياضي
-  const beadHeight = beadSize * 0.42;              // ارتفاع الخرزة الفعلي
-  const gap = 2;                                    // فراغ صغير بين الخرزات
-  const step = beadHeight + gap;                    // خطوة الخرزة
+  const beadHeight = beadSize * 0.42;
+  const gap = 2;
+  const step = beadHeight + gap;
 
-  // العارضة في المنتصف
   const beamY = height / 2;
 
-  // الخرزة العلوية: غير مفعّلة → ملتصقة بأعلى الإطار
-  //                    مفعّلة   → ملتصقة بالعارضة من الأعلى
-  const upperBeadTop = beadHeight + 4;              // موضع "غير مفعّلة" من الأعلى
-  const upperBeadActive = beamY - beadHeight - 4;   // موضع "مفعّلة" (فوق العارضة)
+  // الخرزة العلوية
+  const upperBeadTop = beadHeight + 4;
+  const upperBeadActive = beamY - beadHeight - 4;
 
-  // الخرزات السفلية: غير مفعّلة → ملتصقة بأسفل الإطار
-  //                  مفعّلة   → مرتّبة من العارضة للأسفل
-  const lowerAreaTop = beamY + 4;                   // أسفل العارضة مباشرة
-  const lowerAreaBottom = height - beadHeight - 4;  // أسفل الإطار
+  // الخرزات السفلية
+  const lowerAreaTop = beamY + 4;
+  const lowerAreaBottom = height - beadHeight - 4;
 
   return (
     <div
@@ -101,11 +98,8 @@ export function Rod2D5({
       {lowerBeads.map((idx) => {
         const isActive = idx < state.lower;
 
-        // إذا كانت مفعّلة: نبدأ من العارضة ونتحرك للأسفل
-        // إذا لم تكن مفعّلة: نبدأ من الأسفل ونتحرك للأعلى
         const topActive = lowerAreaTop + idx * step;
-        const topInactive =
-          lowerAreaBottom - (3 - idx) * step;
+        const topInactive = lowerAreaBottom - (3 - idx) * step;
 
         return (
           <div
@@ -140,17 +134,17 @@ export function Rod2D5({
       <button
         type="button"
         onClick={onReset}
-        className="absolute -bottom-10 text-xs text-amber-700 hover:text-amber-900 underline"
+        className="absolute -bottom-8 text-xs text-amber-700 hover:text-amber-900 underline whitespace-nowrap"
         style={{ fontSize: 11 }}
         aria-label="إعادة تصفير العمود"
       >
         تصفير ↺
       </button>
 
-      {/* 🎯 اسم العمود — يُعرض حسب displayOrder (0 = آحاد) */}
+      {/* اسم العمود */}
       <div
-        className="absolute -top-8 text-amber-800 font-bold whitespace-nowrap"
-        style={{ fontSize: 14 }}
+        className="absolute -top-7 text-amber-800 font-bold whitespace-nowrap"
+        style={{ fontSize: 13 }}
       >
         {['آحاد', 'عشرات', 'مئات', 'آلاف', 'عشرات الآلاف', 'مئات الآلاف'][displayOrder] ||
           `عمود ${displayOrder + 1}`}
@@ -158,3 +152,5 @@ export function Rod2D5({
     </div>
   );
 }
+
+export default Rod2D5;
