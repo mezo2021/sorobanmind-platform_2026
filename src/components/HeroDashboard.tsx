@@ -4,6 +4,7 @@ import {
   BookOpen, Dumbbell, Eye, Swords, Calculator, Lock,
   Sparkles, Flame, Brain, Zap, Palette, Trash2,
   Unlock, X, Grid3X3, Wand2, Hash, Divide, FileText,
+  LogOut, RefreshCw, Shield,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -13,6 +14,7 @@ import { CharacterSelector } from './CharacterSelector';
 
 interface HeroDashboardProps {
   onNavigate: (screen: Screen) => void;
+  onSwitchToGuardian?: () => void;
   playSound: (type: 'click' | 'whoosh') => void;
   xp: number;
   streak: number;
@@ -174,6 +176,7 @@ const LEGACY_CHARACTER_MAP: Record<string, CharacterType> = {
 
 export function HeroDashboard({
   onNavigate,
+  onSwitchToGuardian,
   playSound,
   xp,
   streak,
@@ -183,6 +186,7 @@ export function HeroDashboard({
   const [showSelector, setShowSelector] = useState(false);
   const [childName, setChildName] = useState<string>('');
   const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [examPassed, setExamPassed] = useState(false);
 
   useEffect(() => {
@@ -196,7 +200,6 @@ export function HeroDashboard({
     } else {
       localStorage.setItem('soroban_companion', 'sham');
       setCompanion('sham');
-      setShowSelector(true);
     }
 
     const savedName = localStorage.getItem('soroban_child_name');
@@ -255,6 +258,7 @@ export function HeroDashboard({
     } catch { /* ignore */ }
   };
 
+  // ✅ تصفير التقدم فقط (يُبقي الاسم والرفيق)
   const handleReset = () => {
     const keysToKeep = ['soroban_companion', 'soroban_child_name'];
     Object.keys(localStorage).forEach((key) => {
@@ -262,6 +266,26 @@ export function HeroDashboard({
     });
     playSound('whoosh');
     setShowResetConfirm(false);
+    setTimeout(() => window.location.reload(), 300);
+  };
+
+  // ✅ خروج كامل (يمسح كل شيء — يعود لشاشة البداية)
+  const handleLogout = () => {
+    try {
+      localStorage.clear();
+    } catch { /* ignore */ }
+    playSound('whoosh');
+    setShowLogoutConfirm(false);
+    // ✅ إعادة تحميل قوية — تُعيد التطبيق لشاشة البداية
+    setTimeout(() => {
+      window.location.href = window.location.pathname + '?logout=' + Date.now();
+      window.location.reload();
+    }, 200);
+  };
+
+  // ✅ إعادة تحميل سريع (لحل مشكلة "الصفحة لا تتحدث")
+  const handleReload = () => {
+    playSound('click');
     window.location.reload();
   };
 
@@ -315,7 +339,7 @@ export function HeroDashboard({
             </div>
           </div>
 
-          {/* أزرار التحكم */}
+          {/* ✅ الأزرار */}
           <div className="flex items-center gap-2 flex-wrap">
             <button
               type="button"
@@ -336,13 +360,50 @@ export function HeroDashboard({
               <span>فتح الكل</span>
             </button>
 
+            {/* ✅ زر إعادة التحميل */}
+            <button
+              type="button"
+              onClick={handleReload}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-blue-500/15 border border-blue-400/30 text-blue-200 hover:bg-blue-500/25 transition-all text-sm font-body"
+              title="إعادة تحميل التطبيق"
+            >
+              <RefreshCw className="w-4 h-4" />
+              <span>تحديث</span>
+            </button>
+
+            {/* ✅ زر لوحة ولي الأمر */}
+            {onSwitchToGuardian && (
+              <button
+                type="button"
+                onClick={() => { playSound('click'); onSwitchToGuardian(); }}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-amber-500/15 border border-amber-400/30 text-amber-200 hover:bg-amber-500/25 transition-all text-sm font-body"
+                title="لوحة ولي الأمر"
+              >
+                <Shield className="w-4 h-4" />
+                <span>ولي الأمر</span>
+              </button>
+            )}
+
+            {/* ✅ زر تصفير التقدم */}
             <button
               type="button"
               onClick={() => { playSound('click'); setShowResetConfirm(true); }}
               className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-red-500/10 border border-red-400/30 text-red-300 hover:bg-red-500/20 transition-all text-sm font-body"
+              title="تصفير التقدم (يُبقي الاسم والرفيق)"
             >
               <Trash2 className="w-4 h-4" />
-              <span>تصفير</span>
+              <span>تصفير التقدم</span>
+            </button>
+
+            {/* ✅ زر الخروج الكامل */}
+            <button
+              type="button"
+              onClick={() => { playSound('click'); setShowLogoutConfirm(true); }}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-red-600/20 border border-red-500/40 text-red-200 hover:bg-red-600/30 transition-all text-sm font-bold font-body"
+              title="خروج كامل (يمسح كل شيء)"
+            >
+              <LogOut className="w-4 h-4" />
+              <span>خروج</span>
             </button>
           </div>
         </div>
@@ -361,7 +422,6 @@ export function HeroDashboard({
         <div className="absolute -bottom-24 -left-24 w-64 h-64 rounded-full bg-electric-500/10 blur-3xl" />
 
         <div className="relative grid grid-cols-1 md:grid-cols-[200px_1fr] items-center gap-6">
-          {/* الأفاتار */}
           <div className="relative flex justify-center">
             <motion.div
               animate={{ y: [0, -5, 0], rotate: [-1, 1, -1] }}
@@ -380,7 +440,6 @@ export function HeroDashboard({
             </motion.div>
           </div>
 
-          {/* المعلومات */}
           <div className="text-center md:text-right">
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-violet-500/15 border border-violet-400/20 mb-3">
               <Sparkles className="w-4 h-4 text-violet-300" />
@@ -491,15 +550,9 @@ export function HeroDashboard({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4"
+            className="fixed inset-0 z-[100] bg-black/80 flex items-center justify-center p-4 overflow-y-auto"
           >
-            <motion.div
-              initial={{ scale: 0.85, opacity: 0, y: 30 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.85, opacity: 0, y: 30 }}
-              transition={{ type: 'spring', stiffness: 250, damping: 25 }}
-              className="relative bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-3xl p-5 sm:p-7 max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-white/10"
-            >
+            <div className="relative bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-3xl p-5 sm:p-7 max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-white/10">
               <button
                 type="button"
                 onClick={() => { playSound('click'); setShowSelector(false); }}
@@ -509,13 +562,13 @@ export function HeroDashboard({
                 <X className="w-5 h-5 text-white/70" />
               </button>
               <CharacterSelector onSelectCharacter={handleCompanionChange} />
-            </motion.div>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
 
       {/* ═══════════════════════════════════════════════════════
-          RESET CONFIRMATION
+          RESET CONFIRMATION (تصفير التقدم)
       ═══════════════════════════════════════════════════════ */}
       <AnimatePresence>
         {showResetConfirm && (
@@ -523,13 +576,9 @@ export function HeroDashboard({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4"
+            className="fixed inset-0 z-[100] bg-black/80 flex items-center justify-center p-4"
           >
-            <motion.div
-              initial={{ scale: 0.85, opacity: 0, y: 30 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.85, opacity: 0, y: 30 }}
-              transition={{ type: 'spring', stiffness: 250, damping: 25 }}
+            <div
               className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-3xl p-6 max-w-md w-full shadow-2xl border border-red-500/30 text-center"
               dir="rtl"
             >
@@ -560,7 +609,56 @@ export function HeroDashboard({
                   إلغاء
                 </button>
               </div>
-            </motion.div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ═══════════════════════════════════════════════════════
+          LOGOUT CONFIRMATION (خروج كامل)
+      ═══════════════════════════════════════════════════════ */}
+      <AnimatePresence>
+        {showLogoutConfirm && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] bg-black/80 flex items-center justify-center p-4"
+          >
+            <div
+              className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-3xl p-6 max-w-md w-full shadow-2xl border border-red-500/50 text-center"
+              dir="rtl"
+            >
+              <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-red-600/30 border border-red-500/50 flex items-center justify-center">
+                <LogOut className="w-8 h-8 text-red-200" />
+              </div>
+              <h3 className="text-xl font-extrabold font-display text-white mb-2">
+                خروج كامل؟
+              </h3>
+              <p className="text-sm text-white/60 font-body mb-6 leading-relaxed">
+                سيتم حذف <span className="font-bold text-red-300">كل شيء</span>:
+                <br />
+                الاسم • الرفيق • التقدم • الشارات • الدروس
+                <br />
+                <span className="text-red-300">لا يمكن التراجع عن هذا الإجراء.</span>
+              </p>
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  className="btn-primary flex-1 !bg-gradient-to-br !from-red-600 !to-red-800"
+                >
+                  نعم، خروج
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { playSound('click'); setShowLogoutConfirm(false); }}
+                  className="btn-ghost flex-1"
+                >
+                  إلغاء
+                </button>
+              </div>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
