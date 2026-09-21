@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowRight, Printer, Award, Home, Edit3, Sparkles } from 'lucide-react';
+import { QRCodeSVG } from 'qrcode.react';
 import CertificateLogo from '@/components/CertificateLogo';
+import CertificateMedal from '@/components/CertificateMedal';
 import {
   getCertificateData,
   getLevelColors,
@@ -133,36 +135,22 @@ const CertificateScreen: React.FC<Props> = ({ onBack, playSound, onGoHome }) => 
           style={{
             background: 'radial-gradient(ellipse at center, #FDF8E7 0%, #F5EBD0 50%, #EFE1BC 100%)',
             borderRadius: '14px',
-            padding: '22px 18px',
+            padding: '22px 16px',
           }}
         >
           {/* علامة مائية */}
-          <div className="absolute inset-0 flex items-center justify-center opacity-[0.04] pointer-events-none">
-            <CertificateLogo size={500} />
+          <div className="absolute inset-0 flex items-center justify-center opacity-[0.05] pointer-events-none">
+            <CertificateLogo size={520} />
           </div>
 
-          {/* إطار داخلي مزخرف */}
+          {/* إطار داخلي مزدوج */}
           <div
             className="absolute pointer-events-none"
-            style={{
-              top: 8,
-              left: 8,
-              right: 8,
-              bottom: 8,
-              border: '2px solid #B8860B',
-              borderRadius: '10px',
-            }}
+            style={{ top: 8, left: 8, right: 8, bottom: 8, border: '2px solid #B8860B', borderRadius: '10px' }}
           />
           <div
             className="absolute pointer-events-none"
-            style={{
-              top: 12,
-              left: 12,
-              right: 12,
-              bottom: 12,
-              border: '1px solid #DAA520',
-              borderRadius: '8px',
-            }}
+            style={{ top: 12, left: 12, right: 12, bottom: 12, border: '1px solid #DAA520', borderRadius: '8px' }}
           />
 
           {/* زخارف الزوايا */}
@@ -199,7 +187,7 @@ const CertificateScreen: React.FC<Props> = ({ onBack, playSound, onGoHome }) => 
 
             {/* الشعار */}
             <div className="flex justify-center mb-2">
-              <CertificateLogo size={100} />
+              <CertificateLogo size={110} />
             </div>
 
             {/* اسم الأكاديمية */}
@@ -237,6 +225,29 @@ const CertificateScreen: React.FC<Props> = ({ onBack, playSound, onGoHome }) => 
               دورة السوروبان الدولية في الحساب الذهني
             </p>
 
+            {/* ═══ شريط المستوى مع الميدالية ═══ */}
+            <div
+              className="inline-flex items-center gap-2 mt-3 px-3 sm:px-5 py-1 sm:py-1.5 rounded-full"
+              style={{
+                background: `linear-gradient(135deg, ${colors.light} 0%, ${colors.primary} 100%)`,
+                border: `1.5px solid ${colors.dark}`,
+                boxShadow: `0 4px 14px ${colors.primary}55`,
+              }}
+            >
+              <CertificateMedal level={data.level} size={36} />
+              <div className="flex flex-col items-start">
+                <span className="font-black leading-tight" style={{ color: colors.text, fontSize: '13px' }}>
+                  المستوى {data.levelAr}
+                </span>
+                <span
+                  className="font-bold leading-tight"
+                  style={{ color: colors.dark, fontSize: '9px', letterSpacing: '1px' }}
+                >
+                  {data.levelEn.toUpperCase()} LEVEL
+                </span>
+              </div>
+            </div>
+
             {/* فاصل */}
             <div className="flex items-center justify-center gap-2 my-3">
               <div className="h-px flex-1 max-w-[200px]" style={{ background: 'linear-gradient(to right, transparent, #DAA520, transparent)' }} />
@@ -270,14 +281,15 @@ const CertificateScreen: React.FC<Props> = ({ onBack, playSound, onGoHome }) => 
               وأثبت/ت إتقان/اً للمهارات الأساسية والمتقدمة وفق معايير الأكاديمية الدولية.
             </p>
 
-            {/* ─── بطاقة النتيجة والمستوى ─── */}
-            <div className="grid grid-cols-2 gap-2 sm:gap-3 my-4 px-2">
+            {/* ═══ بطاقات النتيجة والمستوى ═══ */}
+            <div className="grid grid-cols-2 gap-2 sm:gap-3 my-4 px-1 sm:px-2">
               {/* النتيجة */}
               <div
-                className="rounded-xl p-2 sm:p-3 text-center"
+                className="rounded-xl p-2 sm:p-3 text-center flex flex-col items-center justify-center"
                 style={{
                   background: 'linear-gradient(135deg, #FFF8DC 0%, #F5EBD0 100%)',
                   border: '1.5px solid #DAA520',
+                  boxShadow: 'inset 0 0 10px rgba(184,134,11,0.1)',
                 }}
               >
                 <p className="text-[9px] sm:text-[10px] font-bold" style={{ color: '#7B5D0A' }}>
@@ -289,73 +301,123 @@ const CertificateScreen: React.FC<Props> = ({ onBack, playSound, onGoHome }) => 
                 <p className="text-[9px] sm:text-[10px] mt-0.5" style={{ color: '#7B5D0A' }}>
                   من {toArabicNumber(100)} / 100
                 </p>
+                <div
+                  className="mt-1.5 mx-auto rounded-full overflow-hidden"
+                  style={{ height: '4px', background: 'rgba(184,134,11,0.2)', width: '85%' }}
+                >
+                  <div
+                    style={{
+                      height: '100%',
+                      width: `${Math.min(100, data.averageScore)}%`,
+                      background: `linear-gradient(to right, ${colors.primary}, ${colors.dark})`,
+                      borderRadius: '999px',
+                    }}
+                  />
+                </div>
               </div>
 
-              {/* المستوى */}
+              {/* المستوى مع الميدالية */}
               <div
-                className="rounded-xl p-2 sm:p-3 text-center relative overflow-hidden"
+                className="rounded-xl p-2 sm:p-3 text-center flex flex-col items-center justify-center relative overflow-hidden"
                 style={{
                   background: `linear-gradient(135deg, ${colors.light} 0%, ${colors.primary} 200%)`,
                   border: `1.5px solid ${colors.dark}`,
+                  boxShadow: 'inset 0 0 10px rgba(0,0,0,0.05)',
                 }}
               >
                 <p className="text-[9px] sm:text-[10px] font-bold" style={{ color: colors.text }}>
-                  المستوى والتقدير
+                  التقدير
                 </p>
-                <p className="font-black font-serif leading-none mt-1" style={{ fontSize: 'clamp(14px, 3.2vw, 20px)', color: colors.text }}>
+                <div className="-my-1">
+                  <CertificateMedal level={data.level} size={52} />
+                </div>
+                <p className="font-black font-serif leading-none" style={{ fontSize: 'clamp(13px, 3vw, 17px)', color: colors.text }}>
                   {data.appreciation}
-                </p>
-                <p className="text-[9px] sm:text-[10px] mt-0.5 font-bold" style={{ color: colors.dark }}>
-                  🏅 المستوى {data.levelAr}
                 </p>
               </div>
             </div>
 
-            {/* ─── التذييل: التوقيعات والأختام ─── */}
+            {/* ═══ التذييل: الأختام ═══ */}
             <div className="grid grid-cols-2 gap-2 sm:gap-6 mt-5 mb-3 px-1 sm:px-4">
               {/* يسار: المشرف الأكاديمي */}
               <div className="text-center">
-                <div
-                  className="mx-auto mb-1 flex items-center justify-center rounded-full"
-                  style={{
-                    width: '52px',
-                    height: '52px',
-                    background: 'radial-gradient(circle, #F5EBD0 0%, #DAA520 100%)',
-                    border: '1.5px dashed #8B6914',
-                  }}
-                >
-                  <span style={{ color: '#5D3A1A', fontSize: '9px', fontWeight: 'bold', lineHeight: 1 }}>
-                    ISA
-                    <br />
-                    SEAL
-                  </span>
+                <div className="relative mx-auto mb-1" style={{ width: '58px', height: '58px' }}>
+                  <div
+                    className="absolute inset-0 rounded-full"
+                    style={{
+                      background: 'radial-gradient(circle, #F5EBD0 0%, #DAA520 100%)',
+                      border: '1.5px solid #8B6914',
+                    }}
+                  />
+                  <div
+                    className="absolute rounded-full"
+                    style={{
+                      inset: '5px',
+                      border: '1px dashed #8B6914',
+                      borderRadius: '50%',
+                    }}
+                  />
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <span
+                      style={{
+                        color: '#5D3A1A',
+                        fontSize: '8px',
+                        fontWeight: 'bold',
+                        lineHeight: 1.1,
+                        letterSpacing: '0.5px',
+                      }}
+                    >
+                      ISA
+                      <br />
+                      ★
+                      <br />
+                      SEAL
+                    </span>
+                  </div>
                 </div>
                 <div style={{ height: '1px', background: '#B8860B', margin: '4px 8px' }} />
                 <p className="text-[10px] sm:text-xs font-bold" style={{ color: '#5D3A1A' }}>
                   المشرف الأكاديمي
                 </p>
-                <p className="text-[8px] sm:text-[9px]" style={{ color: '#7B5D0A' }}>
+                <p className="text-[8px] sm:text-[9px] italic" style={{ color: '#7B5D0A' }}>
                   Academic Supervisor
                 </p>
               </div>
 
               {/* يمين: المدير والمؤسس */}
               <div className="text-center">
-                <div
-                  className="mx-auto mb-1 flex items-center justify-center rounded-full"
-                  style={{
-                    width: '52px',
-                    height: '52px',
-                    background: 'radial-gradient(circle, #FFD700 0%, #B8860B 100%)',
-                    border: '1.5px solid #5D3A1A',
-                    boxShadow: '0 0 10px rgba(184,134,11,0.4)',
-                  }}
-                >
-                  <span style={{ color: '#2C1A0E', fontSize: '9px', fontWeight: 'bold', lineHeight: 1 }}>
-                    ★
-                    <br />
-                    CEO
-                  </span>
+                <div className="relative mx-auto mb-1" style={{ width: '58px', height: '58px' }}>
+                  <div
+                    className="absolute inset-0 rounded-full"
+                    style={{
+                      background: 'radial-gradient(circle, #FFD700 0%, #B8860B 100%)',
+                      border: '1.5px solid #5D3A1A',
+                      boxShadow: '0 0 12px rgba(184,134,11,0.5), inset 0 0 8px rgba(255,255,255,0.3)',
+                    }}
+                  />
+                  <div
+                    className="absolute rounded-full"
+                    style={{
+                      inset: '5px',
+                      border: '1px solid #5D3A1A',
+                      borderRadius: '50%',
+                    }}
+                  />
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <span
+                      style={{
+                        color: '#2C1A0E',
+                        fontSize: '9px',
+                        fontWeight: 'bold',
+                        lineHeight: 1.1,
+                        letterSpacing: '0.5px',
+                      }}
+                    >
+                      ★
+                      <br />
+                      CEO
+                    </span>
+                  </div>
                 </div>
                 <div style={{ height: '1px', background: '#B8860B', margin: '4px 8px' }} />
                 <p className="text-[10px] sm:text-xs font-black" style={{ color: '#5D3A1A' }}>
@@ -367,26 +429,40 @@ const CertificateScreen: React.FC<Props> = ({ onBack, playSound, onGoHome }) => 
               </div>
             </div>
 
-            {/* ─── رقم الشهادة والتاريخ ─── */}
+            {/* ═══ رقم الشهادة + QR + التواريخ ═══ */}
             <div
-              className="flex items-center justify-between flex-wrap gap-2 mt-3 px-2 py-2 rounded-lg"
+              className="flex items-center justify-between gap-2 mt-3 px-2 py-2 rounded-lg"
               style={{ background: 'rgba(184,134,11,0.08)', border: '1px solid rgba(184,134,11,0.3)' }}
             >
-              <div className="text-right">
+              <div className="text-right flex-1">
                 <p className="text-[8px] sm:text-[9px]" style={{ color: '#7B5D0A' }}>رقم الشهادة</p>
                 <p className="text-[9px] sm:text-[10px] font-bold" style={{ color: '#5D3A1A' }} dir="ltr">
                   {data.certificateNumber}
                 </p>
               </div>
-              <div className="text-center hidden sm:block">
+
+              <div className="flex flex-col items-center" style={{ flexShrink: 0 }}>
+                <div
+                  className="p-1 rounded"
+                  style={{ background: '#FDF8E7', border: '1px solid rgba(184,134,11,0.4)' }}
+                >
+                  <QRCodeSVG
+                    value={data.verificationUrl}
+                    size={44}
+                    bgColor="#FDF8E7"
+                    fgColor="#5D3A1A"
+                    level="M"
+                  />
+                </div>
+                <p className="text-[7px] mt-0.5" style={{ color: '#7B5D0A' }}>للتحقق</p>
+              </div>
+
+              <div className="text-left flex-1">
                 <p className="text-[8px] sm:text-[9px]" style={{ color: '#7B5D0A' }}>تاريخ الإصدار</p>
                 <p className="text-[9px] sm:text-[10px] font-bold" style={{ color: '#5D3A1A' }} dir="ltr">
                   {data.issueDate}
                 </p>
-              </div>
-              <div className="text-left">
-                <p className="text-[8px] sm:text-[9px]" style={{ color: '#7B5D0A' }}>بالهجري</p>
-                <p className="text-[9px] sm:text-[10px] font-bold" style={{ color: '#5D3A1A' }} dir="ltr">
+                <p className="text-[8px] sm:text-[9px] font-bold mt-0.5" style={{ color: '#7B5D0A' }} dir="ltr">
                   {data.issueDateHijri}
                 </p>
               </div>
@@ -422,7 +498,6 @@ const CertificateScreen: React.FC<Props> = ({ onBack, playSound, onGoHome }) => 
         </button>
       )}
 
-      {/* رسالة مساعدة */}
       <div className="max-w-4xl mx-auto mt-4 text-center text-xs text-white/40 print:hidden flex items-center justify-center gap-2">
         <Sparkles className="w-3 h-3" />
         <span>لطباعة الشهادة أو حفظها كـ PDF، اضغط زر "طباعة / PDF"</span>
