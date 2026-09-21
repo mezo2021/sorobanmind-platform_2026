@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { QUESTS } from '@/data';
 import type { Quest } from '@/types';
 
@@ -30,10 +30,6 @@ interface StoredStats {
   earnedBadges: string[];
 }
 
-/**
- * قراءة آمنة من localStorage مع دمج مع القيم الافتراضية
- * (تستخدم shallow merge)
- */
 function safeRead<T extends object>(key: string, fallback: T): T {
   try {
     const raw = localStorage.getItem(key);
@@ -48,9 +44,6 @@ function safeRead<T extends object>(key: string, fallback: T): T {
   }
 }
 
-/**
- * حساب تقدم مهمة معينة حسب نوعها
- */
 function calculateProgress(
   type: string,
   completed: number[],
@@ -77,122 +70,83 @@ function calculateProgress(
       return practiceStats.multiplicationProblems || 0;
     case 'division':
       return practiceStats.divisionProblems || 0;
+    case 'badges':
+      return stats.earnedBadges.length;
     default:
       return 0;
   }
+}
+
+/** ✅ دالة موحّدة لقراءة كل المهام وتحديثها */
+function computeQuests(): Quest[] {
+  const completed: number[] = (() => {
+    try {
+      const raw = localStorage.getItem(COMPLETED_STORAGE_KEY);
+      return raw ? JSON.parse(raw) : [];
+    } catch {
+      return [];
+    }
+  })();
+
+  const anzanStats = safeRead<AnzanStats>(ANZAN_STORAGE_KEY, {
+    highScore: 0,
+    totalRounds: 0,
+    totalCorrect: 0,
+  });
+
+  const practiceStats = safeRead<PracticeStats>(PRACTICE_STORAGE_KEY, {
+    totalProblems: 0,
+    correctAnswers: 0,
+    additionProblems: 0,
+    subtractionProblems: 0,
+    multiplicationProblems: 0,
+    divisionProblems: 0,
+  });
+
+  const stats = safeRead<StoredStats>(STATS_STORAGE_KEY, {
+    xp: 0,
+    streak: 0,
+    level: 1,
+    soundEnabled: true,
+    earnedBadges: [],
+  });
+
+  return QUESTS.map((quest) => ({
+    ...quest,
+    progress: calculateProgress(
+      quest.type,
+      completed,
+      anzanStats,
+      practiceStats,
+      stats
+    ),
+  }));
 }
 
 /**
  * Hook لجلب المهام (Quests) مع تقدمها المحسوب
  */
 export function useQuests() {
-  const [quests, setQuests] = useState<Quest[]>(() =>
-    QUESTS.map((q) => ({ ...q, progress: 0 }))
-  );
+  const [quests, setQuests] = useState<Quest[]>(() => computeQuests());
 
+  // ✅ تحديث المهام عند تغيير localStorage (داخل نفس الصفحة)
   useEffect(() => {
-    // قراءة الدروس المكتملة
-    const completed: number[] = (() => {
-      try {
-        const raw = localStorage.getItem(COMPLETED_STORAGE_KEY);
-        return raw ? JSON.parse(raw) : [];
-      } catch {
-        return [];
-      }
-    })();
+    // Polling خفيف كل 2 ثواني (بديل للـ storage event)
+    const interval = setInterval(() => {
+      setQuests(computeQuests());
+    }, 2000);
 
-    // قراءة إحصائيات الأنزان
-    const anzanStats = safeRead<AnzanStats>(ANZAN_STORAGE_KEY, {
-      highScore: 0,
-      totalRounds: 0,
-      totalCorrect: 0,
-    });
-
-    // قراءة إحصائيات التدريب
-    const practiceStats = safeRead<PracticeStats>(PRACTICE_STORAGE_KEY, {
-      totalProblems: 0,
-      correctAnswers: 0,
-      additionProblems: 0,
-      subtractionProblems: 0,
-      multiplicationProblems: 0,
-      divisionProblems: 0,
-    });
-
-    // قراءة الإحصائيات العامة
-    const stats = safeRead<StoredStats>(STATS_STORAGE_KEY, {
-      xp: 0,
-      streak: 0,
-      level: 1,
-      soundEnabled: true,
-      earnedBadges: [],
-    });
-
-    // تحديث المهام
-    const updatedQuests = QUESTS.map((quest) => ({
-      ...quest,
-      progress: calculateProgress(
-        quest.type,
-        completed,
-        anzanStats,
-        practiceStats,
-        stats
-      ),
-    }));
-
-    setQuests(updatedQuests);
-  }, []);
-
-  // ✅ إضافة: إعادة قراءة المهام عند تغيير التخزين (لمزامنة أكثر دقة)
-  useEffect(() => {
+    // ✅ أيضاً استمع لتغيّر localStorage من نوافذ أخرى
     const handleStorage = () => {
-      const completed: number[] = (() => {
-        try {
-          const raw = localStorage.getItem(COMPLETED_STORAGE_KEY);
-          return raw ? JSON.parse(raw) : [];
-        } catch {
-          return [];
-        }
-      })();
-
-      const anzanStats = safeRead<AnzanStats>(ANZAN_STORAGE_KEY, {
-        highScore: 0,
-        totalRounds: 0,
-        totalCorrect: 0,
-      });
-
-      const practiceStats = safeRead<PracticeStats>(PRACTICE_STORAGE_KEY, {
-        totalProblems: 0,
-        correctAnswers: 0,
-        additionProblems: 0,
-        subtractionProblems: 0,
-        multiplicationProblems: 0,
-        divisionProblems: 0,
-      });
-
-      const stats = safeRead<StoredStats>(STATS_STORAGE_KEY, {
-        xp: 0,
-        streak: 0,
-        level: 1,
-        soundEnabled: true,
-        earnedBadges: [],
-      });
-
-      const updatedQuests = QUESTS.map((quest) => ({
-        ...quest,
-        progress: calculateProgress(
-          quest.type,
-          completed,
-          anzanStats,
-          practiceStats,
-          stats
-        ),
-      }));
-
-      setQuests(updatedQuests);
+      setQuests(computeQuests());
     };
 
     window.addEventListener('storage', handleStorage);
-    return () => window.removeEventListener('storage', handleStorage);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('storage', handleStorage);
+    };
   }, []);
 
   return quests;
