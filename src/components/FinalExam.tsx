@@ -145,6 +145,36 @@ export function FinalExam({ onBack, onComplete, playSound, onGoToLearn }: FinalE
     setCompletedCount(getCompletedCount());
   }, []);
 
+// ✅ استعادة حالة الامتحان عند الإقلاع
+useEffect(() => {
+  const saved = loadExamState();
+  if (saved && saved.state === 'running') {
+    setTab(saved.tab);
+    setQuestions(saved.questions);
+    setCurrentIndex(saved.currentIndex);
+    setAnswers(saved.answers);
+    setAttempts(saved.attempts);
+    setState(saved.state);
+  }
+}, []);
+
+// ✅ حفظ الحالة تلقائياً عند كل تغيير
+useEffect(() => {
+  if (state === 'running' && questions.length > 0) {
+    saveExamState({
+      tab,
+      state,
+      questions,
+      currentIndex,
+      answers,
+      attempts,
+      timestamp: Date.now(),
+    });
+  }
+  if (state === 'finished' || state === 'intro') {
+    clearExamState();
+  }
+}, [state, tab, questions, currentIndex, answers, attempts]);
   const currentQuestion = questions[currentIndex];
   const correctCount = answers.filter((a) => a.correct).length;
   const currentScore = correctCount * POINTS_PER_QUESTION;
