@@ -4,14 +4,14 @@ import {
   ArrowRight, TrendingUp, Target, Clock, Award,
   Brain, Calendar, Zap, CheckCircle2, BarChart3,
   Star, Eye, Crown, Diamond, Trophy, Lock as LockBadge,
-  Swords, ShieldCheck, Circle, Lock,
+  Swords, ShieldCheck, Circle, Lock, Volume2,
   type LucideIcon,
 } from 'lucide-react';
 import { LEVELS, BADGES } from '@/data';
 import type { LevelNode } from '@/types';
 import { useQuests } from '@/hooks/useQuests';
 import { loadAnzanBadges, type AnzanBadges } from '@/examBank2';
-import { isBadgeEarned } from '@/utils/badgeChecker';
+import { loadAudioAnzanBadges, type AudioAnzanBadges } from '@/utils/audioAnzanBadges';
 import { calculateSkills } from '@/utils/skillsChecker';
 
 function toArabicNumber(value: number | string): string {
@@ -118,6 +118,7 @@ export function GuardianDashboard({
   const [earnedBadges, setEarnedBadges] = useState<string[]>([]);
   const [anzanStats, setAnzanStats] = useState<AnzanStats>({ highScore: 0, totalRounds: 0, totalCorrect: 0 });
   const [anzanBadges, setAnzanBadges] = useState<AnzanBadges>({});
+  const [audioAnzanBadges, setAudioAnzanBadges] = useState<AudioAnzanBadges>({});
   const [practiceStats, setPracticeStats] = useState<PracticeStats>({
     totalProblems: 0, correctAnswers: 0, additionProblems: 0, subtractionProblems: 0,
   });
@@ -149,6 +150,7 @@ export function GuardianDashboard({
     } catch { /* ignore */ }
 
     setAnzanBadges(loadAnzanBadges());
+    setAudioAnzanBadges(loadAudioAnzanBadges());
 
     try {
       const saved = localStorage.getItem(PRACTICE_KEY);
@@ -169,7 +171,6 @@ export function GuardianDashboard({
       }
     } catch { /* ignore */ }
 
-    // ✅ حساب المهارات
     setSkills(calculateSkills());
   }, []);
 
@@ -208,6 +209,13 @@ export function GuardianDashboard({
     { id: 'master_mixed', label: 'خبير مختلط', icon: '🔀', color: 'from-pink-500 to-rose-700', earned: !!anzanBadges.master_mixed },
   ];
   const earnedAnzanCount = anzanBadgeList.filter(b => b.earned).length;
+
+  const audioAnzanBadgeList = [
+    { id: 'master_addition_audio', label: 'خبير جمع وطرح سماعي', icon: '🎤', color: 'from-cyan-500 to-blue-700', earned: !!audioAnzanBadges.master_addition_audio },
+    { id: 'master_multiplication_audio', label: 'خبير ضرب سماعي', icon: '🎤', color: 'from-indigo-500 to-purple-700', earned: !!audioAnzanBadges.master_multiplication_audio },
+    { id: 'master_division_audio', label: 'خبير قسمة سماعية', icon: '🎤', color: 'from-blue-500 to-cyan-700', earned: !!audioAnzanBadges.master_division_audio },
+  ];
+  const earnedAudioCount = audioAnzanBadgeList.filter(b => b.earned).length;
 
   return (
     <div className="px-3 sm:px-6 py-6 max-w-5xl mx-auto" dir="rtl">
@@ -271,9 +279,7 @@ export function GuardianDashboard({
         })}
       </div>
 
-      {/* ═══════════════════════════════════════════════════════
-          المهارات الأربع
-      ═══════════════════════════════════════════════════════ */}
+      {/* المهارات الأربع */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -306,7 +312,6 @@ export function GuardianDashboard({
                   {skill.available ? `${toArabicNumber(skill.percentage)}٪` : 'قريباً'}
                 </span>
               </div>
-
               <div className="h-2.5 rounded-full bg-white/10 overflow-hidden">
                 <motion.div
                   className={`h-full rounded-full ${
@@ -320,26 +325,18 @@ export function GuardianDashboard({
                   transition={{ delay: 0.35 + i * 0.08, duration: 0.8 }}
                 />
               </div>
-
               {skill.note && (
-                <p className="text-[10px] text-amber-300/80 font-body mt-1.5">
-                  {skill.note}
-                </p>
+                <p className="text-[10px] text-amber-300/80 font-body mt-1.5">{skill.note}</p>
               )}
-
               {!skill.note && (
-                <p className="text-[10px] text-white/40 font-body mt-1.5">
-                  {skill.descriptionAr}
-                </p>
+                <p className="text-[10px] text-white/40 font-body mt-1.5">{skill.descriptionAr}</p>
               )}
             </motion.div>
           ))}
         </div>
       </motion.div>
 
-      {/* ═══════════════════════════════════════════════════════
-          شارات الأنزان
-      ═══════════════════════════════════════════════════════ */}
+      {/* شارات الأنزان البصري */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -349,7 +346,7 @@ export function GuardianDashboard({
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <Brain className="w-5 h-5 text-purple-300" />
-            <h3 className="text-xl font-extrabold font-display text-white">شارات الأنزان</h3>
+            <h3 className="text-xl font-extrabold font-display text-white">شارات الأنزان البصري</h3>
           </div>
           <span className="badge bg-purple-500/15 border-purple-400/20 text-purple-200 text-xs">
             {toArabicNumber(earnedAnzanCount)}/{toArabicNumber(anzanBadgeList.length)}
@@ -386,7 +383,54 @@ export function GuardianDashboard({
         </div>
       </motion.div>
 
-      {/* 🏆 BADGES */}
+      {/* ✅ شارات الأنزان السماعي */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.24 }}
+        className="glass-card p-5 sm:p-6 mb-6"
+      >
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <Volume2 className="w-5 h-5 text-purple-300" />
+            <h3 className="text-xl font-extrabold font-display text-white">شارات الأنزان السماعي</h3>
+          </div>
+          <span className="badge bg-purple-500/15 border-purple-400/20 text-purple-200 text-xs">
+            {toArabicNumber(earnedAudioCount)}/{toArabicNumber(audioAnzanBadgeList.length)}
+          </span>
+        </div>
+
+        <div className="grid grid-cols-3 gap-3">
+          {audioAnzanBadgeList.map((badge, i) => (
+            <motion.div
+              key={badge.id}
+              initial={{ opacity: 0, scale: 0.7 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: i * 0.08 }}
+              className={`flex flex-col items-center gap-2 p-3 rounded-2xl border ${
+                badge.earned ? 'bg-white/5 border-white/10' : 'bg-white/[0.02] border-white/5'
+              }`}
+            >
+              <div className={`relative w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg ${
+                badge.earned ? `bg-gradient-to-br ${badge.color}` : 'bg-white/5'
+              }`}>
+                {badge.earned ? (
+                  <span className="text-2xl">{badge.icon}</span>
+                ) : (
+                  <LockBadge className="w-6 h-6 text-white/25" />
+                )}
+              </div>
+              <p className={`text-[10px] font-bold font-body text-center leading-tight ${
+                badge.earned ? 'text-white/80' : 'text-white/30'
+              }`}>
+                {badge.label}
+              </p>
+            </motion.div>
+          ))}
+        </div>
+      </motion.div>
+
+      {/* الشارات العامة */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -456,7 +500,7 @@ export function GuardianDashboard({
         )}
       </motion.div>
 
-      {/* ⚔️ ACTIVE QUESTS */}
+      {/* المغامرات النشطة */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -512,7 +556,7 @@ export function GuardianDashboard({
         </div>
       </motion.div>
 
-      {/* 🗺️ LEVEL MAP */}
+      {/* خارطة المستويات */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -539,7 +583,7 @@ export function GuardianDashboard({
         </div>
       </motion.div>
 
-      {/* Weekly XP chart */}
+      {/* نشاط الأسبوع */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -572,7 +616,7 @@ export function GuardianDashboard({
         </div>
       </motion.div>
 
-      {/* Detailed stats */}
+      {/* إحصائيات مفصلة */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-6">
         <motion.div
           initial={{ opacity: 0, x: 20 }}
@@ -621,7 +665,7 @@ export function GuardianDashboard({
         </motion.div>
       </div>
 
-      {/* Level progress detail */}
+      {/* تقدم المستويات */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
