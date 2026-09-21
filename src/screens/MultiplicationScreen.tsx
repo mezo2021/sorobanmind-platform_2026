@@ -1,8 +1,12 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowRight, Grid3X3, Eye, Play, Check, X, Lightbulb, RotateCcw } from 'lucide-react';
+import { ArrowRight, Grid3X3, Eye, Play, Check, X, Lightbulb, RotateCcw, Volume2, Square } from 'lucide-react';
 import { InteractiveSoroban } from '@/components/InteractiveSoroban';
+import { useSpeech } from '@/hooks/useSpeech';
 
+// =====================================================================
+// النوع والثوابت
+// =====================================================================
 type Stage = 1 | 2 | 3;
 
 interface Problem { a: number; b: number; }
@@ -11,13 +15,22 @@ function getColumnsForValue(value: number): number {
   if (value < 10) return 1;
   if (value < 100) return 2;
   if (value < 1000) return 3;
-  return 4;
+  if (value < 10000) return 4;
+  return 5;
 }
 
-// ========== حساب خطوات الضرب الجزئي ==========
+// =====================================================================
+// النص الصوتي (قصة الدرس)
+// =====================================================================
+const LESSON_STORY =
+  'في مملكة الأعداد، كان الأبطال الصغار يتعلمون سراً عجيباً: كيف يحوّلون الضرب الكبير إلى خطوات صغيرة سهلة. سأل المعلم: كم يساوي ٦٢ في ٨؟ فابتسم الحكيم معداد وقال: سنُقسم الرقم إلى عشرات وآحاد، ونضرب كل جزء على حدة. ثم نجمع النتائج على المعداد. هيا نكتشف السر معاً!';
+
+// =====================================================================
+// حساب خطوات الضرب الجزئي
+// =====================================================================
 function computePartialProducts(a: number, b: number) {
   const digits = String(a).split('').reverse().map(Number);
-  const steps: Array<{ digitValue: number; value: number; label: string; placeName: string }> = [];
+  const steps: Array<{ digitValue: number; value: number; label: string }> = [];
   const zerosLabels = ['', 'صفر', 'صفرين', 'ثلاثة أصفار'];
   const placeNames = ['آحاد', 'عشرات', 'مئات', 'آلاف'];
   for (let i = 0; i < digits.length; i++) {
@@ -29,7 +42,6 @@ function computePartialProducts(a: number, b: number) {
     steps.push({
       digitValue,
       value: digitValue * b,
-      placeName,
       label: zerosText
         ? `${placeName}: ${digits[i]} × ${b} + ${zerosText}`
         : `${placeName}: ${digits[i]} × ${b}`,
@@ -38,7 +50,9 @@ function computePartialProducts(a: number, b: number) {
   return steps;
 }
 
-// ========== نص القاعدة حسب عدد منازل الرقم ==========
+// =====================================================================
+// نص القاعدة حسب عدد منازل الرقم
+// =====================================================================
 function getRuleText(a: number): string {
   const digits = String(a).length;
   if (digits === 2) {
@@ -50,7 +64,9 @@ function getRuleText(a: number): string {
   return 'اضرب كل منزلة × الرقم الثاني مع إضافة الأصفار المناسبة، ثم اجمع النواتج على المعداد.';
 }
 
-// ========== بيانات المراحل ==========
+// =====================================================================
+// بيانات المراحل
+// =====================================================================
 const STAGE_DATA: Record<Stage, {
   label: string;
   watchProblem: Problem;
@@ -106,6 +122,9 @@ const MultiplicationScreen: React.FC<Props> = ({ onBack, onComplete }) => {
   const [score, setScore] = useState(0);
   const [attempts, setAttempts] = useState(0);
 
+  // ✅ الصوت
+  const { speak, stop, isSpeaking, isSupported } = useSpeech();
+
   const stageData = STAGE_DATA[stage];
   const watchProblem = stageData.watchProblem;
   const currentProblem = stageData.tryProblems[tryIdx];
@@ -131,7 +150,13 @@ const MultiplicationScreen: React.FC<Props> = ({ onBack, onComplete }) => {
     return () => clearInterval(timer);
   }, [stage, mode, watchTotalSteps]);
 
+  // ✅ إيقاف الصوت عند تغيير الوضع أو المرحلة أو الخروج
+  useEffect(() => {
+    return () => { stop(); };
+  }, [stage, mode, stop]);
+
   const changeStage = (s: Stage) => {
+    stop();
     setStage(s);
     setTryIdx(0);
     setAbacusValue(0);
@@ -142,6 +167,7 @@ const MultiplicationScreen: React.FC<Props> = ({ onBack, onComplete }) => {
   };
 
   const changeMode = (m: 'watch' | 'try') => {
+    stop();
     setMode(m);
     setTryIdx(0);
     setAbacusValue(0);
@@ -183,15 +209,53 @@ const MultiplicationScreen: React.FC<Props> = ({ onBack, onComplete }) => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-900 via-indigo-950 to-slate-900 text-white p-4 pb-24" dir="rtl">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <button onClick={onBack} className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition">
+      <div className="flex items-center justify-between mb-4 gap-2">
+        <button onClick={onBack} className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition shrink-0">
           <ArrowRight className="w-6 h-6" />
         </button>
-        <h1 className="text-base sm:text-xl font-bold bg-gradient-to-r from-amber-300 to-purple-400 bg-clip-text text-transparent">
+        <h1 className="flex-1 text-center text-sm sm:text-lg font-bold bg-gradient-to-r from-amber-300 to-purple-400 bg-clip-text text-transparent">
           درس الضرب — قواعد السوروبان
         </h1>
-        <Grid3X3 className="w-6 h-6 text-amber-300" />
+        <Grid3X3 className="w-5 h-5 text-amber-300 shrink-0" />
       </div>
+
+      {/* Story Card + Listen Button */}
+      {mode === 'watch' && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-gradient-to-l from-pink-500/15 to-purple-500/15 border border-pink-400/30 rounded-2xl p-4 mb-4"
+        >
+          <div className="flex items-center justify-between gap-2 mb-2">
+            <div className="flex items-center gap-2">
+              <span className="text-lg">📖</span>
+              <span className="text-xs font-bold text-pink-300">القصة:</span>
+            </div>
+            {isSupported && (
+              <button
+                onClick={() => {
+                  if (isSpeaking) { stop(); }
+                  else { speak(LESSON_STORY); }
+                }}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 ${
+                  isSpeaking
+                    ? 'bg-red-500/30 border border-red-400/50 text-red-200'
+                    : 'bg-rose-500/20 border border-rose-400/40 text-rose-200 hover:bg-rose-500/30'
+                }`}
+              >
+                {isSpeaking ? (
+                  <><Square className="w-3.5 h-3.5" /> إيقاف</>
+                ) : (
+                  <><Volume2 className="w-3.5 h-3.5" /> اسمع قصتي</>
+                )}
+              </button>
+            )}
+          </div>
+          <p className="text-sm text-pink-100 font-body leading-relaxed">
+            {LESSON_STORY}
+          </p>
+        </motion.div>
+      )}
 
       {/* Stage Selector */}
       <div className="flex gap-2 mb-4 overflow-x-auto pb-1">
