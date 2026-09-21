@@ -1,339 +1,568 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  ArrowRight, Eye, Play, Zap, Trophy, RotateCcw,
-  Settings2, Sparkles, Brain, Heart, CheckCircle2, XCircle,
+  ArrowRight, Eye, Play, Zap, Trophy, RotateCcw, Settings2,
+  Brain, Grid3X3, Wand2, Divide, Lock, CheckCircle2, Award,
+  X, Volume2, Square,
 } from 'lucide-react';
+import { InteractiveSoroban } from './InteractiveSoroban';
+import { useSpeech } from '@/hooks/useSpeech';
+import { LEARN_MODULES } from '@/data';
+import {
+  loadAnzanBadges, saveAnzanBadges, type AnzanBadges,
+} from '@/examBank2';
+
+// ═══════════════════════════════════════════════════════════════
+// الأنواع والثوابت
+// ═══════════════════════════════════════════════════════════════
+type Phase = 'intro' | 'flashing' | 'answer' | 'result';
+type SectionType = 'addition' | 'multiplication' | 'division' | 'mixed';
+type AnzanLevel = 1 | 2 | 3 | 4 | 5;
+
+const ANZAN_STORAGE_KEY = 'soroban_anzan_stats';
+const ANZAN_PROGRESS_KEY = 'soroban_anzan_progress';
+const ANZAN_ROUNDS_KEY = 'soroban_anzan_rounds';
+const QUESTIONS_PER_ROUND = 5;
+const CORRECT_TO_MASTER = 10;
+const MAX_ROUNDS_PER_DAY = 3;
+
+const SECTION_LABELS: Record<SectionType, string> = {
+  addition: '🧠 جمع وطرح',
+  multiplication: '✖️ ضرب',
+  division: '➗ قسمة',
+  mixed: '🔀 مختلط',
+};
+
+const SECTION_STORIES: Record<SectionType, string> = {
+  addition: 'تخيل الخرزات في عقلك، واجمع واطرح الأرقام بسرعة!',
+  multiplication: 'تخيل المعداد، واضرب الأرقام بسرعة!',
+  division: 'تخيل المعداد، واقسم الأرقام بسرعة!',
+  mixed: 'تخيل المعداد، واضرب واقسم بسرعة!',
+};
+
+// ═══════════════════════════════════════════════════════════════
+// حالة تقدم كل مستوى (localStorage)
+// ═══════════════════════════════════════════════════════════════
+interface AnzanProgress {
+  addition: number[];
+  multiplication: number[];
+  division: number[];
+  mixed: number[];
+}
+
+function loadProgress(): AnzanProgress {
+  try {
+    const raw = localStorage.getItem(ANZAN_PROGRESS_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      return {
+        addition: parsed.addition || [],
+        multiplication: parsed.multiplication || [],
+        division: parsed.division || [],
+        mixed: parsed.mixed || [],
+      };
+    }
+  } catch { /* ignore */ }
+  return { addition: [], multiplication: [], division: [], mixed: [] };
+}
+
+function saveProgress(progress: AnzanProgress) {
+  try {
+    localStorage.setItem(ANZAN_PROGRESS_KEY, JSON.stringify(progress));
+  } catch { /* ignore */ }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// حالة الجولات اليومية
+// ═══════════════════════════════════════════════════════════════
+interface RoundsData {
+  date: string;
+  count: number;
+}
+
+function loadRounds(): RoundsData {
+  try {
+    const raw = localStorage.getItem(ANZAN_ROUNDS_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      const today = new Date().toDateString();
+      if (parsed.date === today) return parsed;
+    }
+  } catch { /* ignore */ }
+  return { date: new Date().toDateString(), count: 0 };
+}
+
+function saveRounds(data: RoundsData) {
+  try {
+    localStorage.setItem(ANZAN_ROUNDS_KEY, JSON.stringify(data));
+  } catch { /* ignore */ }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// فحص الدروس المفتوحة
+// ═══════════════════════════════════════════════════════════════
+function isLessonCompleted(id: number): boolean {
+  try {
+    const raw = localStorage.getItem('soroban-completed-lessons');
+    if (!raw) return false;
+    const completed: number[] = JSON.parse(raw);
+    return completed.includes(id);
+  } catch {
+    return false;
+  }
+}
+
+function isExamPassed(): boolean {
+  try {
+    const raw = localStorage.getItem('soroban_exam_result');
+    if (!raw) return false;
+    return JSON.parse(raw).passed === true;
+  } catch {
+    return false;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// بيانات الأقسام والمستويات
+// ═══════════════════════════════════════════════════════════════
+interface LevelInfo {
+  level: AnzanLevel;
+  label: string;
+  time: number;
+  unlocked: boolean;
+}
+
+function getAdditionLevels(): LevelInfo[] {
+  const progress = loadProgress();
+  const unlocked = [true, progress.addition.includes(1), progress.addition.includes(2), progress.addition.includes(3), progress.addition.includes(4)];
+  return [
+    { level: 1, label: '3 أرقام', time: 15, unlocked: true },
+    { level: 2, label: '4 أرقام', time: 20, unlocked: unlocked[1] },
+    { level: 3, label: '5 أرقام', time: 25, unlocked: unlocked[2] },
+    { level: 4, label: '6 أرقام', time: 30, unlocked: unlocked[3] },
+    { level: 5, label: '7 أرقام', time: 35, unlocked: unlocked[4] },
+  ];
+}
+
+function getMultiplicationLevels(): LevelInfo[] {
+  const progress = loadProgress();
+  const lesson1 = isLessonCompleted(1);
+  const lesson2 = isLessonCompleted(2);
+  const lesson3 = isLessonCompleted(3);
+  const lesson4 = isLessonCompleted(4);
+  const lesson5 = isLessonCompleted(5);
+
+  const unlocked = [
+    lesson1 && true,
+    lesson1 && progress.multiplication.includes(1),
+    lesson2 && progress.multiplication.includes(2),
+    lesson3 && progress.multiplication.includes(3),
+    lesson4 && progress.multiplication.includes(4),
+  ];
+
+  return [
+    { level: 1, label: 'ضرب بسيط', time: 10, unlocked: unlocked[0] },
+    { level: 2, label: 'منزلتين × منزلة', time: 20, unlocked: unlocked[1] },
+    { level: 3, label: '٣ × منزلة', time: 20, unlocked: unlocked[2] },
+    { level: 4, label: 'منزلتين × منزلتين', time: 30, unlocked: unlocked[3] },
+    { level: 5, label: 'الضرب التقاطعي', time: 30, unlocked: unlocked[4] },
+  ];
+}
+
+function getDivisionLevels(): LevelInfo[] {
+  const progress = loadProgress();
+  const lesson6 = isLessonCompleted(6);
+  const lesson7 = isLessonCompleted(7);
+  const lesson8 = isLessonCompleted(8);
+
+  const unlocked = [
+    lesson6 && true,
+    lesson6 && progress.division.includes(1),
+    lesson7 && progress.division.includes(2),
+    lesson7 && progress.division.includes(3),
+    lesson8 && progress.division.includes(4),
+  ];
+
+  return [
+    { level: 1, label: 'قسمة بسيطة', time: 10, unlocked: unlocked[0] },
+    { level: 2, label: 'مرتبتين ÷ مرتبتين', time: 20, unlocked: unlocked[1] },
+    { level: 3, label: '٣ مراتب ÷ مرتبتين', time: 20, unlocked: unlocked[2] },
+    { level: 4, label: 'سلسلة قسمة', time: 30, unlocked: unlocked[3] },
+    { level: 5, label: 'قسمة ذهنية', time: 30, unlocked: unlocked[4] },
+  ];
+}
+
+function getMixedLevels(): LevelInfo[] {
+  const progress = loadProgress();
+  const multLessons = [1, 2, 3, 4, 5].every(id => isLessonCompleted(id));
+  const divLessons = [6, 7, 8].every(id => isLessonCompleted(id));
+  const allDone = multLessons && divLessons;
+
+  const unlocked = [
+    allDone && true,
+    allDone && progress.mixed.includes(1),
+    allDone && progress.mixed.includes(2),
+    allDone && progress.mixed.includes(3),
+    allDone && progress.mixed.includes(4),
+  ];
+
+  return [
+    { level: 1, label: 'سلسلة قصيرة', time: 20, unlocked: unlocked[0] },
+    { level: 2, label: 'سلسلة متوسطة', time: 25, unlocked: unlocked[1] },
+    { level: 3, label: 'سلسلة طويلة', time: 30, unlocked: unlocked[2] },
+    { level: 4, label: 'مركب سريع', time: 35, unlocked: unlocked[3] },
+    { level: 5, label: 'مركب متقدم', time: 40, unlocked: unlocked[4] },
+  ];
+}
+
+function getLevelsForSection(section: SectionType): LevelInfo[] {
+  switch (section) {
+    case 'addition': return getAdditionLevels();
+    case 'multiplication': return getMultiplicationLevels();
+    case 'division': return getDivisionLevels();
+    case 'mixed': return getMixedLevels();
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// توليد الأسئلة لكل مستوى
+// ═══════════════════════════════════════════════════════════════
+type Question = {
+  operations: Array<{ value: number; operator: '+' | '-' | '×' | '÷' }>;
+  answer: number;
+  level: AnzanLevel;
+};
+
+function generateQuestion(section: SectionType, level: AnzanLevel): Question {
+  // جمع وطرح
+  if (section === 'addition') {
+    const count = level + 2; // 3-7
+    const operations: Array<{ value: number; operator: '+' | '-'; }> = [];
+    let current = 0;
+    let twoDigitCount = level === 1 ? 0 : (level === 2 ? 1 : 2);
+    for (let i = 0; i < count; i++) {
+      const useTwoDigit = twoDigitCount > 0 && i > 0 && Math.random() < 0.4;
+      const canSubtract = current > 5 && Math.random() < 0.3;
+      if (canSubtract) {
+        const value = useTwoDigit ? Math.floor(Math.random() * 15) + 5 : Math.floor(Math.random() * 4) + 1;
+        const safe = Math.min(value, current - 1);
+        operations.push({ value: safe, operator: '-' });
+        current -= safe;
+      } else {
+        const value = useTwoDigit ? Math.floor(Math.random() * 15) + 5 : Math.floor(Math.random() * 5) + 1;
+        if (useTwoDigit) twoDigitCount--;
+        operations.push({ value, operator: '+' });
+        current += value;
+      }
+    }
+    return { operations, answer: current, level };
+  }
+
+  // ضرب
+  if (section === 'multiplication') {
+    let a: number, b: number;
+    switch (level) {
+      case 1: a = Math.floor(Math.random() * 8) + 2; b = Math.floor(Math.random() * 8) + 2; break;
+      case 2: a = Math.floor(Math.random() * 80) + 12; b = Math.floor(Math.random() * 7) + 2; break;
+      case 3: a = Math.floor(Math.random() * 800) + 120; b = Math.floor(Math.random() * 7) + 2; break;
+      case 4: a = Math.floor(Math.random() * 80) + 12; b = Math.floor(Math.random() * 20) + 12; break;
+      case 5: a = Math.floor(Math.random() * 300) + 120; b = Math.floor(Math.random() * 20) + 11; break;
+    }
+    return { operations: [{ value: a, operator: '×' }, { value: b, operator: '×' }], answer: a * b, level };
+  }
+
+  // قسمة
+  if (section === 'division') {
+    let dividend: number, divisor: number, quotient: number;
+    switch (level) {
+      case 1:
+        quotient = Math.floor(Math.random() * 30) + 2;
+        divisor = Math.floor(Math.random() * 8) + 2;
+        dividend = quotient * divisor;
+        break;
+      case 2:
+        quotient = Math.floor(Math.random() * 15) + 2;
+        divisor = Math.floor(Math.random() * 40) + 11;
+        dividend = quotient * divisor;
+        break;
+      case 3:
+        quotient = Math.floor(Math.random() * 30) + 10;
+        divisor = Math.floor(Math.random() * 40) + 11;
+        dividend = quotient * divisor;
+        break;
+      case 4:
+        quotient = Math.floor(Math.random() * 20) + 5;
+        divisor = Math.floor(Math.random() * 15) + 5;
+        dividend = quotient * divisor;
+        break;
+      case 5:
+        quotient = Math.floor(Math.random() * 40) + 5;
+        divisor = Math.floor(Math.random() * 30) + 5;
+        dividend = quotient * divisor;
+        break;
+    }
+    return { operations: [{ value: dividend, operator: '÷' }, { value: divisor, operator: '÷' }], answer: quotient, level };
+  }
+
+  // مختلط
+  const mLevel = level;
+  const result: Array<{ value: number; operator: '+' | '-' | '×' | '÷'; }> = [];
+  let value = Math.floor(Math.random() * 5) + 4; // 4-8
+  result.push({ value, operator: '×' });
+
+  for (let i = 0; i < mLevel; i++) {
+    if (i % 2 === 0) {
+      const div = Math.floor(Math.random() * 5) + 2;
+      value = div;
+      result.push({ value: div, operator: '÷' });
+    } else {
+      const mult = Math.floor(Math.random() * 5) + 2;
+      result.push({ value: mult, operator: '×' });
+    }
+  }
+
+  // حساب الإجابة يدوياً
+  let answer = result[0].value;
+  for (let i = 1; i < result.length; i++) {
+    const op = result[i - 1].operator;
+    if (op === '×') answer *= result[i].value;
+    else if (op === '÷') answer = Math.floor(answer / result[i].value);
+  }
+  // آخر عملية
+  const lastOp = result[result.length - 1].operator;
+  // تم بالفعل احتساب جميع العمليات في الحلقة، لكن بحاجة لمعالجة الترتيب بشكل صحيح
+  // نبسّط: نعيد الحساب من البداية
+  answer = result[0].value;
+  for (let i = 0; i < result.length - 1; i++) {
+    const op = result[i].operator;
+    if (op === '×') answer *= result[i + 1].value;
+    else if (op === '÷') answer = Math.floor(answer / result[i + 1].value);
+  }
+
+  return { operations: result, answer, level };
+}
+
+// ═══════════════════════════════════════════════════════════════
+// توليد أسئلة الجولة (سؤال من كل مستوى)
+// ═══════════════════════════════════════════════════════════════
+function generateRound(section: SectionType): Question[] {
+  const levels = getLevelsForSection(section);
+  const unlockedLevels = levels.filter(l => l.unlocked).map(l => l.level);
+  const questions: Question[] = [];
+  const answers = new Set<number>();
+
+  for (const level of unlockedLevels) {
+    let attempts = 0;
+    let q: Question;
+    do {
+      q = generateQuestion(section, level);
+      attempts++;
+    } while (answers.has(q.answer) && attempts < 20);
+    answers.add(q.answer);
+    questions.push(q);
+  }
+
+  return questions.slice(0, QUESTIONS_PER_ROUND);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// عرض العمليات
+// ═══════════════════════════════════════════════════════════════
+function questionToString(q: Question): string {
+  if (q.operations.length === 0) return '';
+  const parts: string[] = [String(q.operations[0].value)];
+  for (let i = 1; i < q.operations.length; i++) {
+    const prevOp = q.operations[i - 1];
+    parts.push(`${prevOp.operator} ${q.operations[i].value}`);
+  }
+  return parts.join(' ') + ' = ؟';
+}
 
 function toArabicNumber(value: number | string): string {
   return String(value).replace(/\d/g, (d) => '٠١٢٣٤٥٦٧٨٩'[Number(d)]);
 }
 
-interface AnzanScreenProps {
+function getColumnsForValue(value: number): number {
+  if (value < 10) return 1;
+  if (value < 100) return 2;
+  if (value < 1000) return 3;
+  if (value < 10000) return 4;
+  return 5;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// الشاشة الرئيسية
+// ═══════════════════════════════════════════════════════════════
+interface Props {
   onBack: () => void;
   playSound: (type: 'click' | 'success' | 'error' | 'bead' | 'whoosh' | 'levelup') => void;
   onXP: (amount: number) => void;
   burst: (x?: number, y?: number) => void;
 }
 
-type Phase = 'idle' | 'flashing' | 'answer' | 'result' | 'retry';
-type Speed = 'slow' | 'medium' | 'fast';
-type Level = 'beginner' | 'intermediate' | 'advanced' | 'expert' | 'master';
+export function AnzanScreen({ onBack, playSound, onXP, burst }: Props) {
+  const [section, setSection] = useState<SectionType>('addition');
+  const [phase, setPhase] = useState<Phase>('intro');
+  const [questions, setQuestions] = useState<Question[]>([]);
+  const [currentIdx, setCurrentIdx] = useState(0);
+  const [abacusValue, setAbacusValue] = useState(0);
+  const [feedback, setFeedback] = useState<'idle' | 'correct' | 'wrong'>('idle');
+  const [attempts, setAttempts] = useState(0);
+  const [timeLeft, setTimeLeft] = useState(15);
+  const [roundScore, setRoundScore] = useState(0);
+  const [roundCorrect, setRoundCorrect] = useState<number[]>([]);
+  const [progress, setProgress] = useState<AnzanProgress>(loadProgress());
+  const [badges, setBadges] = useState<AnzanBadges>(loadAnzanBadges());
+  const [rounds, setRounds] = useState<RoundsData>(loadRounds());
 
-const SPEED_MS: Record<Speed, number> = { slow: 1500, medium: 1000, fast: 700 };
-const SPEED_LABELS: Record<Speed, string> = { slow: 'بطيء', medium: 'متوسط', fast: 'سريع' };
+  const { speak, stop, isSpeaking } = useSpeech();
 
-const LEVEL_LABELS: Record<Level, string> = {
-  beginner: '🌱 مبتدئ — أرقام مباشرة',
-  intermediate: '⭐ متوسط — أصدقاء ٥',
-  advanced: '🔥 متقدم — أصدقاء ١٠',
-  expert: '💎 خبير — القواعد المركبة',
-  master: '👑 محترف — أعداد كبيرة',
-};
+  const currentQ = questions[currentIdx];
+  const levels = getLevelsForSection(section);
+  const hasUnlockedLevels = levels.some(l => l.unlocked);
+  const canStartRound = rounds.count < MAX_ROUNDS_PER_DAY;
 
-const LEVEL_DESCRIPTIONS: Record<Level, string> = {
-  beginner: 'أرقام من ١ إلى ٤، مجموع لا يتجاوز ٩',
-  intermediate: 'أرقام تستخدم قاعدة صديق العدد ٥',
-  advanced: 'أرقام تتجاوز ٩ لاستخدام قاعدة صديق العدد ١٠',
-  expert: 'أرقام مركبة (٦-٩) تحتاج قواعد متعددة',
-  master: 'أعداد من منزلتين (١٠-٩٩) بأرقام كبيرة',
-};
-
-const LEVEL_ORDER: Level[] = ['beginner', 'intermediate', 'advanced', 'expert', 'master'];
-
-function getLevelIndex(level: Level): number {
-  return LEVEL_ORDER.indexOf(level);
-}
-
-function getEasierLevel(level: Level): Level {
-  const idx = getLevelIndex(level);
-  if (idx <= 0) return 'beginner';
-  return LEVEL_ORDER[idx - 1];
-}
-
-const ANZAN_STORAGE_KEY = 'soroban_anzan_stats';
-
-interface AnzanStats {
-  highScore: number;
-  totalRounds: number;
-  totalCorrect: number;
-}
-
-function loadAnzanStats(): AnzanStats {
-  try {
-    const saved = localStorage.getItem(ANZAN_STORAGE_KEY);
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      return {
-        highScore: typeof parsed.highScore === 'number' ? parsed.highScore : 0,
-        totalRounds: typeof parsed.totalRounds === 'number' ? parsed.totalRounds : 0,
-        totalCorrect: typeof parsed.totalCorrect === 'number' ? parsed.totalCorrect : 0,
-      };
-    }
-  } catch { /* ignore */ }
-  return { highScore: 0, totalRounds: 0, totalCorrect: 0 };
-}
-
-function saveAnzanStats(stats: AnzanStats) {
-  try {
-    localStorage.setItem(ANZAN_STORAGE_KEY, JSON.stringify(stats));
-  } catch { /* ignore */ }
-}
-
-interface Operation {
-  value: number;
-  operator: '+' | '-';
-}
-
-interface SequenceData {
-  operations: Operation[];
-  expectedResult: number;
-}
-
-function randomInt(min: number, max: number): number {
-  return Math.floor(Math.random() * (max - min + 1)) + min;
-}
-
-// ═══════════════════════════════════════════════════════════════
-// توليد التسلسل — مرتبط بمستويات الدروس
-// ═══════════════════════════════════════════════════════════════
-function generateSequence(level: Level): SequenceData {
-  const operations: Operation[] = [];
-
-  // 🌱 مبتدئ — المباشر: عمليات آحاد بمجموع ≤ 9
-  if (level === 'beginner') {
-    let current = 0;
-    for (let i = 0; i < 3; i++) {
-      const remaining = 9 - current;
-      if (remaining < 1) break;
-      const value = randomInt(1, Math.min(4, remaining));
-      operations.push({ value, operator: '+' });
-      current += value;
-    }
-    return { operations, expectedResult: current };
-  }
-
-  // ⭐ متوسط — الجدة 5: عمليات تجبر استخدام أصدقاء 5
-  if (level === 'intermediate') {
-    let current = 0;
-    // نبدأ بـ 4
-    operations.push({ value: 4, operator: '+' });
-    current = 4;
-    // نضيف/نطرح لإجبار الجدة 5
-    for (let i = 0; i < 2; i++) {
-      const canSub = current >= 1;
-      const useSub = canSub && Math.random() < 0.5;
-      if (useSub) {
-        const maxSub = Math.min(4, current);
-        const value = randomInt(1, maxSub);
-        operations.push({ value, operator: '-' });
-        current -= value;
-      } else {
-        const room = 9 - current;
-        if (room >= 1) {
-          const value = randomInt(1, Math.min(4, room));
-          operations.push({ value, operator: '+' });
-          current += value;
-        } else {
-          const v = randomInt(1, Math.min(3, current));
-          operations.push({ value: v, operator: '-' });
-          current -= v;
-        }
-      }
-    }
-    return { operations, expectedResult: current };
-  }
-
-  // 🔥 متقدم — العملاق 10: تجاوز 9
-  if (level === 'advanced') {
-    let current = 0;
-    operations.push({ value: randomInt(6, 9), operator: '+' });
-    current = operations[0].value;
-    for (let i = 0; i < 2; i++) {
-      const canSub = current >= 1;
-      const useSub = canSub && Math.random() < 0.5;
-      if (useSub) {
-        const value = randomInt(1, Math.min(5, current));
-        operations.push({ value, operator: '-' });
-        current -= value;
-      } else {
-        const value = randomInt(3, 9);
-        operations.push({ value, operator: '+' });
-        current += value;
-      }
-    }
-    return { operations, expectedResult: current };
-  }
-
-  // 💎 خبير — المركب: 4 عمليات بأرقام كبيرة
-  if (level === 'expert') {
-    let current = 0;
-    operations.push({ value: randomInt(4, 8), operator: '+' });
-    current = operations[0].value;
-    for (let i = 0; i < 3; i++) {
-      const canSub = current >= 1;
-      const useSub = canSub && Math.random() < 0.45;
-      if (useSub) {
-        const value = randomInt(1, Math.min(6, current));
-        operations.push({ value, operator: '-' });
-        current -= value;
-      } else {
-        const value = randomInt(6, 9);
-        operations.push({ value, operator: '+' });
-        current += value;
-      }
-    }
-    return { operations, expectedResult: current };
-  }
-
-  // 👑 محترف — سلاسل بمنزلتين
-  let current = 0;
-  operations.push({ value: randomInt(10, 40), operator: '+' });
-  current = operations[0].value;
-  for (let i = 0; i < 4; i++) {
-    const canSub = current >= 10;
-    const canAdd = current <= 89;
-    const useSub = canSub && (Math.random() < 0.5 || !canAdd);
-    if (useSub) {
-      const value = randomInt(5, Math.min(20, current));
-      operations.push({ value, operator: '-' });
-      current -= value;
-    } else if (canAdd) {
-      const value = randomInt(5, Math.min(20, 99 - current));
-      operations.push({ value, operator: '+' });
-      current += value;
-    } else {
-      const v = randomInt(5, Math.min(15, current));
-      operations.push({ value: v, operator: '-' });
-      current -= v;
-    }
-  }
-  return { operations, expectedResult: current };
-}
-
-export function AnzanScreen({ onBack, playSound, onXP, burst }: AnzanScreenProps) {
-  const [phase, setPhase] = useState<Phase>('idle');
-  const [flashIndex, setFlashIndex] = useState(-1);
-  const [userAnswer, setUserAnswer] = useState('');
-  const [lastAttemptCorrect, setLastAttemptCorrect] = useState(false);
-  const [score, setScore] = useState(0);
-  const [round, setRound] = useState(0);
-  const [level, setLevel] = useState<Level>('beginner');
-  const [speed, setSpeed] = useState<Speed>('slow');
-  const [showSettings, setShowSettings] = useState(false);
-  const [attempt, setAttempt] = useState(1);
-  const [levelWasEased, setLevelWasEased] = useState(false);
-
-  const [sequence, setSequence] = useState<SequenceData>(() => generateSequence('beginner'));
-
-  const total = sequence.expectedResult;
-  const flashDuration = SPEED_MS[speed];
-
-  const runningTotal = useMemo(() => {
-    if (flashIndex < 0) return 0;
-    let acc = 0;
-    for (let i = 0; i <= flashIndex && i < sequence.operations.length; i++) {
-      const op = sequence.operations[i];
-      acc += op.operator === '+' ? op.value : -op.value;
-    }
-    return acc;
-  }, [sequence, flashIndex]);
-
-  const startGame = useCallback((resetAttempts: boolean = true) => {
-    const newSeq = generateSequence(level);
-    setSequence(newSeq);
-    setPhase('flashing');
-    setFlashIndex(-1);
-    setUserAnswer('');
-    if (resetAttempts) {
-      setAttempt(1);
-      setLevelWasEased(false);
-    }
-    playSound('click');
-  }, [playSound, level]);
-
-  const replaySequence = useCallback((slowerSpeed: boolean) => {
-    setPhase('flashing');
-    setFlashIndex(-1);
-    setUserAnswer('');
-    if (slowerSpeed) setSpeed('slow');
-    playSound('click');
-  }, [playSound]);
-
+  // إيقاف الصوت عند الخروج
   useEffect(() => {
-    if (phase !== 'flashing') return;
-    if (flashIndex >= sequence.operations.length) {
-      setPhase('answer');
+    return () => { stop(); };
+  }, [section, phase, stop]);
+
+  // مؤقت السؤال
+  useEffect(() => {
+    if (phase !== 'answer' || !currentQ) return;
+    if (timeLeft <= 0) {
+      // انتهى الوقت → خسر السؤال
+      setFeedback('wrong');
+      setTimeout(() => nextQuestion(false), 1200);
       return;
     }
-    const timer = setTimeout(() => {
-      if (flashIndex >= 0) playSound('bead');
-      setFlashIndex((prev) => prev + 1);
-    }, flashIndex === -1 ? 800 : flashDuration);
-    return () => clearTimeout(timer);
-  }, [phase, flashIndex, playSound, sequence, flashDuration]);
+    const t = setTimeout(() => setTimeLeft(x => x - 1), 1000);
+    return () => clearTimeout(t);
+  }, [phase, timeLeft, currentQ]);
 
-  const submitAnswer = () => {
-    const answer = parseInt(userAnswer, 10);
-    const isCorrect = answer === total;
-    setLastAttemptCorrect(isCorrect);
+  const startRound = () => {
+    if (!canStartRound) {
+      playSound('error');
+      return;
+    }
+    const qs = generateRound(section);
+    if (qs.length === 0) {
+      playSound('error');
+      return;
+    }
+    setQuestions(qs);
+    setCurrentIdx(0);
+    setAbacusValue(0);
+    setFeedback('idle');
+    setAttempts(0);
+    setRoundScore(0);
+    setRoundCorrect([]);
+    setTimeLeft(getLevelTime(section, qs[0].level));
+    setPhase('answer');
+    playSound('click');
+  };
 
-    if (isCorrect) {
+  const getLevelTime = (sec: SectionType, level: AnzanLevel): number => {
+    const lv = getLevelsForSection(sec).find(l => l.level === level);
+    return lv ? lv.time : 20;
+  };
+
+  const handleCheck = () => {
+    if (!currentQ || feedback !== 'idle') return;
+    const newAttempts = attempts + 1;
+    setAttempts(newAttempts);
+
+    if (abacusValue === currentQ.answer) {
       playSound('success');
-      setScore((s) => s + 1);
-      onXP(attempt === 1 ? 25 : 10);
-      burst(0.5, 0.4);
-      setPhase('result');
-
-      const stats = loadAnzanStats();
-      saveAnzanStats({
-        highScore: score + 1 > stats.highScore ? score + 1 : stats.highScore,
-        totalRounds: stats.totalRounds + 1,
-        totalCorrect: stats.totalCorrect + 1,
-      });
+      setFeedback('correct');
+      setTimeout(() => nextQuestion(true), 1100);
+    } else if (newAttempts >= 2) {
+      playSound('error');
+      setFeedback('wrong');
+      setTimeout(() => nextQuestion(false), 1200);
     } else {
       playSound('error');
-
-      if (attempt === 1) {
-        setAttempt(2);
-        setPhase('retry');
-      } else {
-        const easierLevel = getEasierLevel(level);
-        if (easierLevel !== level) {
-          setLevel(easierLevel);
-          setLevelWasEased(true);
-        }
-        setPhase('result');
-
-        const stats = loadAnzanStats();
-        saveAnzanStats({
-          highScore: stats.highScore,
-          totalRounds: stats.totalRounds + 1,
-          totalCorrect: stats.totalCorrect,
-        });
-      }
+      setFeedback('wrong');
+      setTimeout(() => setFeedback('idle'), 800);
     }
   };
 
-  const handleRetry = () => {
-    setSpeed('slow');
-    replaySequence(true);
+  const nextQuestion = (correct: boolean) => {
+    setAbacusValue(0);
+    setFeedback('idle');
+    setAttempts(0);
+
+    const newCorrect = correct ? [...roundCorrect, currentQ!.level] : roundCorrect;
+    const newScore = correct ? roundScore + 2 : roundScore;
+    if (correct) {
+      onXP(2);
+      burst(0.5, 0.4);
+    }
+
+    if (currentIdx + 1 < questions.length) {
+      setRoundCorrect(newCorrect);
+      setRoundScore(newScore);
+      setCurrentIdx(currentIdx + 1);
+      setTimeLeft(getLevelTime(section, questions[currentIdx + 1].level));
+    } else {
+      finishRound(newCorrect, newScore);
+    }
   };
 
-  const nextRound = () => {
-    setRound((r) => r + 1);
-    startGame(true);
+  const finishRound = (correctLevels: number[], finalScore: number) => {
+    // تحديث الجولات
+    const newRounds: RoundsData = { ...rounds, count: rounds.count + 1 };
+    saveRounds(newRounds);
+    setRounds(newRounds);
+
+    // تحديث تقدم المستويات
+    const newProgress = { ...progress };
+    const sectionProgress = [...newProgress[section]];
+    const updatedBadges = { ...badges };
+
+    for (const level of correctLevels) {
+      const idx = sectionProgress.indexOf(level);
+      // عدّاد: كم مرة نجح في هذا المستوى
+      // نستخدم مصفوفة من الأرقام المكررة لتمثيل العدّاد
+      sectionProgress.push(level);
+      const count = sectionProgress.filter(x => x === level).length;
+      if (count >= CORRECT_TO_MASTER) {
+        // منح الشارة
+        if (section === 'addition') updatedBadges.master_addition = true;
+        if (section === 'multiplication') updatedBadges.master_multiplication = true;
+        if (section === 'division') updatedBadges.master_division = true;
+        if (section === 'mixed') updatedBadges.master_mixed = true;
+      }
+    }
+    newProgress[section] = sectionProgress;
+    setProgress(newProgress);
+    saveProgress(newProgress);
+    saveAnzanBadges(updatedBadges);
+    setBadges(updatedBadges);
+
+    // إذا كانت الشارة مكتسبة
+    const justEarned =
+      (section === 'addition' && updatedBadges.master_addition && !badges.master_addition) ||
+      (section === 'multiplication' && updatedBadges.master_multiplication && !badges.master_multiplication) ||
+      (section === 'division' && updatedBadges.master_division && !badges.master_division) ||
+      (section === 'mixed' && updatedBadges.master_mixed && !badges.master_mixed);
+    if (justEarned) {
+      onXP(25);
+      playSound('levelup');
+    }
+
+    setPhase('result');
   };
 
-  const currentOp =
-    flashIndex >= 0 && flashIndex < sequence.operations.length
-      ? sequence.operations[flashIndex]
-      : null;
+  const getLevelCount = (level: AnzanLevel): number => {
+    return progress[section].filter(x => x === level).length;
+  };
 
   return (
     <div className="px-3 sm:px-6 py-6 max-w-2xl mx-auto" dir="rtl">
+      {/* Header */}
       <div className="flex items-center gap-3 mb-6">
-        <button onClick={() => { playSound('click'); onBack(); }} className="btn-ghost !px-3 !py-2">
+        <button onClick={() => { stop(); playSound('click'); onBack(); }} className="btn-ghost !px-3 !py-2">
           <ArrowRight className="w-5 h-5" />
         </button>
         <div className="flex-1">
@@ -341,306 +570,202 @@ export function AnzanScreen({ onBack, playSound, onXP, burst }: AnzanScreenProps
             التصور الذهني
           </h2>
           <p className="text-sm text-white/50 font-body">
-            تخيل الخرزات في عقلك واجمع/اطرح الأرقام
+            {SECTION_STORIES[section]}
           </p>
         </div>
-        {phase === 'idle' && (
+        <Brain className="w-6 h-6 text-purple-300" />
+      </div>
+
+      {/* Section Tabs */}
+      <div className="flex gap-2 mb-5 overflow-x-auto pb-1">
+        {(['addition', 'multiplication', 'division', 'mixed'] as SectionType[]).map((s) => (
           <button
-            onClick={() => { playSound('click'); setShowSettings((s) => !s); }}
-            className="btn-ghost !px-3 !py-2"
-            aria-label="الإعدادات"
+            key={s}
+            onClick={() => { stop(); playSound('click'); setSection(s); setPhase('intro'); }}
+            className={`px-3 py-2 rounded-xl whitespace-nowrap font-bold text-xs transition flex items-center gap-1.5 ${
+              section === s ? 'bg-purple-600 shadow-lg' : 'bg-white/10 hover:bg-white/20'
+            }`}
           >
-            <Settings2 className="w-5 h-5" />
+            {SECTION_LABELS[s]}
           </button>
-        )}
+        ))}
       </div>
 
-      {/* Stats badges */}
-      <div className="flex gap-2 mb-5 flex-wrap">
-        <div className="badge bg-electric-500/15 border-electric-400/20">
+      {/* الجولات اليومية */}
+      <div className="flex items-center justify-between mb-4 p-3 rounded-2xl bg-white/5 border border-white/10">
+        <div className="flex items-center gap-2">
           <Zap className="w-4 h-4 text-electric-300" />
-          <span className="text-electric-200 text-sm">الجولة {toArabicNumber(round + 1)}</span>
+          <span className="text-xs text-white/60 font-body">الجولات اليوم:</span>
         </div>
-        <div className="badge bg-gold-400/15 border-gold-400/20">
-          <Trophy className="w-4 h-4 text-gold-300" />
-          <span className="text-gold-200 text-sm">نقاط: {toArabicNumber(score)}</span>
-        </div>
-        <div className="badge bg-purple-500/15 border-purple-400/20">
-          <Brain className="w-4 h-4 text-purple-300" />
-          <span className="text-purple-200 text-sm">{LEVEL_LABELS[level]}</span>
-        </div>
+        <span className="text-sm font-bold text-electric-200">
+          {toArabicNumber(rounds.count)} / {toArabicNumber(MAX_ROUNDS_PER_DAY)}
+        </span>
       </div>
 
-      {/* Settings */}
-      <AnimatePresence>
-        {showSettings && phase === 'idle' && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="glass-card p-4 sm:p-5 mb-4 overflow-hidden"
-          >
-            <div className="mb-4">
-              <p className="text-sm text-white/60 font-body mb-2">المستوى (مرتبط بالدروس)</p>
-              <div className="grid grid-cols-1 gap-2">
-                {LEVEL_ORDER.map((l) => (
-                  <button
-                    key={l}
-                    onClick={() => { playSound('click'); setLevel(l); }}
-                    className={`py-2 px-3 rounded-xl font-bold font-body text-xs transition-all text-right ${
-                      level === l
-                        ? 'bg-gradient-to-br from-emerald2-500 to-electric-500 text-white shadow-lg'
-                        : 'bg-white/10 text-white/60 hover:bg-white/15'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between gap-2">
-                      <span>{LEVEL_LABELS[l]}</span>
-                      {level === l && <CheckCircle2 className="w-4 h-4" />}
-                    </div>
-                    <p className="text-[10px] text-white/40 font-body mt-1">
-                      {LEVEL_DESCRIPTIONS[l]}
-                    </p>
-                  </button>
-                ))}
-              </div>
+      {/* حالة الشارات */}
+      {(badges.master_addition || badges.master_multiplication || badges.master_division || badges.master_mixed) && (
+        <div className="flex gap-2 mb-4 flex-wrap">
+          {badges.master_addition && (
+            <span className="px-2 py-1 rounded-lg bg-gold-400/20 border border-gold-400/40 text-gold-200 text-[10px] font-bold">
+              🏅 خبير جمع وطرح
+            </span>
+          )}
+          {badges.master_multiplication && (
+            <span className="px-2 py-1 rounded-lg bg-gold-400/20 border border-gold-400/40 text-gold-200 text-[10px] font-bold">
+              🏅 خبير ضرب
+            </span>
+          )}
+          {badges.master_division && (
+            <span className="px-2 py-1 rounded-lg bg-gold-400/20 border border-gold-400/40 text-gold-200 text-[10px] font-bold">
+              🏅 خبير قسمة
+            </span>
+          )}
+          {badges.master_mixed && (
+            <span className="px-2 py-1 rounded-lg bg-gold-400/20 border border-gold-400/40 text-gold-200 text-[10px] font-bold">
+              🏅 خبير مختلط
+            </span>
+          )}
+        </div>
+      )}
+
+      {/* ======================= INTRO ======================= */}
+      {phase === 'intro' && (
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
+          {!hasUnlockedLevels ? (
+            <div className="glass-card p-6 text-center">
+              <Lock className="w-12 h-12 text-amber-300 mx-auto mb-3" />
+              <h3 className="text-lg font-bold text-white mb-2">لا توجد مستويات مفتوحة</p>
+              <p className="text-sm text-white/60 font-body leading-relaxed">
+                {section === 'multiplication' && 'أكمل دروس الضرب أولاً'}
+                {section === 'division' && 'أكمل دروس القسمة أولاً'}
+                {section === 'mixed' && 'أكمل دروس الضرب والقسمة أولاً'}
+              </p>
             </div>
-            <div>
-              <p className="text-sm text-white/60 font-body mb-2">سرعة العرض</p>
-              <div className="flex gap-2">
-                {(['slow', 'medium', 'fast'] as Speed[]).map((s) => (
-                  <button
-                    key={s}
-                    onClick={() => { playSound('click'); setSpeed(s); }}
-                    className={`flex-1 py-2 rounded-xl font-bold font-body transition-all ${
-                      speed === s
-                        ? 'bg-gradient-to-br from-emerald2-500 to-electric-500 text-white shadow-lg'
-                        : 'bg-white/10 text-white/60 hover:bg-white/15'
-                    }`}
-                  >
-                    {SPEED_LABELS[s]}
-                  </button>
-                ))}
-              </div>
+          ) : !canStartRound ? (
+            <div className="glass-card p-6 text-center">
+              <Trophy className="w-12 h-12 text-gold-300 mx-auto mb-3" />
+              <h3 className="text-lg font-bold text-white mb-2">انتهت جولات اليوم</h3>
+              <p className="text-sm text-white/60 font-body">
+                عد غداً لمتابعة التدريب 💪
+              </p>
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Main Card */}
-      <div className="glass-card p-6 sm:p-10 min-h-[420px] flex flex-col items-center justify-center relative overflow-hidden">
-        <div className="absolute inset-0 bg-hero-grid bg-[size:20px_20px] opacity-30" />
-
-        <AnimatePresence mode="wait">
-          {/* ============ IDLE ============ */}
-          {phase === 'idle' && (
-            <motion.div
-              key="idle"
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.8 }}
-              className="relative text-center"
-            >
-              <motion.div
-                animate={{ y: [0, -12, 0] }}
-                transition={{ duration: 3, repeat: Infinity }}
-                className="w-20 h-20 rounded-3xl bg-gradient-to-br from-emerald2-500 to-electric-500 flex items-center justify-center shadow-xl shadow-emerald2-500/40 mx-auto mb-5"
-              >
-                <Eye className="w-10 h-10 text-white" />
-              </motion.div>
-              <p className="text-white/60 font-body mb-5 max-w-sm mx-auto">
-                ستظهر {toArabicNumber(sequence.operations.length)} عمليات بسرعة {SPEED_LABELS[speed]}ة.
-                تخيل المعداد في عقلك واحسب الناتج!
-              </p>
-              <button onClick={() => startGame(true)} className="btn-primary">
-                <Play className="w-5 h-5" /> ابدأ التحدي
-              </button>
-            </motion.div>
-          )}
-
-          {/* ============ FLASHING ============ */}
-          {phase === 'flashing' && (
-            <motion.div key="flashing" className="relative flex flex-col items-center w-full">
-              {currentOp !== null ? (
-                <>
-                  <motion.div
-                    key={flashIndex}
-                    initial={{ scale: 0.3, opacity: 0, rotate: -15 }}
-                    animate={{ scale: 1, opacity: 1, rotate: 0 }}
-                    exit={{ scale: 1.5, opacity: 0 }}
-                    transition={{ type: 'spring', stiffness: 300, damping: 15 }}
-                    className={`text-7xl sm:text-8xl font-extrabold font-display ${
-                      currentOp.operator === '+' ? 'text-emerald2-300 text-glow-blue' : 'text-red-300'
-                    }`}
-                  >
-                    {currentOp.operator === '+' ? '+' : '−'} {toArabicNumber(currentOp.value)}
-                  </motion.div>
-                  <motion.p
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="text-lg font-body text-gold-300 mt-4"
-                  >
-                    المجموع الحالي: {toArabicNumber(runningTotal)}
-                  </motion.p>
-                </>
-              ) : (
-                <motion.p
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="text-2xl font-body text-white/50"
-                >
-                  استعد...
-                </motion.p>
-              )}
-              <div className="flex gap-1.5 mt-6 flex-wrap justify-center">
-                {sequence.operations.map((_, i) => (
-                  <div
-                    key={i}
-                    className={`w-2 h-2 rounded-full transition-all ${
-                      i < flashIndex
-                        ? 'bg-emerald2-400'
-                        : i === flashIndex
-                        ? 'bg-white scale-150'
-                        : 'bg-white/15'
-                    }`}
-                  />
-                ))}
-              </div>
-            </motion.div>
-          )}
-
-          {/* ============ ANSWER ============ */}
-          {phase === 'answer' && (
-            <motion.div
-              key="answer"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="relative text-center w-full"
-            >
-              <div className="mb-4 p-4 rounded-2xl bg-purple-500/10 border border-purple-400/20">
-                <Sparkles className="w-6 h-6 text-purple-300 mx-auto mb-2" />
-                <p className="text-white/70 font-body text-sm">
-                  تخيل المعداد في عقلك، واحسب الناتج
-                </p>
-              </div>
-              <p className="text-white/60 font-body mb-4">
-                {attempt === 1 ? 'ما الناتج؟' : 'المحاولة الثانية — ما الناتج؟'}
-              </p>
-              <input
-                type="number"
-                autoFocus
-                value={userAnswer}
-                onChange={(e) => setUserAnswer(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && userAnswer && submitAnswer()}
-                className="w-48 text-5xl font-extrabold font-display text-center bg-white/10 border-2 border-purple-400/30 rounded-2xl py-4 text-white focus:outline-none focus:border-purple-400/60 transition-colors mb-5"
-                placeholder="؟"
-              />
-              <br />
-              <button onClick={submitAnswer} disabled={!userAnswer} className="btn-primary disabled:opacity-40">
-                تحقق
-              </button>
-            </motion.div>
-          )}
-
-          {/* ============ RETRY ============ */}
-          {phase === 'retry' && (
-            <motion.div
-              key="retry"
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0 }}
-              className="relative text-center w-full"
-            >
-              <motion.div
-                animate={{ scale: [1, 1.1, 1] }}
-                transition={{ duration: 1.5, repeat: Infinity }}
-                className="w-20 h-20 rounded-3xl bg-gold-400/20 border-2 border-gold-400/40 flex items-center justify-center mx-auto mb-5"
-              >
-                <Heart className="w-10 h-10 text-gold-300" />
-              </motion.div>
-              <p className="text-2xl font-extrabold font-display text-gold-300 mb-2">
-                قريب جداً! 💪
-              </p>
-              <p className="text-white/60 font-body mb-5 max-w-sm mx-auto">
-                لا بأس، دعنا نعيد عرض الأرقام معاً بسرعة أبطأ. ركّز جيداً!
-              </p>
-              <button onClick={handleRetry} className="btn-primary">
-                <RotateCcw className="w-5 h-5" /> أعد العرض
-              </button>
-            </motion.div>
-          )}
-
-          {/* ============ RESULT ============ */}
-          {phase === 'result' && (
-            <motion.div
-              key="result"
-              initial={{ opacity: 0, scale: 0.5 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ type: 'spring', stiffness: 250, damping: 15 }}
-              className="relative text-center"
-            >
-              {lastAttemptCorrect ? (
-                <>
-                  <motion.div
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1, rotate: [0, 10, -10, 0] }}
-                    className="text-7xl mb-3"
-                  >
-                    <Trophy className="w-20 h-20 text-gold-400 mx-auto" />
-                  </motion.div>
-                  <p className="text-3xl font-extrabold font-display text-emerald2-300 mb-2">
-                    {attempt === 1 ? 'رائع! 🎉' : 'أحسنت! المحاولة الثانية 👏'}
-                  </p>
-                  <p className="text-white/60 font-body mb-1">
-                    الإجابة الصحيحة: {toArabicNumber(total)}
-                  </p>
-                  <p className="text-gold-300 font-bold mb-5">
-                    +{toArabicNumber(attempt === 1 ? 25 : 10)} XP
-                  </p>
-                </>
-              ) : (
-                <>
-                  <motion.div
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    className="w-20 h-20 rounded-3xl bg-electric-500/20 border-2 border-electric-400/30 flex items-center justify-center mx-auto mb-3"
-                  >
-                    <Heart className="w-10 h-10 text-electric-300" />
-                  </motion.div>
-                  <p className="text-2xl font-extrabold font-display text-electric-300 mb-2">
-                    لا بأس! 💙
-                  </p>
-                  <p className="text-white/60 font-body mb-1">
-                    الإجابة الصحيحة:{' '}
-                    <span className="font-bold text-white">{toArabicNumber(total)}</span>
-                  </p>
-                  <p className="text-white/40 font-body text-sm mb-3">
-                    إجابتك: {userAnswer ? toArabicNumber(userAnswer) : '—'}
-                  </p>
-                  {levelWasEased && (
-                    <p className="text-gold-300 font-body text-sm mb-3">
-                      🌱 سنتدرب أكثر في مستوى أسهل
-                    </p>
-                  )}
-                </>
-              )}
-
-              <div className="mb-4 p-3 rounded-2xl bg-white/5 border border-white/10">
-                <p className="text-xs text-white/50 font-body mb-1">العمليات التي ظهرت:</p>
-                <p className="text-lg font-bold text-white font-display" dir="ltr">
-                  {sequence.operations
-                    .map((op) => `${op.operator === '+' ? '+' : '−'}${toArabicNumber(op.value)}`)
-                    .join(' ')}
-                </p>
+          ) : (
+            <>
+              <div className="glass-card p-5">
+                <h3 className="text-sm font-bold text-amber-300 mb-3">📊 تقدمك في هذا القسم:</h3>
+                <div className="space-y-2">
+                  {levels.map(lv => {
+                    const count = getLevelCount(lv.level);
+                    const pct = Math.min(100, (count / CORRECT_TO_MASTER) * 100);
+                    return (
+                      <div key={lv.level} className={`p-3 rounded-xl border ${lv.unlocked ? 'bg-white/5 border-white/10' : 'bg-white/[0.02] border-white/5 opacity-50'}`}>
+                        <div className="flex items-center justify-between mb-1.5">
+                          <div className="flex items-center gap-2">
+                            {lv.unlocked ? (
+                              <span className="text-xs font-bold text-white">مستوى {toArabicNumber(lv.level)} — {lv.label}</span>
+                            ) : (
+                              <span className="text-xs font-bold text-white/40">🔒 مستوى {toArabicNumber(lv.level)} — {lv.label}</span>
+                            )}
+                          </div>
+                          <span className={`text-xs font-bold ${count >= CORRECT_TO_MASTER ? 'text-gold-300' : 'text-white/50'}`}>
+                            {toArabicNumber(count)}/{toArabicNumber(CORRECT_TO_MASTER)}
+                            {count >= CORRECT_TO_MASTER && ' 🏅'}
+                          </span>
+                        </div>
+                        <div className="h-1.5 rounded-full bg-white/10 overflow-hidden">
+                          <motion.div
+                            className={`h-full rounded-full bg-gradient-to-r ${count >= CORRECT_TO_MASTER ? 'from-gold-400 to-gold-600' : 'from-purple-400 to-electric-500'}`}
+                            initial={{ width: 0 }}
+                            animate={{ width: `${pct}%` }}
+                            transition={{ duration: 0.5 }}
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
 
-              <button onClick={nextRound} className="btn-primary">
-                <RotateCcw className="w-5 h-5" /> الجولة التالية
+              <button onClick={startRound} className="btn-primary w-full !py-4 !text-lg">
+                <Play className="w-6 h-6" /> ابدأ الجولة
               </button>
-            </motion.div>
+            </>
           )}
-        </AnimatePresence>
-      </div>
+        </motion.div>
+      )}
+
+      {/* ======================= ANSWER ======================= */}
+      {phase === 'answer' && currentQ && (
+        <div className="space-y-4">
+          <div className="text-center">
+            <span className="text-sm text-white/60">
+              السؤال {toArabicNumber(currentIdx + 1)} من {toArabicNumber(questions.length)} — النقاط: {toArabicNumber(roundScore)}
+            </span>
+          </div>
+
+          <div className={`p-2 rounded-xl text-center flex items-center justify-center gap-2 ${
+            timeLeft <= 3 ? 'bg-red-500/20 border border-red-500/50' : 'bg-white/5 border border-white/10'
+          }`}>
+            <Zap className={`w-4 h-4 ${timeLeft <= 3 ? 'text-red-400' : 'text-amber-300'}`} />
+            <span className={`font-bold ${timeLeft <= 3 ? 'text-red-300' : 'text-white'}`}>
+              {toArabicNumber(timeLeft)} ثانية
+            </span>
+          </div>
+
+          <div className="bg-white/5 rounded-3xl p-5 text-center">
+            <p className="text-3xl sm:text-4xl font-black font-display text-white" dir="ltr">
+              {questionToString(currentQ)}
+            </p>
+          </div>
+
+          <div className="flex justify-center">
+            <InteractiveSoroban
+              columns={getColumnsForValue(currentQ.answer)}
+              value={abacusValue}
+              onValueChange={setAbacusValue}
+            />
+          </div>
+
+          <div className="flex gap-2">
+            <button
+              onClick={() => { setAbacusValue(0); playSound('click'); }}
+              className="flex-1 py-3 rounded-xl bg-white/10 hover:bg-white/20 font-bold flex items-center justify-center gap-2"
+            >
+              <RotateCcw className="w-4 h-4" /> مسح
+            </button>
+            <button
+              onClick={handleCheck}
+              disabled={feedback !== 'idle'}
+              className={`flex-1 py-3 rounded-xl font-bold flex items-center justify-center gap-2 ${
+                feedback === 'correct' ? 'bg-emerald-500' :
+                feedback === 'wrong' ? 'bg-red-500' :
+                'bg-gradient-to-l from-purple-600 to-amber-500'
+              }`}
+            >
+              {feedback === 'correct' ? <><CheckCircle2 className="w-5 h-5" /> أحسنت!</> :
+               feedback === 'wrong' ? <>❌ خطأ</> :
+               <><CheckCircle2 className="w-5 h-5" /> تحقق</>}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ======================= RESULT ======================= */}
+      {phase === 'result' && (
+        <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="glass-card p-6 text-center">
+          <Trophy className="w-16 h-16 text-gold-300 mx-auto mb-4" />
+          <h2 className="text-2xl font-bold text-white mb-2">انتهت الجولة!</h2>
+          <p className="text-4xl font-black text-amber-300 mb-4">
+            +{toArabicNumber(roundScore)} XP
+          </p>
+          <p className="text-sm text-white/60 mb-6">
+            أكملت {toArabicNumber(roundCorrect.length)} من {toArabicNumber(questions.length)} سؤالاً
+          </p>
+          <button onClick={() => setPhase('intro')} className="btn-primary w-full">
+            <RotateCcw className="w-5 h-5" /> متابعة
+          </button>
+        </motion.div>
+      )}
     </div>
   );
 }
