@@ -1,5 +1,6 @@
 // src/components/soroban2d5/Soroban2D5.tsx
 import { motion, AnimatePresence } from 'framer-motion';
+import { useEffect } from 'react';
 import { useSorobanLogic } from './useSorobanLogic';
 import { Rod2D5 } from './Rod2D5';
 import { useBeadSound } from './useBeadSound';
@@ -36,15 +37,23 @@ export function Soroban2D5({
   const playSound = useBeadSound();
   const vibrate = useBeadHaptics();
 
-  // مزامنة القيمة مع الأب
-  if (onValueChange) {
-    // (نستخدم useEffect في نسخة الإنتاج)
-  }
+  // ✅ مزامنة القيمة الأولية
+  useEffect(() => {
+    if (initialValue > 0) setValue(initialValue);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  // وضع "شاهد" — نعرض قيمة معينة
-  if (demoValue !== undefined) {
-    setValue(demoValue);
-  }
+  // ✅ وضع "شاهد" — نعرض قيمة معينة
+  useEffect(() => {
+    if (demoValue !== undefined) setValue(demoValue);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [demoValue]);
+
+  // ✅ إبلاغ الأب عند تغيّر القيمة
+  useEffect(() => {
+    onValueChange?.(totalValue);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [totalValue]);
 
   const handleResetAll = () => {
     playSound('slide');
@@ -66,7 +75,8 @@ export function Soroban2D5({
         transition={{ type: 'spring', stiffness: 200, damping: 20 }}
         className="relative rounded-3xl p-6"
         style={{
-          background: 'linear-gradient(135deg, #8b6f47 0%, #6b4423 50%, #4a2e15 100%)',
+          background:
+            'linear-gradient(135deg, #8b6f47 0%, #6b4423 50%, #4a2e15 100%)',
           boxShadow: `
             inset 0 4px 12px rgba(255,200,150,0.15),
             inset 0 -6px 16px rgba(0,0,0,0.4),
@@ -84,18 +94,32 @@ export function Soroban2D5({
             boxShadow: 'inset 0 4px 12px rgba(0,0,0,0.15)',
           }}
         >
-          {/* الأعمدة */}
-          <div className="flex items-center gap-6" style={{ paddingTop: 40, paddingBottom: 40 }}>
-            {colStates.map((state, idx) => (
-              <Rod2D5
-                key={idx}
-                state={state}
-                columnIndex={idx}
-                onToggleUpper={() => interactive && toggleUpper(idx)}
-                onSetLower={(count) => interactive && setLower(idx, count)}
-                onReset={() => interactive && resetColumn(idx)}
-              />
-            ))}
+          {/* 
+            ✅ الأعمدة — نعرض من اليسار (آلاف) إلى اليمين (آحاد)
+            colStates[0] = أعلى مرتبة (آلاف) → يظهر يساراً
+            colStates[last] = آحاد → يظهر يميناً
+            displayOrder: 0 = آحاد، 1 = عشرات، 2 = مئات، 3 = آلاف...
+          */}
+          <div
+            className="flex flex-row-reverse items-center justify-center gap-6"
+            style={{ paddingTop: 40, paddingBottom: 40 }}
+            dir="rtl"
+          >
+            {colStates.map((state, idx) => {
+              // نعكس الترتيب: colStates[0] (أعلى مرتبة) → displayOrder أعلى
+              const displayOrder = columns - 1 - idx;
+              return (
+                <Rod2D5
+                  key={idx}
+                  state={state}
+                  columnIndex={idx}
+                  displayOrder={displayOrder}
+                  onToggleUpper={() => interactive && toggleUpper(idx)}
+                  onSetLower={(count) => interactive && setLower(idx, count)}
+                  onReset={() => interactive && resetColumn(idx)}
+                />
+              );
+            })}
           </div>
         </div>
 
@@ -135,9 +159,11 @@ export function Soroban2D5({
 
       {/* تعليمات */}
       <p className="text-sm text-amber-700 text-center max-w-md">
-        💡 اضغط على الخرزة لتفعيلها.
-        الخرزة العلوية = <strong>5</strong>، السفلية = <strong>1</strong>.
+        💡 اضغط على الخرزة لتفعيلها. الخرزة العلوية = <strong>5</strong>،
+        السفلية = <strong>1</strong>.
       </p>
     </div>
   );
 }
+
+export default Soroban2D5;
