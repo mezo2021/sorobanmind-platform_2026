@@ -1,15 +1,20 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowRight, Sparkles, X, Check, Grid3X3, Lock, Star, Timer, Trophy } from 'lucide-react';
+import { ArrowRight, Sparkles, X, Check, Grid3X3, Lock, Star, Timer, Trophy, Volume2, Square } from 'lucide-react';
+import { useSpeech } from '@/hooks/useSpeech';
 
-// ===== الجدول المختصر =====
+// ===== النص الصوتي (قصة الدرس) =====
+const LESSON_STORY =
+  'في غرفة الحكيم معداد، صندوق ذهبي قديم يحوي أسراراً لجدول الضرب. كل سر منها يفتح باباً لعالم من السرعة والذكاء. سيخبرنا الحكيم كيف نضرب في ٥ بخفة، وفي ٩ بلعبة الأصابع، وفي ١١ بقاعدة الجيران. هل أنتم مستعدون لفتح الصندوق؟';
+
+// ===== بيانات الجدول المختصر =====
 const SHORT_TABLE: Record<number, Array<{ a: number; b: number; r: number }>> = {};
 for (let i = 1; i <= 9; i++) {
   SHORT_TABLE[i] = [];
   for (let j = i; j <= 9; j++) SHORT_TABLE[i].push({ a: i, b: j, r: i * j });
 }
 
-// ===== أوقات الأسرار (بالثواني) =====
+// ===== أوقات الأسرار =====
 const SECRET_TIMES: Record<number, number> = {
   5: 5, 6: 6, 7: 8, 8: 8, 9: 5,
   10: 6, 11: 10, 12: 6, 13: 10, 14: 12,
@@ -54,25 +59,21 @@ function generateQuestions(secretId: number): Question[] {
     shuffle(pairs).slice(0,QUESTIONS_PER_EXAM).forEach(([a,b]) => questions.push({ q:`${a} × ${b}`, a:a*b }));
   }
   else if (secretId === 17) {
-    // تحت 1000
     const pairs: [number,number][] = [];
     for (let i=900;i<=999;i+=3) for (let j=900;j<=999;j+=7) pairs.push([i,j]);
     shuffle(pairs).slice(0,QUESTIONS_PER_EXAM).forEach(([a,b]) => questions.push({ q:`${a} × ${b}`, a:a*b }));
   }
   else if (secretId === 18) {
-    // فوق 1000
     const pairs: [number,number][] = [];
     for (let i=1001;i<=1050;i+=3) for (let j=1001;j<=1050;j+=5) pairs.push([i,j]);
     shuffle(pairs).slice(0,QUESTIONS_PER_EXAM).forEach(([a,b]) => questions.push({ q:`${a} × ${b}`, a:a*b }));
   }
   else if (secretId === 19) {
-    // قريبة من 50
     const pairs: [number,number][] = [];
     for (let i=40;i<=65;i+=2) for (let j=40;j<=65;j+=3) pairs.push([i,j]);
     shuffle(pairs).slice(0,QUESTIONS_PER_EXAM).forEach(([a,b]) => questions.push({ q:`${a} × ${b}`, a:a*b }));
   }
   else if (secretId === 20) {
-    // قريبة من 500
     const pairs: [number,number][] = [];
     for (let i=450;i<=550;i+=7) for (let j=450;j<=550;j+=9) pairs.push([i,j]);
     shuffle(pairs).slice(0,QUESTIONS_PER_EXAM).forEach(([a,b]) => questions.push({ q:`${a} × ${b}`, a:a*b }));
@@ -219,9 +220,17 @@ const MagicSecretsScreen: React.FC<Props> = ({ onBack, onComplete, onXP }) => {
   const [bestScores, setBestScores] = useState<Record<number,number>>({});
   const [practiceSecretId, setPracticeSecretId] = useState<number|null>(null);
 
+  // ✅ الصوت
+  const { speak, stop, isSpeaking, isSupported } = useSpeech();
+
   useEffect(() => {
     try { const raw = localStorage.getItem(BEST_SCORES_KEY); if (raw) setBestScores(JSON.parse(raw)); } catch {}
   }, []);
+
+  // ✅ إيقاف الصوت عند تغيير التبويب أو فتح سر
+  useEffect(() => {
+    return () => { stop(); };
+  }, [tab, openSecret, practiceSecretId, stop]);
 
   const saveBestScore = (secretId: number, score: number) => {
     const current = bestScores[secretId] || 0;
@@ -242,17 +251,57 @@ const MagicSecretsScreen: React.FC<Props> = ({ onBack, onComplete, onXP }) => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-900 via-purple-950 to-slate-900 text-white p-4 pb-24" dir="rtl">
-      <div className="flex items-center justify-between mb-6">
-        <button onClick={onBack} className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition"><ArrowRight className="w-6 h-6" /></button>
-        <h1 className="text-xl font-bold bg-gradient-to-r from-amber-300 to-purple-400 bg-clip-text text-transparent">الأسرار السحرية</h1>
-        <Sparkles className="w-6 h-6 text-amber-300" />
+      <div className="flex items-center justify-between mb-4 gap-2">
+        <button onClick={() => { stop(); onBack(); }} className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition shrink-0">
+          <ArrowRight className="w-6 h-6" />
+        </button>
+        <h1 className="flex-1 text-center text-sm sm:text-lg font-bold bg-gradient-to-r from-amber-300 to-purple-400 bg-clip-text text-transparent">
+          الأسرار السحرية
+        </h1>
+        <Sparkles className="w-5 h-5 text-amber-300 shrink-0" />
       </div>
 
+      {/* Story Card + Listen Button */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-gradient-to-l from-pink-500/15 to-purple-500/15 border border-pink-400/30 rounded-2xl p-4 mb-4"
+      >
+        <div className="flex items-center justify-between gap-2 mb-2">
+          <div className="flex items-center gap-2">
+            <span className="text-lg">📖</span>
+            <span className="text-xs font-bold text-pink-300">القصة:</span>
+          </div>
+          {isSupported && (
+            <button
+              onClick={() => {
+                if (isSpeaking) { stop(); }
+                else { speak(LESSON_STORY); }
+              }}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 ${
+                isSpeaking
+                  ? 'bg-red-500/30 border border-red-400/50 text-red-200'
+                  : 'bg-rose-500/20 border border-rose-400/40 text-rose-200 hover:bg-rose-500/30'
+              }`}
+            >
+              {isSpeaking ? (
+                <><Square className="w-3.5 h-3.5" /> إيقاف</>
+              ) : (
+                <><Volume2 className="w-3.5 h-3.5" /> اسمع قصتي</>
+              )}
+            </button>
+          )}
+        </div>
+        <p className="text-sm text-pink-100 font-body leading-relaxed">
+          {LESSON_STORY}
+        </p>
+      </motion.div>
+
       <div className="flex gap-2 mb-6 bg-white/5 p-1 rounded-2xl">
-        <button onClick={()=>setTab('table')} className={`flex-1 py-3 rounded-xl font-bold transition text-sm ${tab==='table'?'bg-purple-600 shadow-lg':'text-white/60'}`}>
+        <button onClick={()=>{stop(); setTab('table');}} className={`flex-1 py-3 rounded-xl font-bold transition text-sm ${tab==='table'?'bg-purple-600 shadow-lg':'text-white/60'}`}>
           <Grid3X3 className="w-4 h-4 inline ml-1" /> الجدول المختصر
         </button>
-        <button onClick={()=>setTab('secrets')} className={`flex-1 py-3 rounded-xl font-bold transition text-sm ${tab==='secrets'?'bg-purple-600 shadow-lg':'text-white/60'}`}>
+        <button onClick={()=>{stop(); setTab('secrets');}} className={`flex-1 py-3 rounded-xl font-bold transition text-sm ${tab==='secrets'?'bg-purple-600 shadow-lg':'text-white/60'}`}>
           <Sparkles className="w-4 h-4 inline ml-1" /> الأسرار
         </button>
       </div>
@@ -302,7 +351,7 @@ const MagicSecretsScreen: React.FC<Props> = ({ onBack, onComplete, onXP }) => {
         {openSecret !== null && (
           <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}}
             className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-            onClick={()=>setOpenSecret(null)}>
+            onClick={()=>{stop(); setOpenSecret(null);}}>
             <motion.div initial={{scale:0.8,y:50}} animate={{scale:1,y:0}} exit={{scale:0.8,y:50}}
               onClick={e=>e.stopPropagation()}
               className="bg-slate-900 rounded-3xl p-6 max-w-lg w-full max-h-[85vh] overflow-y-auto border border-white/10">
@@ -313,7 +362,7 @@ const MagicSecretsScreen: React.FC<Props> = ({ onBack, onComplete, onXP }) => {
                   <>
                     <div className="flex justify-between items-start mb-4">
                       <div><span className="text-4xl">{s.icon}</span><h2 className="text-2xl font-bold mt-2">{s.title}</h2></div>
-                      <button onClick={()=>setOpenSecret(null)} className="p-2 rounded-full bg-white/10"><X className="w-5 h-5" /></button>
+                      <button onClick={()=>{stop(); setOpenSecret(null);}} className="p-2 rounded-full bg-white/10"><X className="w-5 h-5" /></button>
                     </div>
                     <div className={`rounded-2xl p-4 bg-gradient-to-l ${s.color} mb-4`}>
                       <p className="font-bold mb-1">🔑 القاعدة:</p>
@@ -336,11 +385,11 @@ const MagicSecretsScreen: React.FC<Props> = ({ onBack, onComplete, onXP }) => {
                     </div>
                     {best>0 && <div className="mt-3 p-3 bg-gold-400/10 border border-gold-400/30 rounded-xl text-sm text-center">🏆 أفضل نتيجة لك: {best}/{QUESTIONS_PER_EXAM}</div>}
                     <div className="mt-6 flex gap-2">
-                      <button onClick={()=>{handleLearnSecret(s.id); setOpenSecret(null); setPracticeSecretId(s.id);}}
+                      <button onClick={()=>{handleLearnSecret(s.id); stop(); setOpenSecret(null); setPracticeSecretId(s.id);}}
                         className="flex-1 py-3 bg-gradient-to-l from-emerald-500 to-teal-600 rounded-2xl font-bold flex items-center justify-center gap-2">
                         <Timer className="w-5 h-5" /> تمرّن
                       </button>
-                      <button onClick={()=>{handleLearnSecret(s.id); setOpenSecret(null);}}
+                      <button onClick={()=>{handleLearnSecret(s.id); stop(); setOpenSecret(null);}}
                         className="flex-1 py-3 bg-gradient-to-l from-purple-600 to-amber-500 rounded-2xl font-bold flex items-center justify-center gap-2">
                         <Star className="w-5 h-5" /> فهمت
                       </button>
