@@ -14,13 +14,15 @@ import { PracticeScreen } from './components/PracticeScreen';
 import { AnzanScreen } from './components/AnzanScreen';
 import { QuestsScreen } from './components/QuestsScreen';
 import { GuardianDashboard } from './components/GuardianDashboard';
+import InteractiveSorobanScreen from './components/InteractiveSorobanScreen';
 import { BadgeModal } from './components/BadgeModal';
-import { Soroban2D5 } from './components/soroban2d5/Soroban2D5';
 
+// ✅ استيراد الشاشات الجديدة
 import MultiplicationScreen from './screens/MultiplicationScreen';
 import MagicSecretsScreen from './screens/MagicSecretsScreen';
 import CrossMultiplicationScreen from './screens/CrossMultiplicationScreen';
 import DivisionScreen from './screens/DivisionScreen';
+import CertificateScreen from './screens/CertificateScreen';
 
 // ✅ الشاشات التي تتطلب اجتياز الامتحان النهائي
 const EXAM_REQUIRED_SCREENS: Screen[] = [
@@ -28,6 +30,7 @@ const EXAM_REQUIRED_SCREENS: Screen[] = [
   'secrets',
   'cross-multiplication',
   'division',
+  'certificate',
 ];
 
 function App() {
@@ -74,18 +77,6 @@ function App() {
     setScreen('role');
   }, []);
 
-  // ✅ الانتقال إلى لوحة ولي الأمر
-  const handleSwitchToGuardian = useCallback(() => {
-    setRole('guardian');
-    setScreen('guardian-dashboard');
-  }, []);
-
-  // ✅ الانتقال إلى وضع البطل
-  const handleSwitchToHero = useCallback(() => {
-    setRole('hero');
-    setScreen('hero-dashboard');
-  }, []);
-
   const handleNavigate = useCallback((s: Screen) => {
     // ✅ الحماية المزدوجة: منع الوصول لشاشات مقفلة
     if (EXAM_REQUIRED_SCREENS.includes(s) && !examPassed) {
@@ -98,7 +89,6 @@ function App() {
 
   return (
     <div className="min-h-screen relative">
-      {/* خلفية متحركة */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
         <motion.div
           className="absolute top-[-10%] right-[-5%] w-72 h-72 rounded-full bg-purple-600/15 blur-3xl"
@@ -143,7 +133,6 @@ function App() {
           {screen === 'hero-dashboard' && (
             <HeroDashboard
               onNavigate={handleNavigate}
-              onSwitchToGuardian={handleSwitchToGuardian}
               playSound={playSound}
               xp={stats.xp}
               streak={stats.streak}
@@ -165,14 +154,6 @@ function App() {
               onBack={() => handleNavigate('hero-dashboard')}
               onGoToLearn={() => handleNavigate('learn')}
               onComplete={(score, passed) => {
-                try {
-                  localStorage.setItem(
-                    'soroban_exam_result',
-                    JSON.stringify({ score, passed, date: Date.now() })
-                  );
-                } catch { /* ignore */ }
-
-                // ✅ تحديث حالة القفل فوراً عند نجاح الامتحان
                 if (passed) {
                   setExamPassed(true);
                 }
@@ -209,29 +190,14 @@ function App() {
           )}
 
           {screen === 'soroban' && (
-            <div className="min-h-screen flex flex-col">
-              <div className="p-4">
-                <button
-                  type="button"
-                  onClick={() => handleNavigate('hero-dashboard')}
-                  className="px-4 py-2 rounded-full bg-amber-100 hover:bg-amber-200 text-amber-900 font-bold shadow-md transition"
-                >
-                  ← رجوع
-                </button>
-              </div>
-              <div className="flex-1 flex items-center justify-center">
-                <Soroban2D5
-                  columns={4}
-                  interactive={true}
-                  showValue={true}
-                  onValueChange={(v) => {
-                    console.log('value =', v);
-                  }}
-                />
-              </div>
-            </div>
+            <InteractiveSorobanScreen
+              onBack={() => handleNavigate('hero-dashboard')}
+              playSound={playSound}
+              onXP={addXP}
+            />
           )}
 
+          {/* ✅ درس الضرب — محمي */}
           {screen === 'multiplication' && examPassed && (
             <MultiplicationScreen
               onBack={() => handleNavigate('hero-dashboard')}
@@ -239,6 +205,7 @@ function App() {
             />
           )}
 
+          {/* ✅ الضرب التقاطعي — محمي */}
           {screen === 'cross-multiplication' && examPassed && (
             <CrossMultiplicationScreen
               onBack={() => handleNavigate('hero-dashboard')}
@@ -247,6 +214,7 @@ function App() {
             />
           )}
 
+          {/* ✅ الأسرار السحرية — محمي */}
           {screen === 'secrets' && examPassed && (
             <MagicSecretsScreen
               onBack={() => handleNavigate('hero-dashboard')}
@@ -255,11 +223,21 @@ function App() {
             />
           )}
 
+          {/* ✅ القسمة — محمي */}
           {screen === 'division' && examPassed && (
             <DivisionScreen
               onBack={() => handleNavigate('hero-dashboard')}
               onComplete={(stars) => addXP(stars * 10)}
               onXP={addXP}
+            />
+          )}
+
+          {/* ✅ الشهادة — محمي */}
+          {screen === 'certificate' && examPassed && (
+            <CertificateScreen
+              onBack={() => handleNavigate('hero-dashboard')}
+              playSound={playSound}
+              onGoHome={() => handleNavigate('hero-dashboard')}
             />
           )}
 
@@ -270,7 +248,6 @@ function App() {
               childXP={stats.xp}
               childStreak={stats.streak}
               childLevel={stats.level}
-              onSwitchToHero={handleSwitchToHero}
             />
           )}
         </motion.main>
