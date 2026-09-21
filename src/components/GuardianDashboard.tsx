@@ -10,6 +10,7 @@ import {
 import { LEVELS, BADGES } from '@/data';
 import type { LevelNode } from '@/types';
 import { useQuests } from '@/hooks/useQuests';
+import { loadAnzanBadges, type AnzanBadges } from '@/examBank2';
 
 function toArabicNumber(value: number | string): string {
   return String(value).replace(/\d/g, (d) => '٠١٢٣٤٥٦٧٨٩'[Number(d)]);
@@ -57,7 +58,6 @@ const BADGE_GRADIENTS: Record<string, string> = {
   'eternal-legend': 'from-gold-400 to-gold-600',
 };
 
-// ====== مكوّن زر عقدة المستوى (منقول من HeroDashboard) ======
 function LevelNodeButton({
   level,
   index,
@@ -115,6 +115,7 @@ export function GuardianDashboard({
   const [completed, setCompleted] = useState<number[]>([]);
   const [earnedBadges, setEarnedBadges] = useState<string[]>([]);
   const [anzanStats, setAnzanStats] = useState<AnzanStats>({ highScore: 0, totalRounds: 0, totalCorrect: 0 });
+  const [anzanBadges, setAnzanBadges] = useState<AnzanBadges>({});
   const [practiceStats, setPracticeStats] = useState<PracticeStats>({
     totalProblems: 0, correctAnswers: 0, additionProblems: 0, subtractionProblems: 0,
   });
@@ -143,6 +144,9 @@ export function GuardianDashboard({
       const saved = localStorage.getItem(ANZAN_KEY);
       if (saved) setAnzanStats({ ...anzanStats, ...JSON.parse(saved) });
     } catch { /* ignore */ }
+
+    // ✨ قراءة شارات الأنزان
+    setAnzanBadges(loadAnzanBadges());
 
     try {
       const saved = localStorage.getItem(PRACTICE_KEY);
@@ -187,6 +191,15 @@ export function GuardianDashboard({
   const progressPct = nextBadge
     ? Math.min(100, Math.max(0, ((childXP - prevThreshold) / (nextBadge.xpRequired - prevThreshold)) * 100))
     : 100;
+
+  // ✨ شارات الأنزان الأربعة
+  const anzanBadgeList = [
+    { id: 'master_addition', label: 'خبير جمع وطرح', icon: '🧠', color: 'from-cyan-500 to-blue-700', earned: !!anzanBadges.master_addition },
+    { id: 'master_multiplication', label: 'خبير ضرب', icon: '✖️', color: 'from-indigo-500 to-purple-700', earned: !!anzanBadges.master_multiplication },
+    { id: 'master_division', label: 'خبير قسمة', icon: '➗', color: 'from-blue-500 to-cyan-700', earned: !!anzanBadges.master_division },
+    { id: 'master_mixed', label: 'خبير مختلط', icon: '🔀', color: 'from-pink-500 to-rose-700', earned: !!anzanBadges.master_mixed },
+  ];
+  const earnedAnzanCount = anzanBadgeList.filter(b => b.earned).length;
 
   return (
     <div className="px-3 sm:px-6 py-6 max-w-5xl mx-auto" dir="rtl">
@@ -250,7 +263,56 @@ export function GuardianDashboard({
         })}
       </div>
 
-      {/* 🏆 BADGES (منقول من HeroDashboard) */}
+      {/* ═══════════════════════════════════════════════════════
+          شارات الأنزان (جديد)
+      ═══════════════════════════════════════════════════════ */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.22 }}
+        className="glass-card p-5 sm:p-6 mb-6"
+      >
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <Brain className="w-5 h-5 text-purple-300" />
+            <h3 className="text-xl font-extrabold font-display text-white">شارات الأنزان</h3>
+          </div>
+          <span className="badge bg-purple-500/15 border-purple-400/20 text-purple-200 text-xs">
+            {toArabicNumber(earnedAnzanCount)}/{toArabicNumber(anzanBadgeList.length)}
+          </span>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          {anzanBadgeList.map((badge, i) => (
+            <motion.div
+              key={badge.id}
+              initial={{ opacity: 0, scale: 0.7 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: i * 0.08 }}
+              className={`flex flex-col items-center gap-2 p-3 rounded-2xl border ${
+                badge.earned ? 'bg-white/5 border-white/10' : 'bg-white/[0.02] border-white/5'
+              }`}
+            >
+              <div className={`relative w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg ${
+                badge.earned ? `bg-gradient-to-br ${badge.color}` : 'bg-white/5'
+              }`}>
+                {badge.earned ? (
+                  <span className="text-2xl">{badge.icon}</span>
+                ) : (
+                  <LockBadge className="w-6 h-6 text-white/25" />
+                )}
+              </div>
+              <p className={`text-xs font-bold font-body text-center ${
+                badge.earned ? 'text-white/80' : 'text-white/30'
+              }`}>
+                {badge.label}
+              </p>
+            </motion.div>
+          ))}
+        </div>
+      </motion.div>
+
+      {/* 🏆 BADGES */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -314,7 +376,7 @@ export function GuardianDashboard({
         )}
       </motion.div>
 
-      {/* ⚔️ ACTIVE QUESTS (منقولة من HeroDashboard) */}
+      {/* ⚔️ ACTIVE QUESTS */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -370,7 +432,7 @@ export function GuardianDashboard({
         </div>
       </motion.div>
 
-      {/* 🗺️ LEVEL MAP (منقولة من HeroDashboard) */}
+      {/* 🗺️ LEVEL MAP */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
