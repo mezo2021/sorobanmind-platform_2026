@@ -1,10 +1,11 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   ArrowRight, Divide, Eye, Play, Check, X, Lightbulb,
-  RotateCcw, Trophy, Hash,
+  RotateCcw, Trophy, Volume2, Square,
 } from 'lucide-react';
 import { InteractiveSoroban } from '@/components/InteractiveSoroban';
+import { useSpeech } from '@/hooks/useSpeech';
 
 // ============================================================
 // الأنواع والثوابت
@@ -13,7 +14,11 @@ type Stage = 1 | 2 | 3;
 
 interface Problem { dividend: number; divisor: number; quotient: number; }
 
-const MAX_ATTEMPTS = 2;
+// ============================================================
+// النص الصوتي (قصة الدرس)
+// ============================================================
+const LESSON_STORY =
+  'في قلعة السوروبان، كان الحكيم معداد يوزّع الحلويات على الأصدقاء بالعدل. سألته البطلة بانة: كيف نوزّع ٨٦ حلوى على صديقين؟ فابتسم الحكيم وقال: نبدأ من المرتبة الكبيرة، ونقسم جزءاً جزءاً. نطرح ثم ننتقل للجزء التالي. هكذا نعطي كل صديق حقه بالعدل. هيا نتعلم سر التوزيع!';
 
 function getColumnsForValue(value: number): number {
   if (value < 10) return 1;
@@ -28,14 +33,11 @@ function getColumnsForValue(value: number): number {
 // ============================================================
 const STAGE_DATA: Record<Stage, {
   label: string;
-  story: string;
   watchExamples: Problem[];
   tryProblems: Problem[];
 }> = {
   1: {
     label: 'القسمة البسيطة',
-    story:
-      'في قلعة السوروبان، يوزّع الحكيم معداد الحلويات على الأصدقاء بالعدل. تعال نتعلّم كيف نقسم بالتساوي!',
     watchExamples: [
       { dividend: 86, divisor: 2, quotient: 43 },
       { dividend: 57, divisor: 3, quotient: 19 },
@@ -49,8 +51,6 @@ const STAGE_DATA: Record<Stage, {
   },
   2: {
     label: 'مرتبتين ÷ مرتبتين',
-    story:
-      'اليوم سنواجه تحدياً جديداً! المقسوم عليه أصبح من مرتبتين. الحارس المقدر الذكي سيخمّن الرقم.',
     watchExamples: [
       { dividend: 88, divisor: 22, quotient: 4 },
       { dividend: 96, divisor: 32, quotient: 3 },
@@ -64,8 +64,6 @@ const STAGE_DATA: Record<Stage, {
   },
   3: {
     label: '٣ مراتب ÷ مرتبتين',
-    story:
-      'المقسوم أصبح من ثلاث مراتب! سنتعلّم تحديد موقع الناتج، ونتعامل مع الصفر في الناتج.',
     watchExamples: [
       { dividend: 675, divisor: 25, quotient: 27 },
       { dividend: 945, divisor: 27, quotient: 35 },
@@ -80,14 +78,13 @@ const STAGE_DATA: Record<Stage, {
 };
 
 // ============================================================
-// حساب خطوات الحل (للعرض التفاعلي)
+// حساب خطوات الحل
 // ============================================================
 interface Step {
   title: string;
   detail: string;
-  abacusValue: number; // القيمة على المعداد (المقسوم المتبقي)
-  resultSoFar: number; // الناتج المتراكم
-  highlightColumn?: 'hundreds' | 'tens' | 'units';
+  abacusValue: number;
+  resultSoFar: number;
 }
 
 function computeSteps(dividend: number, divisor: number): Step[] {
@@ -96,7 +93,6 @@ function computeSteps(dividend: number, divisor: number): Step[] {
   const digits = divStr.split('').map(Number);
   const numDigits = digits.length;
 
-  // إذا كانت المرتبة الأولى أصغر من المقسوم عليه → نأخذ رقمين
   let startIdx = 0;
   if (numDigits >= 2 && digits[0] < divisor && numDigits > 1) {
     startIdx = 1;
@@ -104,14 +100,9 @@ function computeSteps(dividend: number, divisor: number): Step[] {
 
   let currentValue = 0;
   let resultSoFar = 0;
-  let remainingDigits = [...digits];
 
-  // ترتيب المراتب: مئات، عشرات، آحاد
   const placeNames = ['المئات', 'العشرات', 'الآحاد'];
-  const placeValues = [100, 10, 1];
-  const startPlace = numDigits - 1 - startIdx;
 
-  // 1. خطوة التقديم
   steps.push({
     title: '🎯 التمهيد',
     detail: `سنقسم ${dividend} على ${divisor}`,
@@ -119,24 +110,18 @@ function computeSteps(dividend: number, divisor: number): Step[] {
     resultSoFar: 0,
   });
 
-  // 2. خطوات الحل
   for (let i = 0; i < numDigits; i++) {
     const placeIdx = numDigits - 1 - i;
     const placeName = placeNames[placeIdx] || 'آحاد';
 
     if (i < startIdx) {
-      // ضم الرقم مع ما قبله
-      currentValue = currentValue * 10 + remainingDigits[i];
+      currentValue = currentValue * 10 + digits[i];
       continue;
     }
 
-    currentValue = currentValue * 10 + remainingDigits[i];
-    if (i === startIdx) {
-      // الخطوة الأولى: نقسم
-    }
+    currentValue = currentValue * 10 + digits[i];
 
     if (currentValue < divisor && i < numDigits - 1) {
-      // لا نقبل القسمة → نضم الرقم التالي
       continue;
     }
 
@@ -144,20 +129,7 @@ function computeSteps(dividend: number, divisor: number): Step[] {
     const product = q * divisor;
     const remainder = currentValue - product;
 
-    // حساب موضع الناتج في التسلسل
-    const placeResult = Math.pow(10, numDigits - 1 - i);
-    // القيمة النهائية المتوقعة بعد هذه الخطوة من الناتج الكلي
-    const newResultSoFar = resultSoFar * Math.pow(10, i - startIdx + 1) + q;
-    // لكن سنستخدم طريقة أبسط: نضيف q في مكانها
-    const placeDigit = placeResult;
-    // حساب الناتج الحقيقي المتراكم
-    // ملاحظة: resultSoFar الأصلي يحتاج تحديثاً دقيقاً
-    // نستخدم بدلاً منه القيمة النهائية المحسوبة يدوياً في النهاية
-
-    // حساب القيمة على المعداد بعد الطرح
     const abacusValue = remainder * Math.pow(10, numDigits - 1 - i);
-
-    // إذا كان هذا آخر رقم، الناتج النهائي
     const isLast = i === numDigits - 1;
 
     steps.push({
@@ -165,14 +137,12 @@ function computeSteps(dividend: number, divisor: number): Step[] {
       detail: `${currentValue} ÷ ${divisor} = ${q} → ${q} × ${divisor} = ${product} → ${currentValue} − ${product} = ${remainder}`,
       abacusValue: isLast ? 0 : abacusValue,
       resultSoFar: q,
-      highlightColumn: placeIdx === 2 ? 'hundreds' : placeIdx === 1 ? 'tens' : 'units',
     });
 
     resultSoFar = resultSoFar * 10 + q;
     currentValue = remainder;
   }
 
-  // 3. خطوة النتيجة النهائية
   steps.push({
     title: '✅ الناتج النهائي',
     detail: `${dividend} ÷ ${divisor} = ${dividend / divisor}`,
@@ -204,6 +174,9 @@ const DivisionScreen: React.FC<Props> = ({ onBack, onComplete, onXP }) => {
   const [attempts, setAttempts] = useState(0);
   const [score, setScore] = useState(0);
 
+  // ✅ الصوت
+  const { speak, stop, isSpeaking, isSupported } = useSpeech();
+
   const stageData = STAGE_DATA[stage];
   const watchProblem = stageData.watchExamples[watchIdx];
   const tryProblem = stageData.tryProblems[tryIdx];
@@ -215,7 +188,13 @@ const DivisionScreen: React.FC<Props> = ({ onBack, onComplete, onXP }) => {
 
   const currentStep = steps[Math.min(watchStep, steps.length - 1)];
 
+  // ✅ إيقاف الصوت عند تغيير المرحلة/الوضع/المثال/الخروج
+  useEffect(() => {
+    return () => { stop(); };
+  }, [stage, mode, watchIdx, stop]);
+
   const changeStage = (s: Stage) => {
+    stop();
     setStage(s);
     setWatchIdx(0);
     setWatchStep(0);
@@ -228,6 +207,7 @@ const DivisionScreen: React.FC<Props> = ({ onBack, onComplete, onXP }) => {
   };
 
   const changeMode = (m: 'watch' | 'try') => {
+    stop();
     setMode(m);
     setWatchIdx(0);
     setWatchStep(0);
@@ -240,9 +220,7 @@ const DivisionScreen: React.FC<Props> = ({ onBack, onComplete, onXP }) => {
   };
 
   const nextStep = () => {
-    if (watchStep + 1 < steps.length) {
-      setWatchStep(watchStep + 1);
-    }
+    if (watchStep + 1 < steps.length) setWatchStep(watchStep + 1);
   };
 
   const prevStep = () => {
@@ -280,15 +258,53 @@ const DivisionScreen: React.FC<Props> = ({ onBack, onComplete, onXP }) => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-900 via-purple-950 to-slate-900 text-white p-4 pb-24" dir="rtl">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <button onClick={onBack} className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition">
+      <div className="flex items-center justify-between mb-4 gap-2">
+        <button onClick={onBack} className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition shrink-0">
           <ArrowRight className="w-6 h-6" />
         </button>
-        <h1 className="text-base sm:text-xl font-bold bg-gradient-to-r from-amber-300 to-purple-400 bg-clip-text text-transparent">
+        <h1 className="flex-1 text-center text-sm sm:text-lg font-bold bg-gradient-to-r from-amber-300 to-purple-400 bg-clip-text text-transparent">
           درس القسمة — قواعد السوروبان
         </h1>
-        <Divide className="w-6 h-6 text-amber-300" />
+        <Divide className="w-5 h-5 text-amber-300 shrink-0" />
       </div>
+
+      {/* Story Card + Listen Button */}
+      {mode === 'watch' && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-gradient-to-l from-pink-500/15 to-purple-500/15 border border-pink-400/30 rounded-2xl p-4 mb-4"
+        >
+          <div className="flex items-center justify-between gap-2 mb-2">
+            <div className="flex items-center gap-2">
+              <span className="text-lg">📖</span>
+              <span className="text-xs font-bold text-pink-300">القصة:</span>
+            </div>
+            {isSupported && (
+              <button
+                onClick={() => {
+                  if (isSpeaking) { stop(); }
+                  else { speak(LESSON_STORY); }
+                }}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 ${
+                  isSpeaking
+                    ? 'bg-red-500/30 border border-red-400/50 text-red-200'
+                    : 'bg-rose-500/20 border border-rose-400/40 text-rose-200 hover:bg-rose-500/30'
+                }`}
+              >
+                {isSpeaking ? (
+                  <><Square className="w-3.5 h-3.5" /> إيقاف</>
+                ) : (
+                  <><Volume2 className="w-3.5 h-3.5" /> اسمع قصتي</>
+                )}
+              </button>
+            )}
+          </div>
+          <p className="text-sm text-pink-100 font-body leading-relaxed">
+            {LESSON_STORY}
+          </p>
+        </motion.div>
+      )}
 
       {/* Stage Selector */}
       <div className="flex gap-2 mb-4 overflow-x-auto pb-1">
@@ -328,25 +344,12 @@ const DivisionScreen: React.FC<Props> = ({ onBack, onComplete, onXP }) => {
       {/* ======================= WATCH MODE ======================= */}
       {mode === 'watch' && watchProblem && (
         <div className="space-y-4">
-          {/* Story */}
-          {watchIdx === 0 && watchStep === 0 && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="bg-gradient-to-l from-pink-500/15 to-purple-500/15 border border-pink-400/30 rounded-2xl p-4"
-            >
-              <p className="text-sm text-pink-200 font-body leading-relaxed">
-                📖 {stageData.story}
-              </p>
-            </motion.div>
-          )}
-
           {/* Example Selector */}
           <div className="flex gap-2 bg-white/5 p-1 rounded-2xl">
             {stageData.watchExamples.map((_, i) => (
               <button
                 key={i}
-                onClick={() => { setWatchIdx(i); setWatchStep(0); }}
+                onClick={() => { stop(); setWatchIdx(i); setWatchStep(0); }}
                 className={`flex-1 py-2 rounded-xl font-bold text-xs transition ${
                   watchIdx === i ? 'bg-amber-500 text-black' : 'text-white/60'
                 }`}
@@ -358,7 +361,9 @@ const DivisionScreen: React.FC<Props> = ({ onBack, onComplete, onXP }) => {
 
           {/* Problem Display */}
           <div className="bg-white/5 rounded-2xl p-4 text-center">
-            <p className="text-xs text-white/50 mb-2">مثال {watchIdx + 1} من {stageData.watchExamples.length}</p>
+            <p className="text-xs text-white/50 mb-2">
+              مثال {watchIdx + 1} من {stageData.watchExamples.length}
+            </p>
             <p className="text-3xl font-black font-display" dir="ltr">
               <span className="text-amber-300">{watchProblem.dividend}</span>
               <span className="text-white/60 mx-2">÷</span>
@@ -381,7 +386,11 @@ const DivisionScreen: React.FC<Props> = ({ onBack, onComplete, onXP }) => {
                   <span
                     key={i}
                     className={`w-2 h-2 rounded-full ${
-                      i === watchStep ? 'bg-amber-400' : i < watchStep ? 'bg-emerald-400' : 'bg-white/20'
+                      i === watchStep
+                        ? 'bg-amber-400'
+                        : i < watchStep
+                        ? 'bg-emerald-400'
+                        : 'bg-white/20'
                     }`}
                   />
                 ))}
@@ -407,7 +416,6 @@ const DivisionScreen: React.FC<Props> = ({ onBack, onComplete, onXP }) => {
               </motion.div>
             </AnimatePresence>
 
-            {/* Navigation */}
             <div className="flex gap-2">
               <button
                 onClick={prevStep}
@@ -436,7 +444,11 @@ const DivisionScreen: React.FC<Props> = ({ onBack, onComplete, onXP }) => {
             <div className="flex justify-center">
               <InteractiveSoroban
                 columns={watchColumns}
-                value={watchStep === steps.length - 1 ? watchProblem.quotient : currentStep.abacusValue}
+                value={
+                  watchStep === steps.length - 1
+                    ? watchProblem.quotient
+                    : currentStep.abacusValue
+                }
                 onValueChange={() => {}}
               />
             </div>
@@ -453,7 +465,12 @@ const DivisionScreen: React.FC<Props> = ({ onBack, onComplete, onXP }) => {
               <Lightbulb className="w-5 h-5 text-amber-300" /> القاعدة:
             </p>
             <p className="text-white/80 leading-relaxed">
-              نبدأ من المرتبة الأكبر. في كل خطوة: <span className="font-bold text-amber-300">اقسم</span>، ثم <span className="font-bold text-amber-300">اضرب</span> الناتج في المقسوم عليه، ثم <span className="font-bold text-amber-300">اطرح</span>. وننتقل للمرتبة التالية.
+              نبدأ من المرتبة الأكبر. في كل خطوة:{' '}
+              <span className="font-bold text-amber-300">اقسم</span>، ثم{' '}
+              <span className="font-bold text-amber-300">اضرب</span> الناتج في
+              المقسوم عليه، ثم{' '}
+              <span className="font-bold text-amber-300">اطرح</span>. وننتقل
+              للمرتبة التالية.
             </p>
           </div>
         </div>
@@ -468,7 +485,6 @@ const DivisionScreen: React.FC<Props> = ({ onBack, onComplete, onXP }) => {
             </span>
           </div>
 
-          {/* Problem */}
           <div className="bg-white/5 rounded-3xl p-6 text-center">
             <div className="text-4xl font-bold" dir="ltr">
               <span className="text-amber-300">{tryProblem.dividend}</span>
@@ -479,7 +495,6 @@ const DivisionScreen: React.FC<Props> = ({ onBack, onComplete, onXP }) => {
             </div>
           </div>
 
-          {/* Abacus for answer */}
           <div className="bg-white/5 rounded-2xl p-3">
             <p className="text-xs text-white/60 mb-3 text-center">
               مثّل الإجابة على المعداد:
@@ -493,7 +508,6 @@ const DivisionScreen: React.FC<Props> = ({ onBack, onComplete, onXP }) => {
             </div>
           </div>
 
-          {/* Numeric Input */}
           <div className="bg-white/5 rounded-2xl p-4">
             <p className="text-xs text-white/60 mb-2 text-center">أو اكتب الإجابة:</p>
             <input
@@ -508,13 +522,11 @@ const DivisionScreen: React.FC<Props> = ({ onBack, onComplete, onXP }) => {
             />
           </div>
 
-          {/* Current value */}
           <div className="text-center">
             <span className="text-sm text-white/60">القيمة الحالية على المعداد: </span>
             <span className="text-2xl font-bold text-amber-300">{abacusValue}</span>
           </div>
 
-          {/* Actions */}
           {!feedback && (
             <div className="flex gap-2">
               <button
@@ -532,13 +544,11 @@ const DivisionScreen: React.FC<Props> = ({ onBack, onComplete, onXP }) => {
             </div>
           )}
 
-          {/* Feedback */}
           <AnimatePresence>
             {feedback === 'ok' && (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0 }}
                 className="bg-emerald-500/20 border border-emerald-500 rounded-2xl p-4 text-center"
               >
                 <Check className="w-8 h-8 text-emerald-400 mx-auto mb-2" />
@@ -549,7 +559,6 @@ const DivisionScreen: React.FC<Props> = ({ onBack, onComplete, onXP }) => {
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0 }}
                 className="bg-red-500/20 border border-red-500 rounded-2xl p-4 text-center"
               >
                 <X className="w-8 h-8 text-red-400 mx-auto mb-2" />
@@ -569,7 +578,6 @@ const DivisionScreen: React.FC<Props> = ({ onBack, onComplete, onXP }) => {
             )}
           </AnimatePresence>
 
-          {/* Progress dots */}
           <div className="flex justify-center gap-2">
             {stageData.tryProblems.map((_, i) => (
               <span
