@@ -3,7 +3,6 @@ import { useState } from 'react';
 import { Swords, Shield, Star, TrendingUp, Brain, ArrowRight } from 'lucide-react';
 import type { Role } from '@/types';
 import { CharacterSelector, type CharacterType } from './CharacterSelector';
-import { NameInputModal } from './NameInputModal';
 
 interface RoleSelectionProps {
   onSelect: (role: Role) => void;
@@ -13,7 +12,7 @@ interface RoleSelectionProps {
 const COMPANION_STORAGE_KEY = 'soroban_companion';
 const NAME_STORAGE_KEY = 'soroban_child_name';
 
-type Step = 'idle' | 'companion' | 'name';
+type Step = 'idle' | 'companion';
 
 export function RoleSelection({ onSelect, playSound }: RoleSelectionProps) {
   const [step, setStep] = useState<Step>('idle');
@@ -22,19 +21,19 @@ export function RoleSelection({ onSelect, playSound }: RoleSelectionProps) {
   const handleSelect = (role: Role) => {
     if (role === 'hero') {
       const savedCompanion = localStorage.getItem(COMPANION_STORAGE_KEY);
-      const savedName = localStorage.getItem(NAME_STORAGE_KEY);
 
-      if (savedCompanion && savedName) {
+      if (savedCompanion) {
+        // ✅ كل شيء محفوظ → انتقل مباشرة (استخدم الاسم الافتراضي إن لم يوجد)
+        if (!localStorage.getItem(NAME_STORAGE_KEY)) {
+          localStorage.setItem(NAME_STORAGE_KEY, 'البطل');
+        }
         playSound('whoosh');
         onSelect(role);
-      } else if (!savedCompanion) {
+      } else {
+        // لا يوجد رفيق → اعرض اختيار الرفيق فقط
         playSound('click');
         setPendingRole(role);
         setStep('companion');
-      } else {
-        playSound('click');
-        setPendingRole(role);
-        setStep('name');
       }
     } else {
       playSound('whoosh');
@@ -44,11 +43,8 @@ export function RoleSelection({ onSelect, playSound }: RoleSelectionProps) {
 
   const handleCompanionSelected = (companion: CharacterType) => {
     localStorage.setItem(COMPANION_STORAGE_KEY, companion);
-    setStep('name');
-  };
-
-  const handleNameSaved = (name: string) => {
-    localStorage.setItem(NAME_STORAGE_KEY, name);
+    // ✅ حفظ الاسم الافتراضي مباشرة
+    localStorage.setItem(NAME_STORAGE_KEY, 'البطل');
     setStep('idle');
     if (pendingRole) {
       playSound('whoosh');
@@ -58,7 +54,7 @@ export function RoleSelection({ onSelect, playSound }: RoleSelectionProps) {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-3 sm:px-6 py-8 sm:py-12">
-      {/* ✅ العنوان — أكبر وأوضح */}
+      {/* ✅ العنوان */}
       <motion.div
         initial={{ y: -30, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
@@ -90,7 +86,7 @@ export function RoleSelection({ onSelect, playSound }: RoleSelectionProps) {
         </motion.p>
       </motion.div>
 
-      {/* ✅ البطاقات — أكبر وأوضح */}
+      {/* ✅ البطاقات */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-8 w-full max-w-5xl">
         {/* Hero */}
         <motion.button
@@ -194,7 +190,7 @@ export function RoleSelection({ onSelect, playSound }: RoleSelectionProps) {
         </motion.button>
       </div>
 
-      {/* ✅ ملاحظة سفلية — أكبر */}
+      {/* ✅ ملاحظة سفلية */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -205,7 +201,7 @@ export function RoleSelection({ onSelect, playSound }: RoleSelectionProps) {
         <span>منصة تعليمية تفاعلية للحساب الذهني بالعداد الياباني</span>
       </motion.div>
 
-      {/* Modals */}
+      {/* ✅ مودال اختيار الرفيق فقط */}
       <AnimatePresence>
         {step === 'companion' && (
           <motion.div
@@ -223,17 +219,6 @@ export function RoleSelection({ onSelect, playSound }: RoleSelectionProps) {
             >
               <CharacterSelector onSelectCharacter={handleCompanionSelected} />
             </motion.div>
-          </motion.div>
-        )}
-
-        {step === 'name' && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4"
-          >
-            <NameInputModal onSave={handleNameSaved} />
           </motion.div>
         )}
       </AnimatePresence>
