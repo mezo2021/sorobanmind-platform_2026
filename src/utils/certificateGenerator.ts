@@ -1,21 +1,51 @@
 // ═══════════════════════════════════════════════════════════════
-// مولّد بيانات الشهادة ومولّد PDF
+// مولّد بيانات الشهادة
 // ═══════════════════════════════════════════════════════════════
 
 export type CertificateLevel = 'gold' | 'silver' | 'bronze' | 'pass';
 
 export interface CertificateData {
   studentName: string;
-  exam1Score: number;      // من 100
-  exam2Score: number;      // من 100
-  averageScore: number;    // من 100
+  exam1Score: number;
+  exam2Score: number;
+  averageScore: number;
   level: CertificateLevel;
-  levelAr: string;         // "ذهبي" / "فضي" ...
-  levelEn: string;         // "Gold" / "Silver" ...
-  appreciation: string;    // "ممتاز" / "جيد جداً" ...
+  levelAr: string;
+  levelEn: string;
+  medalEmoji: string;
+  appreciation: string;
   certificateNumber: string;
-  issueDate: string;       // ميلادي
-  issueDateHijri: string;  // هجري
+  issueDate: string;
+  issueDateHijri: string;
+  verificationUrl: string;
+}
+
+// ─────────────────────────────────────────────
+// Hash ثابت لتوليد رقم شهادة لا يتغير
+// ─────────────────────────────────────────────
+function hashCode(str: string): number {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = (hash * 31 + str.charCodeAt(i)) | 0;
+  }
+  return Math.abs(hash);
+}
+
+function generateCertificateNumber(seed: string): string {
+  const year = new Date().getFullYear();
+  const num = (hashCode(seed) % 900000) + 100000;
+  return `ISA-${year}-${num}`;
+}
+
+// ─────────────────────────────────────────────
+// تحويل تقريبي للتاريخ الهجري
+// ─────────────────────────────────────────────
+function toHijriApprox(date: Date): string {
+  const gregorianYear = date.getFullYear();
+  const hijriYear = Math.floor(((gregorianYear - 622) * 33) / 32);
+  const month = date.getMonth() + 1;
+  const day = date.getDate();
+  return `${hijriYear} / ${String(month).padStart(2, '0')} / ${String(day).padStart(2, '0')} هـ`;
 }
 
 // ─────────────────────────────────────────────
@@ -25,39 +55,19 @@ export function getLevel(average: number): {
   level: CertificateLevel;
   levelAr: string;
   levelEn: string;
+  medalEmoji: string;
   appreciation: string;
 } {
   if (average >= 95) {
-    return { level: 'gold', levelAr: 'ذهبي', levelEn: 'Gold', appreciation: 'ممتاز' };
+    return { level: 'gold', levelAr: 'ذهبي', levelEn: 'Gold', medalEmoji: '🥇', appreciation: 'ممتاز' };
   }
   if (average >= 85) {
-    return { level: 'silver', levelAr: 'فضي', levelEn: 'Silver', appreciation: 'جيد جداً' };
+    return { level: 'silver', levelAr: 'فضي', levelEn: 'Silver', medalEmoji: '🥈', appreciation: 'جيد جداً' };
   }
   if (average >= 75) {
-    return { level: 'bronze', levelAr: 'برونزي', levelEn: 'Bronze', appreciation: 'جيد' };
+    return { level: 'bronze', levelAr: 'برونزي', levelEn: 'Bronze', medalEmoji: '🥉', appreciation: 'جيد' };
   }
-  return { level: 'pass', levelAr: 'مقبول', levelEn: 'Pass', appreciation: 'مقبول' };
-}
-
-// ─────────────────────────────────────────────
-// توليد رقم شهادة فريد
-// ─────────────────────────────────────────────
-function generateCertificateNumber(): string {
-  const year = new Date().getFullYear();
-  const random = Math.floor(Math.random() * 900000) + 100000;
-  return `ISA-${year}-${random}`;
-}
-
-// ─────────────────────────────────────────────
-// التاريخ الهجري التقريبي (بسيط)
-// ─────────────────────────────────────────────
-function toHijriApprox(date: Date): string {
-  // تحويل تقريبي: السنة الميلادية - 622 ثم ضرب 33/32
-  const gregorianYear = date.getFullYear();
-  const hijriYear = Math.floor(((gregorianYear - 622) * 33) / 32);
-  const month = date.getMonth() + 1;
-  const day = date.getDate();
-  return `${hijriYear} / ${String(month).padStart(2, '0')} / ${String(day).padStart(2, '0')} هـ`;
+  return { level: 'pass', levelAr: 'مقبول', levelEn: 'Pass', medalEmoji: '🎖️', appreciation: 'مقبول' };
 }
 
 // ─────────────────────────────────────────────
@@ -70,11 +80,14 @@ export function getCertificateData(
 ): CertificateData {
   const safeName = studentName?.trim() || 'اكتب اسمك الثلاثي';
   const avg = (exam1Score + exam2Score) / 2;
-  const averageScore = Math.round(avg * 10) / 10; // منزلة عشرية واحدة
-  const { level, levelAr, levelEn, appreciation } = getLevel(averageScore);
+  const averageScore = Math.round(avg * 10) / 10;
+  const { level, levelAr, levelEn, medalEmoji, appreciation } = getLevel(averageScore);
 
   const now = new Date();
   const issueDate = `${now.getFullYear()} / ${String(now.getMonth() + 1).padStart(2, '0')} / ${String(now.getDate()).padStart(2, '0')} م`;
+  const certificateNumber = generateCertificateNumber(safeName + exam1Score + exam2Score);
+
+  const verificationUrl = `https://mezo2021.github.io/sorobanmind-platform_2026/#verify/${certificateNumber}`;
 
   return {
     studentName: safeName,
@@ -84,10 +97,12 @@ export function getCertificateData(
     level,
     levelAr,
     levelEn,
+    medalEmoji,
     appreciation,
-    certificateNumber: generateCertificateNumber(),
+    certificateNumber,
     issueDate,
     issueDateHijri: toHijriApprox(now),
+    verificationUrl,
   };
 }
 
@@ -109,11 +124,9 @@ export function getLevelColors(level: CertificateLevel) {
 }
 
 // ─────────────────────────────────────────────
-// توليد PDF (بسيط — يعتمد على HTML الحالي)
+// زر الطباعة (بديل PDF)
 // ─────────────────────────────────────────────
-export function generateCertificatePDF(data: CertificateData): void {
-  // ملاحظة: توليد PDF بالعربية يحتاج إعداد خط عربي في jsPDF.
-  // سنستخدم هنا طريقة بديلة: فتح نافذة الطباعة ليختار المستخدم "حفظ كـ PDF".
+export function generateCertificatePDF(_data: CertificateData): void {
   if (typeof window !== 'undefined') {
     window.print();
   }
