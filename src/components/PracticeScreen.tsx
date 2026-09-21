@@ -1,20 +1,20 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowRight, CheckCircle2, Trophy, RotateCcw, BookOpen } from 'lucide-react';
-import {
-  ADDITION_QUESTIONS,
-  SUBTRACTION_QUESTIONS,
-  MULTIPLICATION_QUESTIONS,
-  DIVISION_QUESTIONS,
-} from '@/data';
+import { LEARN_MODULES } from '@/data';
 import AbacusInput from './AbacusInput';
-import type { PracticeQuestion } from '@/types';
 
 const COMPLETED_STORAGE_KEY = 'soroban-completed-lessons';
 const PRACTICE_STORAGE_KEY = 'soroban_practice_stats';
 
 const SESSION_SIZE = 10;
 const MAX_ATTEMPTS = 2;
+
+interface PracticeQuestion {
+  question: string;
+  answer: number;
+  lessonId: number;
+}
 
 interface PracticeStats {
   totalProblems: number;
@@ -53,7 +53,7 @@ function toArabicNumber(value: number | string): string {
   return String(value).replace(/\d/g, (d) => '٠١٢٣٤٥٦٧٨٩'[Number(d)]);
 }
 
-/** خلط عشوائي (Fisher-Yates) */
+/** خلط عشوائي */
 function shuffle<T>(arr: T[]): T[] {
   const a = [...arr];
   for (let i = a.length - 1; i > 0; i--) {
@@ -85,24 +85,27 @@ export function PracticeScreen({ onBack, playSound, onXP, burst }: PracticeScree
     }
   }, []);
 
-  // ✅ فحص الدروس المفتوحة
-  const hasSubtraction = completed.includes(2);
-  const hasMultiplication = completed.includes(7);
-  const hasDivision = completed.includes(8);
-
-  // ✅ بناء بنك الأسئلة (بدون تكرار)
+  // ✅ بناء بنك الأسئلة من الدروس المكتملة
   const buildSession = (): PracticeQuestion[] => {
-    // جمع دائماً مفتوح
-    const pool: PracticeQuestion[] = [...ADDITION_QUESTIONS];
+    const pool: PracticeQuestion[] = [];
 
-    // طرح: يُفتح بعد درس الطرح (المستوى 2)
-    if (hasSubtraction) pool.push(...SUBTRACTION_QUESTIONS);
+    // نأخذ أمثلة من كل درس مكتمل
+    for (const lessonId of completed) {
+      const mod = LEARN_MODULES.find((m) => m.id === lessonId);
+      if (!mod) continue;
 
-    // ضرب: يُفتح بعد درس الضرب (المستوى 7)
-    if (hasMultiplication) pool.push(...MULTIPLICATION_QUESTIONS);
+      for (const ex of mod.examples) {
+        // نتجنب الأسئلة التي ليست حسابية (لا تحتوي على عمليات)
+        // مثال: "ما قيمة الخرزة العلوية؟" — نتجنبها
+        if (!/[+\-×÷]/.test(ex.problemText)) continue;
 
-    // قسمة: تُفتح بعد درس القسمة (المستوى 8)
-    if (hasDivision) pool.push(...DIVISION_QUESTIONS);
+        pool.push({
+          question: ex.problemText.replace(/\s*=\s*؟?\s*$/, '').trim(),
+          answer: ex.answer,
+          lessonId: mod.id,
+        });
+      }
+    }
 
     // خلط + اختيار 10 أسئلة فريدة
     const shuffled = shuffle(pool);
@@ -111,7 +114,7 @@ export function PracticeScreen({ onBack, playSound, onXP, burst }: PracticeScree
 
     for (const q of shuffled) {
       if (selected.length >= SESSION_SIZE) break;
-      if (seen.has(q.question)) continue; // منع التكرار
+      if (seen.has(q.question)) continue;
       seen.add(q.question);
       selected.push(q);
     }
@@ -144,13 +147,11 @@ export function PracticeScreen({ onBack, playSound, onXP, burst }: PracticeScree
   const isMultiplication = question?.question.includes('×');
   const isDivision = question?.question.includes('÷');
 
-  // ✅ معالجة المحاولة (يدعوها AbacusInput عند إدخال قيمة)
   const handleAttempt = (isCorrect: boolean) => {
     if (feedback === 'correct' || feedback === 'revealed') return;
 
     if (isCorrect) {
       if (feedback === 'idle') {
-        // ✅ إجابة صحيحة من المحاولة الأولى
         playSound('success');
         setFeedback('correct');
         setScore((s) => s + 1);
@@ -168,12 +169,10 @@ export function PracticeScreen({ onBack, playSound, onXP, burst }: PracticeScree
         });
       }
     } else {
-      // ❌ إجابة خاطئة
       const newAttempts = attempts + 1;
       setAttempts(newAttempts);
 
       if (newAttempts >= MAX_ATTEMPTS) {
-        // ✅ عرض الإجابة الصحيحة
         playSound('error');
         setFeedback('revealed');
       } else {
@@ -205,9 +204,6 @@ export function PracticeScreen({ onBack, playSound, onXP, burst }: PracticeScree
     playSound('click');
   };
 
-  // ═══════════════════════════════════════════════════════
-  // لا توجد أسئلة
-  // ═══════════════════════════════════════════════════════
   if (!question && !finished) {
     return (
       <div className="px-6 py-6 max-w-2xl mx-auto flex flex-col items-center justify-center min-h-[70vh]">
@@ -221,9 +217,6 @@ export function PracticeScreen({ onBack, playSound, onXP, burst }: PracticeScree
     );
   }
 
-  // ═══════════════════════════════════════════════════════
-  // شاشة النتيجة
-  // ═══════════════════════════════════════════════════════
   if (finished) {
     return (
       <div className="px-6 py-6 max-w-2xl mx-auto flex flex-col items-center justify-center min-h-[70vh]">
@@ -255,9 +248,6 @@ export function PracticeScreen({ onBack, playSound, onXP, burst }: PracticeScree
     );
   }
 
-  // ═══════════════════════════════════════════════════════
-  // شاشة التدريب
-  // ═══════════════════════════════════════════════════════
   return (
     <div className="px-3 sm:px-6 py-6 max-w-2xl mx-auto" dir="rtl">
       <div className="flex items-center gap-3 mb-6">
@@ -270,7 +260,6 @@ export function PracticeScreen({ onBack, playSound, onXP, burst }: PracticeScree
         </div>
       </div>
 
-      {/* Progress */}
       <div className="flex items-center gap-3 mb-5">
         <div className="flex-1 h-3 rounded-full bg-white/10 overflow-hidden">
           <motion.div
@@ -284,7 +273,6 @@ export function PracticeScreen({ onBack, playSound, onXP, burst }: PracticeScree
         </span>
       </div>
 
-      {/* Stats */}
       <div className="flex gap-3 mb-5 flex-wrap">
         <div className="badge bg-emerald2-500/15 border-emerald2-400/20">
           <CheckCircle2 className="w-4 h-4 text-emerald2-300" />
@@ -297,7 +285,6 @@ export function PracticeScreen({ onBack, playSound, onXP, burst }: PracticeScree
         </div>
       </div>
 
-      {/* Question */}
       <AnimatePresence mode="wait">
         <motion.div
           key={index}
@@ -312,7 +299,6 @@ export function PracticeScreen({ onBack, playSound, onXP, burst }: PracticeScree
             {question.question} = ؟
           </p>
 
-          {/* Feedback: correct */}
           {feedback === 'correct' && (
             <motion.div
               initial={{ opacity: 0, y: 10 }}
@@ -324,7 +310,6 @@ export function PracticeScreen({ onBack, playSound, onXP, burst }: PracticeScree
             </motion.div>
           )}
 
-          {/* Feedback: wrong (first attempt) */}
           {feedback === 'wrong' && (
             <motion.div
               initial={{ opacity: 0, y: 10 }}
@@ -335,7 +320,6 @@ export function PracticeScreen({ onBack, playSound, onXP, burst }: PracticeScree
             </motion.div>
           )}
 
-          {/* Feedback: revealed (after 2 attempts) */}
           {feedback === 'revealed' && (
             <motion.div
               initial={{ opacity: 0, y: 10 }}
@@ -349,7 +333,6 @@ export function PracticeScreen({ onBack, playSound, onXP, burst }: PracticeScree
             </motion.div>
           )}
 
-          {/* المعداد - يُعرض فقط إذا لم تكن الإجابة صحيحة أو ظهرت */}
           {feedback !== 'correct' && feedback !== 'revealed' && (
             <AbacusInput
               target={question.answer}
@@ -359,7 +342,6 @@ export function PracticeScreen({ onBack, playSound, onXP, burst }: PracticeScree
             />
           )}
 
-          {/* زر "التالي" بعد الإجابة الصحيحة أو الكشف */}
           {(feedback === 'correct' || feedback === 'revealed') && (
             <motion.button
               initial={{ opacity: 0, y: 10 }}
