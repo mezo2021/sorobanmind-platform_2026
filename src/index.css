@@ -29,7 +29,7 @@ body {
     radial-gradient(ellipse at 80% 10%, rgba(59, 130, 246, 0.15), transparent 50%),
     radial-gradient(ellipse at 50% 100%, rgba(16, 185, 129, 0.12), transparent 50%),
     var(--bg-base);
-  background-attachment: fixed;
+  /* ❌ حذفنا background-attachment: fixed — يسبب تجميد */
 }
 
 @layer components {
@@ -108,25 +108,22 @@ body {
   color: #fff;
 }
 
-/* ✅ منع Pull-to-Refresh في Chrome على Android */
-html, body {
+/* ✅ منع Pull-to-Refresh (بسيط وآمن) */
+html {
   overscroll-behavior-y: contain;
-  overscroll-behavior-x: none;
 }
 
-/* ✅ منع التمرير الأفقي غير المرغوب */
+/* ✅ منع التمرير الأفقي */
 body {
   overflow-x: hidden;
 }
 
-/* ✅ تحسين الأداء على الجوال */
+/* ✅ tap highlight شفاف */
 * {
   -webkit-tap-highlight-color: transparent;
-  -webkit-touch-callout: none;
 }
 
-/* ✅ السماح بالتمرير العمودي داخل التطبيق */
+/* ✅ لا نستخدم -webkit-touch-callout على كل العناصر — يسبب تجميد */
 #root {
   min-height: 100vh;
-  overscroll-behavior-y: contain;
 }
