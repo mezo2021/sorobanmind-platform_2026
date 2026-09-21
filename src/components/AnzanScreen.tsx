@@ -320,7 +320,7 @@ interface Props {
 }
 
 export function AnzanScreen({ onBack, playSound, onXP, burst }: Props) {
-  const [anzanMode, setAnzanMode] = useState<AnzanMode>('visual');
+  const [anzanMode, setAnzanMode] = useState<'visual' | 'audio'>('visual');
   const [section, setSection] = useState<SectionType>('addition');
   const [phase, setPhase] = useState<Phase>('intro');
   const [questions, setQuestions] = useState<Question[]>([]);
