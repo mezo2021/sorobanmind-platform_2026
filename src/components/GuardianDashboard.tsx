@@ -11,6 +11,7 @@ import { LEVELS, BADGES } from '@/data';
 import type { LevelNode } from '@/types';
 import { useQuests } from '@/hooks/useQuests';
 import { loadAnzanBadges, type AnzanBadges } from '@/examBank2';
+import { isBadgeEarned } from '@/utils/badgeChecker';
 
 function toArabicNumber(value: number | string): string {
   return String(value).replace(/\d/g, (d) => '٠١٢٣٤٥٦٧٨٩'[Number(d)]);
@@ -181,16 +182,22 @@ export function GuardianDashboard({
     { label: 'دقة الإجابات', labelEn: 'Accuracy', value: `${toArabicNumber(accuracy)}٪`, icon: Target, gradient: 'from-emerald2-500 to-emerald2-700', glow: 'shadow-emerald2-500/30' },
   ];
 
+  // ✨ الشارة التالية (بالإنجاز)
   const nextBadge = BADGES.find((b) => !earnedBadges.includes(b.id));
 
-  const prevThreshold = (() => {
-    const index = nextBadge ? BADGES.findIndex((b) => b.id === nextBadge.id) : -1;
-    return index > 0 ? BADGES[index - 1].xpRequired : 0;
+  // ✅ نسبة التقدم نحو الشارة التالية
+  const progressPct = (() => {
+    if (!nextBadge) return 100;
+    const req = nextBadge.requirement;
+    switch (req.type) {
+      case 'lessons':
+        return Math.min(100, (completed.length / req.count) * 100);
+      case 'xp':
+        return Math.min(100, (childXP / req.count) * 100);
+      default:
+        return 0;
+    }
   })();
-
-  const progressPct = nextBadge
-    ? Math.min(100, Math.max(0, ((childXP - prevThreshold) / (nextBadge.xpRequired - prevThreshold)) * 100))
-    : 100;
 
   // ✨ شارات الأنزان الأربعة
   const anzanBadgeList = [
@@ -264,7 +271,7 @@ export function GuardianDashboard({
       </div>
 
       {/* ═══════════════════════════════════════════════════════
-          شارات الأنزان (جديد)
+          شارات الأنزان
       ═══════════════════════════════════════════════════════ */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -312,7 +319,7 @@ export function GuardianDashboard({
         </div>
       </motion.div>
 
-      {/* 🏆 BADGES */}
+      {/* 🏆 BADGES — الشارات العامة (بالإنجاز) */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -345,8 +352,13 @@ export function GuardianDashboard({
                 <div className={`relative w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg ${isEarned ? `bg-gradient-to-br ${gradient}` : 'bg-white/5'}`}>
                   {isEarned ? <Icon className="w-7 h-7 text-white" /> : <LockBadge className="w-6 h-6 text-white/25" />}
                 </div>
-                <p className={`text-xs font-bold font-body text-center ${isEarned ? 'text-white/80' : 'text-white/30'}`}>{badge.nameAr}</p>
-                <p className="text-[10px] text-white/40 font-body">{toArabicNumber(badge.xpRequired)} XP</p>
+                <p className={`text-xs font-bold font-body text-center ${isEarned ? 'text-white/80' : 'text-white/30'}`}>
+                  {badge.nameAr}
+                </p>
+                {/* ✅ عرض وصف الشرط بدل XP */}
+                <p className="text-[10px] text-white/40 font-body text-center leading-tight">
+                  {badge.descriptionAr}
+                </p>
               </motion.div>
             );
           })}
@@ -355,9 +367,11 @@ export function GuardianDashboard({
         {nextBadge ? (
           <div>
             <div className="flex items-center justify-between mb-1.5">
-              <p className="text-xs text-white/50 font-body">المسافة نحو شارة "{nextBadge.nameAr}"</p>
               <p className="text-xs text-white/50 font-body">
-                {toArabicNumber(childXP)}/{toArabicNumber(nextBadge.xpRequired)} XP
+                الشارة التالية: "{nextBadge.nameAr}"
+              </p>
+              <p className="text-xs text-gold-300 font-body">
+                {nextBadge.descriptionAr}
               </p>
             </div>
             <div className="h-3 rounded-full bg-white/10 overflow-hidden">
