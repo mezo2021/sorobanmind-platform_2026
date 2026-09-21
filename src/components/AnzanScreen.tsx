@@ -41,7 +41,7 @@ const SECTION_STORIES: Record<SectionType, string> = {
 };
 
 // ═══════════════════════════════════════════════════════════════
-// حالة تقدم كل مستوى (localStorage)
+// حالة تقدم كل مستوى
 // ═══════════════════════════════════════════════════════════════
 interface AnzanProgress {
   addition: number[];
@@ -150,7 +150,6 @@ function getMultiplicationLevels(): LevelInfo[] {
   const lesson2 = isLessonCompleted(2);
   const lesson3 = isLessonCompleted(3);
   const lesson4 = isLessonCompleted(4);
-  const lesson5 = isLessonCompleted(5);
 
   const unlocked = [
     lesson1 && true,
@@ -225,7 +224,7 @@ function getLevelsForSection(section: SectionType): LevelInfo[] {
 }
 
 // ═══════════════════════════════════════════════════════════════
-// توليد الأسئلة لكل مستوى
+// توليد الأسئلة
 // ═══════════════════════════════════════════════════════════════
 type Question = {
   operations: Array<{ value: number; operator: '+' | '-' | '×' | '÷' }>;
@@ -234,9 +233,8 @@ type Question = {
 };
 
 function generateQuestion(section: SectionType, level: AnzanLevel): Question {
-  // جمع وطرح
   if (section === 'addition') {
-    const count = level + 2; // 3-7
+    const count = level + 2;
     const operations: Array<{ value: number; operator: '+' | '-'; }> = [];
     let current = 0;
     let twoDigitCount = level === 1 ? 0 : (level === 2 ? 1 : 2);
@@ -258,7 +256,6 @@ function generateQuestion(section: SectionType, level: AnzanLevel): Question {
     return { operations, answer: current, level };
   }
 
-  // ضرب
   if (section === 'multiplication') {
     let a: number, b: number;
     switch (level) {
@@ -271,49 +268,26 @@ function generateQuestion(section: SectionType, level: AnzanLevel): Question {
     return { operations: [{ value: a, operator: '×' }, { value: b, operator: '×' }], answer: a * b, level };
   }
 
-  // قسمة
   if (section === 'division') {
-    let dividend: number, divisor: number, quotient: number;
+    let dividend = 0, divisor = 2, quotient = 2;
     switch (level) {
-      case 1:
-        quotient = Math.floor(Math.random() * 30) + 2;
-        divisor = Math.floor(Math.random() * 8) + 2;
-        dividend = quotient * divisor;
-        break;
-      case 2:
-        quotient = Math.floor(Math.random() * 15) + 2;
-        divisor = Math.floor(Math.random() * 40) + 11;
-        dividend = quotient * divisor;
-        break;
-      case 3:
-        quotient = Math.floor(Math.random() * 30) + 10;
-        divisor = Math.floor(Math.random() * 40) + 11;
-        dividend = quotient * divisor;
-        break;
-      case 4:
-        quotient = Math.floor(Math.random() * 20) + 5;
-        divisor = Math.floor(Math.random() * 15) + 5;
-        dividend = quotient * divisor;
-        break;
-      case 5:
-        quotient = Math.floor(Math.random() * 40) + 5;
-        divisor = Math.floor(Math.random() * 30) + 5;
-        dividend = quotient * divisor;
-        break;
+      case 1: quotient = Math.floor(Math.random() * 30) + 2; divisor = Math.floor(Math.random() * 8) + 2; dividend = quotient * divisor; break;
+      case 2: quotient = Math.floor(Math.random() * 15) + 2; divisor = Math.floor(Math.random() * 40) + 11; dividend = quotient * divisor; break;
+      case 3: quotient = Math.floor(Math.random() * 30) + 10; divisor = Math.floor(Math.random() * 40) + 11; dividend = quotient * divisor; break;
+      case 4: quotient = Math.floor(Math.random() * 20) + 5; divisor = Math.floor(Math.random() * 15) + 5; dividend = quotient * divisor; break;
+      case 5: quotient = Math.floor(Math.random() * 40) + 5; divisor = Math.floor(Math.random() * 30) + 5; dividend = quotient * divisor; break;
     }
     return { operations: [{ value: dividend, operator: '÷' }, { value: divisor, operator: '÷' }], answer: quotient, level };
   }
 
-  // مختلط
-  const mLevel = level;
+  // mixed
   const result: Array<{ value: number; operator: '+' | '-' | '×' | '÷'; }> = [];
-  let value = Math.floor(Math.random() * 5) + 4; // 4-8
+  let value = Math.floor(Math.random() * 5) + 4;
   result.push({ value, operator: '×' });
 
-  for (let i = 0; i < mLevel; i++) {
+  for (let i = 0; i < level; i++) {
     if (i % 2 === 0) {
       const div = Math.floor(Math.random() * 5) + 2;
-      value = div;
       result.push({ value: div, operator: '÷' });
     } else {
       const mult = Math.floor(Math.random() * 5) + 2;
@@ -321,18 +295,7 @@ function generateQuestion(section: SectionType, level: AnzanLevel): Question {
     }
   }
 
-  // حساب الإجابة يدوياً
   let answer = result[0].value;
-  for (let i = 1; i < result.length; i++) {
-    const op = result[i - 1].operator;
-    if (op === '×') answer *= result[i].value;
-    else if (op === '÷') answer = Math.floor(answer / result[i].value);
-  }
-  // آخر عملية
-  const lastOp = result[result.length - 1].operator;
-  // تم بالفعل احتساب جميع العمليات في الحلقة، لكن بحاجة لمعالجة الترتيب بشكل صحيح
-  // نبسّط: نعيد الحساب من البداية
-  answer = result[0].value;
   for (let i = 0; i < result.length - 1; i++) {
     const op = result[i].operator;
     if (op === '×') answer *= result[i + 1].value;
@@ -342,9 +305,6 @@ function generateQuestion(section: SectionType, level: AnzanLevel): Question {
   return { operations: result, answer, level };
 }
 
-// ═══════════════════════════════════════════════════════════════
-// توليد أسئلة الجولة (سؤال من كل مستوى)
-// ═══════════════════════════════════════════════════════════════
 function generateRound(section: SectionType): Question[] {
   const levels = getLevelsForSection(section);
   const unlockedLevels = levels.filter(l => l.unlocked).map(l => l.level);
@@ -365,9 +325,6 @@ function generateRound(section: SectionType): Question[] {
   return questions.slice(0, QUESTIONS_PER_ROUND);
 }
 
-// ═══════════════════════════════════════════════════════════════
-// عرض العمليات
-// ═══════════════════════════════════════════════════════════════
 function questionToString(q: Question): string {
   if (q.operations.length === 0) return '';
   const parts: string[] = [String(q.operations[0].value)];
@@ -388,6 +345,11 @@ function getColumnsForValue(value: number): number {
   if (value < 1000) return 3;
   if (value < 10000) return 4;
   return 5;
+}
+
+function getLevelTime(section: SectionType, level: AnzanLevel): number {
+  const lv = getLevelsForSection(section).find(l => l.level === level);
+  return lv ? lv.time : 20;
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -422,16 +384,13 @@ export function AnzanScreen({ onBack, playSound, onXP, burst }: Props) {
   const hasUnlockedLevels = levels.some(l => l.unlocked);
   const canStartRound = rounds.count < MAX_ROUNDS_PER_DAY;
 
-  // إيقاف الصوت عند الخروج
   useEffect(() => {
     return () => { stop(); };
   }, [section, phase, stop]);
 
-  // مؤقت السؤال
   useEffect(() => {
     if (phase !== 'answer' || !currentQ) return;
     if (timeLeft <= 0) {
-      // انتهى الوقت → خسر السؤال
       setFeedback('wrong');
       setTimeout(() => nextQuestion(false), 1200);
       return;
@@ -441,15 +400,9 @@ export function AnzanScreen({ onBack, playSound, onXP, burst }: Props) {
   }, [phase, timeLeft, currentQ]);
 
   const startRound = () => {
-    if (!canStartRound) {
-      playSound('error');
-      return;
-    }
+    if (!canStartRound) { playSound('error'); return; }
     const qs = generateRound(section);
-    if (qs.length === 0) {
-      playSound('error');
-      return;
-    }
+    if (qs.length === 0) { playSound('error'); return; }
     setQuestions(qs);
     setCurrentIdx(0);
     setAbacusValue(0);
@@ -460,11 +413,6 @@ export function AnzanScreen({ onBack, playSound, onXP, burst }: Props) {
     setTimeLeft(getLevelTime(section, qs[0].level));
     setPhase('answer');
     playSound('click');
-  };
-
-  const getLevelTime = (sec: SectionType, level: AnzanLevel): number => {
-    const lv = getLevelsForSection(sec).find(l => l.level === level);
-    return lv ? lv.time : 20;
   };
 
   const handleCheck = () => {
@@ -510,24 +458,18 @@ export function AnzanScreen({ onBack, playSound, onXP, burst }: Props) {
   };
 
   const finishRound = (correctLevels: number[], finalScore: number) => {
-    // تحديث الجولات
     const newRounds: RoundsData = { ...rounds, count: rounds.count + 1 };
     saveRounds(newRounds);
     setRounds(newRounds);
 
-    // تحديث تقدم المستويات
     const newProgress = { ...progress };
     const sectionProgress = [...newProgress[section]];
     const updatedBadges = { ...badges };
 
     for (const level of correctLevels) {
-      const idx = sectionProgress.indexOf(level);
-      // عدّاد: كم مرة نجح في هذا المستوى
-      // نستخدم مصفوفة من الأرقام المكررة لتمثيل العدّاد
       sectionProgress.push(level);
       const count = sectionProgress.filter(x => x === level).length;
       if (count >= CORRECT_TO_MASTER) {
-        // منح الشارة
         if (section === 'addition') updatedBadges.master_addition = true;
         if (section === 'multiplication') updatedBadges.master_multiplication = true;
         if (section === 'division') updatedBadges.master_division = true;
@@ -540,7 +482,6 @@ export function AnzanScreen({ onBack, playSound, onXP, burst }: Props) {
     saveAnzanBadges(updatedBadges);
     setBadges(updatedBadges);
 
-    // إذا كانت الشارة مكتسبة
     const justEarned =
       (section === 'addition' && updatedBadges.master_addition && !badges.master_addition) ||
       (section === 'multiplication' && updatedBadges.master_multiplication && !badges.master_multiplication) ||
@@ -560,23 +501,17 @@ export function AnzanScreen({ onBack, playSound, onXP, burst }: Props) {
 
   return (
     <div className="px-3 sm:px-6 py-6 max-w-2xl mx-auto" dir="rtl">
-      {/* Header */}
       <div className="flex items-center gap-3 mb-6">
         <button onClick={() => { stop(); playSound('click'); onBack(); }} className="btn-ghost !px-3 !py-2">
           <ArrowRight className="w-5 h-5" />
         </button>
         <div className="flex-1">
-          <h2 className="text-2xl sm:text-3xl font-extrabold font-display text-white">
-            التصور الذهني
-          </h2>
-          <p className="text-sm text-white/50 font-body">
-            {SECTION_STORIES[section]}
-          </p>
+          <h2 className="text-2xl sm:text-3xl font-extrabold font-display text-white">التصور الذهني</h2>
+          <p className="text-sm text-white/50 font-body">{SECTION_STORIES[section]}</p>
         </div>
         <Brain className="w-6 h-6 text-purple-300" />
       </div>
 
-      {/* Section Tabs */}
       <div className="flex gap-2 mb-5 overflow-x-auto pb-1">
         {(['addition', 'multiplication', 'division', 'mixed'] as SectionType[]).map((s) => (
           <button
@@ -591,7 +526,6 @@ export function AnzanScreen({ onBack, playSound, onXP, burst }: Props) {
         ))}
       </div>
 
-      {/* الجولات اليومية */}
       <div className="flex items-center justify-between mb-4 p-3 rounded-2xl bg-white/5 border border-white/10">
         <div className="flex items-center gap-2">
           <Zap className="w-4 h-4 text-electric-300" />
@@ -602,7 +536,6 @@ export function AnzanScreen({ onBack, playSound, onXP, burst }: Props) {
         </span>
       </div>
 
-      {/* حالة الشارات */}
       {(badges.master_addition || badges.master_multiplication || badges.master_division || badges.master_mixed) && (
         <div className="flex gap-2 mb-4 flex-wrap">
           {badges.master_addition && (
@@ -628,13 +561,12 @@ export function AnzanScreen({ onBack, playSound, onXP, burst }: Props) {
         </div>
       )}
 
-      {/* ======================= INTRO ======================= */}
       {phase === 'intro' && (
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
           {!hasUnlockedLevels ? (
             <div className="glass-card p-6 text-center">
               <Lock className="w-12 h-12 text-amber-300 mx-auto mb-3" />
-              <h3 className="text-lg font-bold text-white mb-2">لا توجد مستويات مفتوحة</p>
+              <h3 className="text-lg font-bold text-white mb-2">لا توجد مستويات مفتوحة</h3>
               <p className="text-sm text-white/60 font-body leading-relaxed">
                 {section === 'multiplication' && 'أكمل دروس الضرب أولاً'}
                 {section === 'division' && 'أكمل دروس القسمة أولاً'}
@@ -645,9 +577,7 @@ export function AnzanScreen({ onBack, playSound, onXP, burst }: Props) {
             <div className="glass-card p-6 text-center">
               <Trophy className="w-12 h-12 text-gold-300 mx-auto mb-3" />
               <h3 className="text-lg font-bold text-white mb-2">انتهت جولات اليوم</h3>
-              <p className="text-sm text-white/60 font-body">
-                عد غداً لمتابعة التدريب 💪
-              </p>
+              <p className="text-sm text-white/60 font-body">عد غداً لمتابعة التدريب 💪</p>
             </div>
           ) : (
             <>
@@ -694,7 +624,6 @@ export function AnzanScreen({ onBack, playSound, onXP, burst }: Props) {
         </motion.div>
       )}
 
-      {/* ======================= ANSWER ======================= */}
       {phase === 'answer' && currentQ && (
         <div className="space-y-4">
           <div className="text-center">
@@ -750,14 +679,11 @@ export function AnzanScreen({ onBack, playSound, onXP, burst }: Props) {
         </div>
       )}
 
-      {/* ======================= RESULT ======================= */}
       {phase === 'result' && (
         <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="glass-card p-6 text-center">
           <Trophy className="w-16 h-16 text-gold-300 mx-auto mb-4" />
           <h2 className="text-2xl font-bold text-white mb-2">انتهت الجولة!</h2>
-          <p className="text-4xl font-black text-amber-300 mb-4">
-            +{toArabicNumber(roundScore)} XP
-          </p>
+          <p className="text-4xl font-black text-amber-300 mb-4">+{toArabicNumber(roundScore)} XP</p>
           <p className="text-sm text-white/60 mb-6">
             أكملت {toArabicNumber(roundCorrect.length)} من {toArabicNumber(questions.length)} سؤالاً
           </p>
