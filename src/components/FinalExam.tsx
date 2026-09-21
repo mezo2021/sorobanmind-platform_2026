@@ -1,13 +1,18 @@
-// src/components/FinalExam.tsx
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
   ArrowRight, CheckCircle2, Trophy, RotateCcw, Award,
   SkipForward, FileText, AlertCircle, Lock, BookOpen,
+  Brain, Grid3X3, Wand2, Divide,
 } from 'lucide-react';
 import { InteractiveSoroban } from './InteractiveSoroban';
-import { pickRandomExamQuestions, type ExamQuestion } from '@/examBank';
 import { LEARN_MODULES } from '@/data';
+import {
+  pickAdditionExam,
+  pickMultDivExam,
+  loadAnzanBadges,
+  type ExamQuestion,
+} from '@/examBank2';
 
 interface FinalExamProps {
   onBack: () => void;
@@ -23,6 +28,7 @@ const MAX_ATTEMPTS_BEFORE_SKIP = 5;
 const COMPLETED_STORAGE_KEY = 'soroban-completed-lessons';
 
 type ExamState = 'intro' | 'running' | 'finished';
+type ExamTab = 'addition' | 'multdiv';
 
 function toArabicNumber(value: number | string): string {
   return String(value).replace(/\d/g, (d) => '٠١٢٣٤٥٦٧٨٩'[Number(d)]);
@@ -45,8 +51,7 @@ function questionToString(q: ExamQuestion): string {
   return parts.join(' ') + ' = ؟';
 }
 
-/** يتحقق أن كل الدروس (0-9) قد أكملت */
-function isExamUnlocked(): boolean {
+function isLessonsCompleted(): boolean {
   try {
     const saved = localStorage.getItem(COMPLETED_STORAGE_KEY);
     if (!saved) return false;
@@ -62,15 +67,30 @@ function getCompletedCount(): number {
   try {
     const saved = localStorage.getItem(COMPLETED_STORAGE_KEY);
     if (!saved) return 0;
-    const completed: number[] = JSON.parse(saved);
-    return completed.length;
+    return JSON.parse(saved).length;
   } catch {
     return 0;
   }
 }
 
+// ✨ حالة فتح كل امتحان
+function checkExamUnlock() {
+  const lessonsCompleted = isLessonsCompleted();
+  const badges = loadAnzanBadges();
+  return {
+    lessonsCompleted,
+    additionUnlocked: lessonsCompleted && !!badges.master_addition,
+    multdivUnlocked:
+      lessonsCompleted &&
+      !!badges.master_multiplication &&
+      !!badges.master_division &&
+      !!badges.master_mixed,
+  };
+}
+
 export function FinalExam({ onBack, onComplete, playSound, onGoToLearn }: FinalExamProps) {
   const [state, setState] = useState<ExamState>('intro');
+  const [tab, setTab] = useState<ExamTab>('addition');
   const [questions, setQuestions] = useState<ExamQuestion[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [abacusValue, setAbacusValue] = useState(0);
@@ -78,12 +98,11 @@ export function FinalExam({ onBack, onComplete, playSound, onGoToLearn }: FinalE
   const [attempts, setAttempts] = useState(0);
   const [answers, setAnswers] = useState<Array<{ correct: boolean }>>([]);
 
-  // 🔒 حالة القفل
-  const [unlocked, setUnlocked] = useState(false);
+  const [unlock, setUnlock] = useState(checkExamUnlock());
   const [completedCount, setCompletedCount] = useState(0);
 
   useEffect(() => {
-    setUnlocked(isExamUnlocked());
+    setUnlock(checkExamUnlock());
     setCompletedCount(getCompletedCount());
   }, []);
 
@@ -93,13 +112,18 @@ export function FinalExam({ onBack, onComplete, playSound, onGoToLearn }: FinalE
   const canSkip = attempts >= MAX_ATTEMPTS_BEFORE_SKIP;
   const totalLevels = LEARN_MODULES.length;
 
+  const isCurrentTabUnlocked =
+    tab === 'addition' ? unlock.additionUnlocked : unlock.multdivUnlocked;
+
   const startExam = () => {
-    if (!unlocked) {
+    if (!isCurrentTabUnlocked) {
       playSound('error');
       return;
     }
     playSound('click');
-    setQuestions(pickRandomExamQuestions());
+    const examQuestions =
+      tab === 'addition' ? pickAdditionExam() : pickMultDivExam();
+    setQuestions(examQuestions);
     setCurrentIndex(0);
     setAbacusValue(0);
     setFeedback('idle');
@@ -152,7 +176,7 @@ export function FinalExam({ onBack, onComplete, playSound, onGoToLearn }: FinalE
   };
 
   // ═══════════════════════════════════════════════════════
-  // شاشة الترحيب + القفل
+  // شاشة الترحيب
   // ═══════════════════════════════════════════════════════
   if (state === 'intro') {
     const remaining = totalLevels - completedCount;
@@ -169,29 +193,92 @@ export function FinalExam({ onBack, onComplete, playSound, onGoToLearn }: FinalE
           </button>
         </div>
 
+        {/* Tabs */}
+        <div className="flex gap-2 mb-6 bg-white/5 p-1 rounded-2xl">
+          <button
+            onClick={() => { playSound('click'); setTab('addition'); }}
+            className={`flex-1 py-3 rounded-xl font-bold transition text-sm flex items-center justify-center gap-2 ${
+              tab === 'addition' ? 'bg-purple-600 shadow-lg' : 'text-white/60'
+            }`}
+          >
+            <Brain className="w-4 h-4" /> جمع وطرح
+          </button>
+          <button
+            onClick={() => { playSound('click'); setTab('multdiv'); }}
+            className={`flex-1 py-3 rounded-xl font-bold transition text-sm flex items-center justify-center gap-2 ${
+              tab === 'multdiv' ? 'bg-purple-600 shadow-lg' : 'text-white/60'
+            }`}
+          >
+            <Grid3X3 className="w-4 h-4" /> ضرب وقسمة
+          </button>
+        </div>
+
         <motion.div
+          key={tab}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="glass-strong p-8 text-center"
         >
-          {/* أيقونة القفل/الامتحان */}
           <div className={`inline-flex items-center justify-center w-20 h-20 rounded-3xl shadow-2xl mb-4 ${
-            unlocked
+            isCurrentTabUnlocked
               ? 'bg-gradient-to-br from-gold-400 to-purple-600'
               : 'bg-gradient-to-br from-slate-600 to-slate-800'
           }`}>
-            {unlocked ? (
+            {isCurrentTabUnlocked ? (
               <FileText className="w-10 h-10 text-white" />
             ) : (
               <Lock className="w-10 h-10 text-white/60" />
             )}
           </div>
 
-          <h2 className="text-3xl font-black font-display text-white mb-3">
-            {unlocked ? 'الامتحان النهائي 🏆' : 'الامتحان مقفل 🔒'}
+          <h2 className="text-2xl font-black font-display text-white mb-3">
+            {tab === 'addition'
+              ? isCurrentTabUnlocked
+                ? 'امتحان جمع وطرح 🏆'
+                : 'امتحان جمع وطرح — مقفل 🔒'
+              : isCurrentTabUnlocked
+                ? 'امتحان ضرب وقسمة 🏆'
+                : 'امتحان ضرب وقسمة — مقفل 🔒'}
           </h2>
 
-          {unlocked ? (
+          {/* شروط فتح الامتحان */}
+          {!unlock.lessonsCompleted && (
+            <div className="p-4 rounded-2xl bg-white/5 border border-white/10 mb-4">
+              <p className="text-xs text-white/50 font-body mb-2">
+                📚 إكمال دروس التعلّم (0-9)
+              </p>
+              <div className="h-3 rounded-full bg-white/10 overflow-hidden">
+                <motion.div
+                  className="h-full rounded-full bg-gradient-to-r from-purple-400 to-electric-500"
+                  initial={{ width: 0 }}
+                  animate={{ width: `${(completedCount / totalLevels) * 100}%` }}
+                  transition={{ duration: 0.6 }}
+                />
+              </div>
+              <p className="text-xs text-white/50 font-body mt-2">
+                {toArabicNumber(completedCount)} / {toArabicNumber(totalLevels)} — باقي {toArabicNumber(remaining)}
+              </p>
+            </div>
+          )}
+
+          {unlock.lessonsCompleted && tab === 'addition' && !unlock.additionUnlocked && (
+            <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-400/30 mb-4">
+              <p className="text-sm text-amber-100 font-body leading-relaxed">
+                🏅 تحتاج شارة <span className="font-bold">"خبير جمع وطرح"</span> من قسم الأنزان لفتح هذا الامتحان.
+              </p>
+            </div>
+          )}
+
+          {unlock.lessonsCompleted && tab === 'multdiv' && !unlock.multdivUnlocked && (
+            <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-400/30 mb-4">
+              <p className="text-sm text-amber-100 font-body leading-relaxed">
+                🏅 تحتاج ٣ شارات من قسم الأنزان:{' '}
+                <span className="font-bold">خبير ضرب + خبير قسمة + خبير مختلط</span>.
+              </p>
+            </div>
+          )}
+
+          {isCurrentTabUnlocked && (
             <>
               <p className="text-white/60 font-body mb-6 leading-relaxed">
                 هذا الامتحان يقيس إتقانك لكل ما تعلمته. ركّز، واستخدم المعداد التفاعلي لتمثيل الناتج.
@@ -227,7 +314,7 @@ export function FinalExam({ onBack, onComplete, playSound, onGoToLearn }: FinalE
               <div className="flex gap-2 p-3 rounded-2xl bg-electric-500/10 border border-electric-400/30 mb-6 text-right">
                 <AlertCircle className="w-5 h-5 text-electric-300 shrink-0 mt-0.5" />
                 <p className="text-xs text-white/70 font-body leading-relaxed">
-                  لن تظهر الإجابة الصحيحة أثناء الامتحان. إذا احترت في سؤال، يمكنك تخطّيه بعد عدة محاولات.
+                  لن تظهر الإجابة الصحيحة أثناء الامتحان. يمكنك تخطّي السؤال بعد 5 محاولات.
                 </p>
               </div>
 
@@ -236,45 +323,16 @@ export function FinalExam({ onBack, onComplete, playSound, onGoToLearn }: FinalE
                 ابدأ الامتحان
               </button>
             </>
-          ) : (
-            <>
-              <p className="text-white/60 font-body mb-6 leading-relaxed">
-                عليك إكمال جميع دروس التعلّم قبل أن تتمكن من دخول الامتحان النهائي.
-              </p>
+          )}
 
-              {/* شريط التقدم */}
-              <div className="p-5 rounded-2xl bg-white/5 border border-white/10 mb-6">
-                <div className="flex items-center justify-between mb-2">
-                  <p className="text-xs text-white/50 font-body">
-                    الدروس المُكتملة
-                  </p>
-                  <p className="text-xs text-gold-300 font-black font-display">
-                    {toArabicNumber(completedCount)} / {toArabicNumber(totalLevels)}
-                  </p>
-                </div>
-                <div className="h-3 rounded-full bg-white/10 overflow-hidden">
-                  <motion.div
-                    className="h-full rounded-full bg-gradient-to-r from-purple-400 to-electric-500"
-                    initial={{ width: 0 }}
-                    animate={{ width: `${(completedCount / totalLevels) * 100}%` }}
-                    transition={{ duration: 0.6 }}
-                  />
-                </div>
-                <p className="text-xs text-white/50 font-body mt-3 text-center">
-                  باقي {toArabicNumber(remaining)} {remaining === 1 ? 'درس' : 'دروس'} لإكمالها
-                </p>
-              </div>
-
-              {onGoToLearn && (
-                <button
-                  onClick={() => { playSound('click'); onGoToLearn(); }}
-                  className="btn-primary w-full !py-4 !text-lg"
-                >
-                  <BookOpen className="w-6 h-6" />
-                  اذهب إلى الدروس
-                </button>
-              )}
-            </>
+          {!unlock.lessonsCompleted && onGoToLearn && (
+            <button
+              onClick={() => { playSound('click'); onGoToLearn(); }}
+              className="btn-primary w-full !py-4 !text-lg"
+            >
+              <BookOpen className="w-6 h-6" />
+              اذهب إلى الدروس
+            </button>
           )}
         </motion.div>
       </div>
@@ -318,7 +376,7 @@ export function FinalExam({ onBack, onComplete, playSound, onGoToLearn }: FinalE
 
           <p className="text-white/70 font-body mb-6">
             {passed
-              ? 'لقد اجتزت الامتحان النهائي بنجاح!'
+              ? 'لقد اجتزت الامتحان بنجاح!'
               : 'لم تصل إلى درجة النجاح بعد. لا بأس، التدريب يجعلك أقوى.'}
           </p>
 
@@ -375,7 +433,9 @@ export function FinalExam({ onBack, onComplete, playSound, onGoToLearn }: FinalE
           <ArrowRight className="w-5 h-5" />
         </button>
         <div className="flex-1 text-center">
-          <p className="text-sm text-white/60 font-body">الامتحان النهائي</p>
+          <p className="text-sm text-white/60 font-body">
+            {tab === 'addition' ? 'امتحان جمع وطرح' : 'امتحان ضرب وقسمة'}
+          </p>
         </div>
         <div className="px-3 py-1.5 rounded-xl bg-gold-400/15 border border-gold-400/30">
           <p className="text-xs font-black text-gold-300 font-display">
@@ -435,17 +495,11 @@ export function FinalExam({ onBack, onComplete, playSound, onGoToLearn }: FinalE
           } !py-3`}
         >
           {feedback === 'correct' ? (
-            <>
-              <CheckCircle2 className="w-5 h-5" />
-              أحسنت!
-            </>
+            <><CheckCircle2 className="w-5 h-5" /> أحسنت!</>
           ) : feedback === 'wrong' ? (
             <>❌ حاول مرة أخرى</>
           ) : (
-            <>
-              <CheckCircle2 className="w-5 h-5" />
-              تحقق
-            </>
+            <><CheckCircle2 className="w-5 h-5" /> تحقق</>
           )}
         </button>
         {abacusValue !== 0 && feedback === 'idle' && (
