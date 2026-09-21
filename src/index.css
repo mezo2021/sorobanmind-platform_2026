@@ -107,3 +107,26 @@ body {
   background: rgba(168, 85, 247, 0.35);
   color: #fff;
 }
+
+/* ✅ منع Pull-to-Refresh في Chrome على Android */
+html, body {
+  overscroll-behavior-y: contain;
+  overscroll-behavior-x: none;
+}
+
+/* ✅ منع التمرير الأفقي غير المرغوب */
+body {
+  overflow-x: hidden;
+}
+
+/* ✅ تحسين الأداء على الجوال */
+* {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+}
+
+/* ✅ السماح بالتمرير العمودي داخل التطبيق */
+#root {
+  min-height: 100vh;
+  overscroll-behavior-y: contain;
+}
