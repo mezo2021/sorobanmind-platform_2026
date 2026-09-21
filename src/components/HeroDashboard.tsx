@@ -227,14 +227,33 @@ export function HeroDashboard({
     return true;
   };
 
+  // ✅ فتح كل شيء (امتحان + دروس + شارات الأنزان)
   const handleTestUnlock = () => {
     try {
+      // 1. اجتياز الامتحان
       localStorage.setItem(
         'soroban_exam_result',
         JSON.stringify({ score: 100, passed: true, date: Date.now() })
       );
+
+      // 2. إكمال كل الدروس
       const allLessons = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
-      localStorage.setItem('soroban-completed-lessons', JSON.stringify(allLessons));
+      localStorage.setItem(
+        'soroban-completed-lessons',
+        JSON.stringify(allLessons)
+      );
+
+      // 3. منح شارات الأنزان الأربعة
+      localStorage.setItem(
+        'soroban_anzan_badges',
+        JSON.stringify({
+          master_addition: true,
+          master_multiplication: true,
+          master_division: true,
+          master_mixed: true,
+        })
+      );
+
       playSound('whoosh');
       setTimeout(() => window.location.reload(), 300);
     } catch { /* ignore */ }
@@ -296,35 +315,39 @@ export function HeroDashboard({
               </div>
               <p className="text-[10px] text-white/50 font-body">أيام متتالية</p>
             </div>
-
-            <button
-              type="button"
-              onClick={() => { playSound('click'); setShowSelector(true); }}
-              className="flex items-center gap-2 px-3 py-2 rounded-2xl bg-gradient-to-br from-purple-500/20 to-electric-500/20 border border-purple-400/30 text-purple-200 hover:from-purple-500/30 hover:to-electric-500/30 transition-all text-xs font-body"
-            >
-              <Palette className="w-4 h-4" />
-              <span className="hidden sm:inline">تغيير الرفيق</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={handleTestUnlock}
-              className="flex items-center gap-2 px-3 py-2 rounded-2xl bg-emerald-500/15 border border-emerald-400/40 text-emerald-200 hover:bg-emerald-500/25 transition-all text-xs font-body"
-              title="فتح كل الدروس للاختبار"
-            >
-              <Unlock className="w-4 h-4" />
-              <span className="hidden sm:inline">فتح الكل</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => { playSound('click'); setShowResetConfirm(true); }}
-              className="flex items-center gap-2 px-3 py-2 rounded-2xl bg-red-500/10 border border-red-400/30 text-red-300 hover:bg-red-500/20 transition-all text-xs font-body"
-            >
-              <Trash2 className="w-4 h-4" />
-              <span className="hidden sm:inline">تصفير</span>
-            </button>
           </div>
+        </div>
+
+        {/* ⚙️ أزرار التحكم - الآن ظاهرة على الموبايل */}
+        <div className="relative flex items-center gap-2 mt-4 flex-wrap">
+          <button
+            type="button"
+            onClick={() => { playSound('click'); setShowSelector(true); }}
+            className="flex items-center gap-2 px-3 py-2 rounded-2xl bg-gradient-to-br from-purple-500/20 to-electric-500/20 border border-purple-400/30 text-purple-200 hover:from-purple-500/30 hover:to-electric-500/30 transition-all text-xs font-body"
+          >
+            <Palette className="w-4 h-4" />
+            <span>تغيير الرفيق</span>
+          </button>
+
+          {/* ✅ زر "فتح الكل" — ظاهر على الموبايل */}
+          <button
+            type="button"
+            onClick={handleTestUnlock}
+            className="flex items-center gap-2 px-3 py-2 rounded-2xl bg-emerald-500/20 border border-emerald-400/50 text-emerald-100 hover:bg-emerald-500/30 transition-all text-xs font-bold font-body"
+            title="فتح كل الدروس والامتحانات للاختبار"
+          >
+            <Unlock className="w-4 h-4" />
+            <span>فتح الكل</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => { playSound('click'); setShowResetConfirm(true); }}
+            className="flex items-center gap-2 px-3 py-2 rounded-2xl bg-red-500/10 border border-red-400/30 text-red-300 hover:bg-red-500/20 transition-all text-xs font-body"
+          >
+            <Trash2 className="w-4 h-4" />
+            <span>تصفير</span>
+          </button>
         </div>
       </motion.div>
 
@@ -392,7 +415,7 @@ export function HeroDashboard({
         </div>
       </motion.div>
 
-      {/* MAIN ACTION CARDS — 2 cols desktop, 1 col mobile */}
+      {/* MAIN ACTION CARDS */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-8">
         {ACTION_CARDS.map((card, i) => {
           const Icon = card.icon;
@@ -434,9 +457,7 @@ export function HeroDashboard({
                 {card.titleEn}
               </p>
               <p className="text-[11px] sm:text-xs text-white/60 font-body leading-snug">
-                {isLocked
-                  ? '🔒 اجتز الامتحان النهائي لفتح هذا الدرس'
-                  : card.desc}
+                {isLocked ? '🔒 اجتز الامتحان النهائي لفتح هذا الدرس' : card.desc}
               </p>
             </motion.button>
           );
