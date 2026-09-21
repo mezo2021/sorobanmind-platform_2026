@@ -9,6 +9,7 @@ interface Bead2D5Props {
   position: 'upper' | 'lower';
   size?: number;
   onClick?: () => void;
+  /** إذا false، لا يتحرك المكوّن داخلياً (الحركة من الأب) */
   animateOffset?: boolean;
 }
 
@@ -39,7 +40,7 @@ export function Bead2D5({
   color,
   active,
   position,
-  size = 48,
+  size = 30,
   onClick,
   animateOffset = true,
 }: Bead2D5Props) {
@@ -52,6 +53,7 @@ export function Bead2D5({
     onClick?.();
   };
 
+  // ✅ إذا animateOffset = false، الأب (Rod2D5) هو من يتحكم في الحركة
   const offset = animateOffset
     ? position === 'upper'
       ? active
@@ -91,6 +93,7 @@ export function Bead2D5({
         transformStyle: 'preserve-3d',
       }}
     >
+      {/* لمعة زجاجية */}
       <span
         style={{
           position: 'absolute',
@@ -104,6 +107,7 @@ export function Bead2D5({
           pointerEvents: 'none',
         }}
       />
+      {/* ثقب الخرزة */}
       <span
         style={{
           position: 'absolute',
