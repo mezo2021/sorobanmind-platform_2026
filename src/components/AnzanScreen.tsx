@@ -17,7 +17,6 @@ import {
 type Phase = 'intro' | 'answer' | 'result';
 type SectionType = 'addition' | 'multiplication' | 'division' | 'mixed';
 type AnzanLevel = 1 | 2 | 3 | 4 | 5;
-// type AnzanMode = 'visual' | 'audio'; // تمت إزالته واستخدام النوع المباشر في useState
 
 const ANZAN_PROGRESS_KEY = 'soroban_anzan_progress';
 const ANZAN_ROUNDS_KEY = 'soroban_anzan_rounds';
@@ -320,8 +319,8 @@ interface Props {
 }
 
 export function AnzanScreen({ onBack, playSound, onXP, burst }: Props) {
-  // ✅ التعديل هنا: تعريف النوع بشكل صريح داخل useState
-  const [anzanMode, setAnzanMode] = useState<'visual' | 'audio'>('visual');
+  // ✅ الحل الجذري: استخدام Boolean بدلاً من مقارنة النصوص
+  const [isAudioMode, setIsAudioMode] = useState<boolean>(false);
   const [section, setSection] = useState<SectionType>('addition');
   const [phase, setPhase] = useState<Phase>('intro');
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -444,12 +443,12 @@ export function AnzanScreen({ onBack, playSound, onXP, burst }: Props) {
   // ═══════════════════════════════════════════════════════════════
   // ✅ إذا كان الوضع "سماعي" — عرض AudioAnzanScreen
   // ═══════════════════════════════════════════════════════════════
-  if (anzanMode === 'audio') {
+  if (isAudioMode) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-slate-900 via-purple-950 to-slate-900" dir="rtl">
         <div className="px-3 sm:px-6 py-4 max-w-2xl mx-auto">
           <button
-            onClick={() => { stop(); playSound('click'); setAnzanMode('visual'); }}
+            onClick={() => { stop(); playSound('click'); setIsAudioMode(false); }}
             className="mb-4 flex items-center gap-2 px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-sm font-bold"
           >
             <ArrowRight className="w-4 h-4" /> العودة للأنزان البصري
@@ -485,17 +484,17 @@ export function AnzanScreen({ onBack, playSound, onXP, burst }: Props) {
       {/* ✅ التبويب الرئيسي: بصري / سماعي */}
       <div className="flex gap-2 mb-5 bg-white/5 p-1 rounded-2xl">
         <button
-          onClick={() => { stop(); playSound('click'); setAnzanMode('visual'); }}
+          onClick={() => { stop(); playSound('click'); setIsAudioMode(false); }}
           className={`flex-1 py-3 rounded-xl font-bold transition text-sm flex items-center justify-center gap-2 ${
-            anzanMode === 'visual' ? 'bg-purple-600 shadow-lg' : 'text-white/60'
+            !isAudioMode ? 'bg-purple-600 shadow-lg' : 'text-white/60'
           }`}
         >
           <Eye className="w-4 h-4" /> الأنزان البصري
         </button>
         <button
-          onClick={() => { stop(); playSound('click'); setAnzanMode('audio'); }}
+          onClick={() => { stop(); playSound('click'); setIsAudioMode(true); }}
           className={`flex-1 py-3 rounded-xl font-bold transition text-sm flex items-center justify-center gap-2 ${
-            anzanMode === 'audio' ? 'bg-purple-600 shadow-lg' : 'text-white/60'
+            isAudioMode ? 'bg-purple-600 shadow-lg' : 'text-white/60'
           }`}
         >
           <Volume2 className="w-4 h-4" /> الأنزان السماعي
