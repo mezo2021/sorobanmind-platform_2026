@@ -13,6 +13,8 @@ interface Soroban2D5Props {
   interactive?: boolean;
   demoValue?: number;
   size?: 'sm' | 'md' | 'lg' | 'auto';
+  /** ✅ إذا true — يتغير حجم الخرزة تلقائياً حسب عدد الأعمدة */
+  autoBeadSize?: boolean;
 }
 
 function useResponsiveSize() {
@@ -38,45 +40,53 @@ function useResponsiveSize() {
   return size;
 }
 
-/** ✅ تكبير الخرزات بنسبة 30% */
 const SIZE_CONFIG = {
   sm: {
-    beadSize: 34,        // ← كان 26
-    rodWidth: 40,        // ← كان 32
+    beadSize: 34,
+    rodWidth: 40,
     gap: 10,
     framePadding: 14,
     innerPadding: 12,
-    height: 380,         // ← كان 340
+    height: 380,
     topPadding: 34,
     bottomPadding: 10,
     titleSize: 'text-base',
     valueSize: 'text-2xl',
   },
   md: {
-    beadSize: 44,        // ← كان 34
-    rodWidth: 52,        // ← كان 42
+    beadSize: 44,
+    rodWidth: 52,
     gap: 14,
     framePadding: 18,
     innerPadding: 14,
-    height: 440,         // ← كان 400
+    height: 440,
     topPadding: 40,
     bottomPadding: 12,
     titleSize: 'text-lg',
     valueSize: 'text-3xl',
   },
   lg: {
-    beadSize: 56,        // ← كان 44
-    rodWidth: 64,        // ← كان 52
+    beadSize: 56,
+    rodWidth: 64,
     gap: 20,
     framePadding: 26,
     innerPadding: 18,
-    height: 520,         // ← كان 480
+    height: 520,
     topPadding: 48,
     bottomPadding: 14,
     titleSize: 'text-2xl',
     valueSize: 'text-5xl',
   },
 };
+
+/** ✅ حجم الخرزة التلقائي حسب عدد الأعمدة */
+function getAutoBeadSize(columns: number): number {
+  if (columns <= 2) return 44;
+  if (columns === 3) return 38;
+  if (columns === 4) return 32;
+  if (columns === 5) return 28;
+  return 24;
+}
 
 export function Soroban2D5({
   columns = 4,
@@ -86,6 +96,7 @@ export function Soroban2D5({
   interactive = true,
   demoValue,
   size = 'auto',
+  autoBeadSize = false,
 }: Soroban2D5Props) {
   const {
     columns: colStates,
@@ -113,6 +124,16 @@ export function Soroban2D5({
 
   const displayedStates = colStates.slice(-visibleColumns);
   const displayOffset = columns - visibleColumns;
+
+  // ✅ الحجم الفعّال للخرزة
+  const effectiveBeadSize = autoBeadSize
+    ? getAutoBeadSize(displayedStates.length)
+    : cfg.beadSize;
+
+  // ✅ ارتفاع متناسق مع حجم الخرزة
+  const effectiveHeight = autoBeadSize
+    ? Math.round(cfg.height * (effectiveBeadSize / cfg.beadSize))
+    : cfg.height;
 
   useEffect(() => {
     if (initialValue > 0) setValue(initialValue);
@@ -186,8 +207,8 @@ export function Soroban2D5({
                   onToggleUpper={() => interactive && toggleUpper(originalIdx)}
                   onSetLower={(count) => interactive && setLower(originalIdx, count)}
                   onReset={() => interactive && resetColumn(originalIdx)}
-                  height={cfg.height}
-                  beadSize={cfg.beadSize}
+                  height={effectiveHeight}
+                  beadSize={effectiveBeadSize}
                 />
               );
             })}
