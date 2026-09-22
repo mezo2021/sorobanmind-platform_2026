@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ImageAvatar } from './avatars/ImageAvatar';
 import { useCharacterVoice } from '@/hooks/useCharacterVoice';
 import type { CharacterType } from '@/types';
 
@@ -58,7 +57,7 @@ interface FloatingCompanionProps {
 
 export function FloatingCompanion({
   playSound,
-  size = 76,
+  size = 100,
   offsetBottom = '1.5rem',
 }: FloatingCompanionProps) {
   const [character] = useState<CharacterType>(() => getStoredCharacter());
@@ -169,7 +168,7 @@ export function FloatingCompanion({
         whileTap={{ scale: 0.9 }}
       >
         <motion.div
-          className={`w-full h-full rounded-full bg-gradient-to-br ${gradient} flex items-end justify-center shadow-inner overflow-hidden`}
+          className={`w-full h-full rounded-full bg-gradient-to-br ${gradient} flex items-end justify-center shadow-inner overflow-hidden relative`}
           animate={{
             y: isSpeaking ? [0, -3, 0, -3, 0] : [0, -4, 0],
             scale: isSpeaking ? [1, 1.07, 1] : 1,
@@ -180,11 +179,17 @@ export function FloatingCompanion({
             ease: 'easeInOut',
           }}
         >
-          <ImageAvatar
+          <img
             src={data.image}
             alt={data.name}
-            className="w-full h-full drop-shadow-lg"
-            motionType="breathe"
+            className="w-full h-full select-none pointer-events-none"
+            style={{
+              objectFit: 'cover',
+              objectPosition: 'center top',
+              transform: 'scale(1.35) translateY(8%)',
+              transformOrigin: 'center center',
+            }}
+            draggable={false}
           />
         </motion.div>
       </motion.button>
