@@ -76,10 +76,12 @@ function shuffle<T>(arr: T[]): T[] {
   return a;
 }
 
-/** ✅ حساب عدد الأعمدة — 3 للأعداد الصغيرة، 6 للأعداد ≥ 1000 */
+/** ✅ عدد الأعمدة التلقائي — من 2 إلى 5 حسب قيمة الناتج */
 function getColumnsForValue(value: number): number {
+  if (value < 100) return 2;
   if (value < 1000) return 3;
-  return 6;
+  if (value < 10000) return 4;
+  return 5;
 }
 
 function generateMultQuestion(): PracticeQuestion {
@@ -318,7 +320,6 @@ export function PracticeScreen({ onBack, playSound, onXP, burst }: PracticeScree
     playSound('click');
   };
 
-  // ============ حالة: لا توجد أسئلة ============
   if (!question && !finished) {
     return (
       <div className="px-6 py-6 max-w-2xl mx-auto flex flex-col items-center justify-center min-h-[70vh]">
@@ -332,7 +333,6 @@ export function PracticeScreen({ onBack, playSound, onXP, burst }: PracticeScree
     );
   }
 
-  // ============ حالة: انتهى التدريب ============
   if (finished) {
     return (
       <div className="px-6 py-6 max-w-2xl mx-auto flex flex-col items-center justify-center min-h-[70vh]">
@@ -364,7 +364,6 @@ export function PracticeScreen({ onBack, playSound, onXP, burst }: PracticeScree
     );
   }
 
-  // ============ الشاشة الرئيسية ============
   return (
     <div className="px-3 sm:px-6 py-6 max-w-2xl mx-auto" dir="rtl">
       <div className="flex items-center gap-3 mb-6">
@@ -465,6 +464,7 @@ export function PracticeScreen({ onBack, playSound, onXP, burst }: PracticeScree
               <Soroban2D5
                 key={`practice-${index}`}
                 columns={getColumnsForValue(question.answer)}
+                autoBeadSize={true}
                 interactive={true}
                 showValue={true}
                 onValueChange={handleValueChange}
@@ -504,13 +504,14 @@ export function PracticeScreen({ onBack, playSound, onXP, burst }: PracticeScree
         </motion.div>
       </AnimatePresence>
 
-      {/* ✅ سوروبانا — حجم كبير (80% من طول عمود السوروبان) */}
+      {/* ✅ سوروبانا — حجم 220 + لا تعترض النقر */}
       <SorobanaCompanion
         isSpeaking={sorobana.isSpeaking}
         onClick={() => sorobana.speakTeaching()}
         variant="pointing"
         sizeOverride={220}
         offsetBottom="10rem"
+        clickThrough={true}
       />
     </div>
   );
