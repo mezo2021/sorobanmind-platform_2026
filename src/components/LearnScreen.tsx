@@ -255,9 +255,11 @@ export function LearnScreen({ onBack, playSound, onXP, onNavigate }: LearnScreen
     try { localStorage.setItem(PROGRESS_STORAGE_KEY, JSON.stringify(lessonProgress)); } catch { /* ignore */ }
   }, [lessonProgress]);
 
+  // ✅ إيقاف الصوت عند إغلاق الشاشة فقط (مرة واحدة)
   useEffect(() => {
     return () => { sorobana.stop(); };
-  }, [sorobana]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     if (!selected) return;
