@@ -3,7 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 // ═══════════════════════════════════════════════════════════════
 // مسار أساسي صحيح للـ GitHub Pages
 // ═══════════════════════════════════════════════════════════════
-const BASE = import.meta.env.BASE_URL || '/';
+const BASE = '/sorobanmind-platform_2026/';
 
 function audioPath(file: string): string {
   // BASE = "/sorobanmind-platform_2026/" على GitHub Pages
