@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
-  ArrowRight, Play, Zap, Trophy, RotateCcw,
+  ArrowRight, ArrowLeft, Play, Zap, Trophy, RotateCcw,
   Brain, Lock, CheckCircle2, Volume2, Plus, Divide,
 } from 'lucide-react';
 import { Soroban2D5 } from './soroban2d5/Soroban2D5';
@@ -13,23 +13,17 @@ import {
 } from '@/utils/audioAnzanBadges';
 import { loadAnzanBadges } from '@/examBank2';
 
-// ═══════════════════════════════════════════════════════════════
-// الأنواع
-// ═══════════════════════════════════════════════════════════════
 type SectionType = 'addition' | 'multdiv';
 type Phase = 'intro' | 'listening' | 'answer' | 'result';
 type AnzanLevel = 1 | 2 | 3 | 4 | 5;
 
 const SPEED_DELAY = 1200;
-const MAX_ATTEMPTS = 2;
+const MAX_ATTEMPTS = 1;
 const CORRECT_TO_MASTER = 10;
 const QUESTIONS_PER_ROUND = 5;
 const MAX_ROUNDS_PER_DAY = 3;
 const ROUNDS_KEY = 'soroban_audio_anzan_rounds';
 
-// ═══════════════════════════════════════════════════════════════
-// أدوات
-// ═══════════════════════════════════════════════════════════════
 function toArabicNumber(value: number | string): string {
   return String(value).replace(/\d/g, (d) => '٠١٢٣٤٥٦٧٨٩'[Number(d)]);
 }
@@ -54,9 +48,6 @@ function getColumnsForValue(value: number): number {
   return 5;
 }
 
-// ═══════════════════════════════════════════════════════════════
-// فحص الدروس
-// ═══════════════════════════════════════════════════════════════
 function isExamPassed(): boolean {
   try {
     const raw = localStorage.getItem('soroban_exam_result');
@@ -79,9 +70,6 @@ function isDivisionUnlocked(): boolean {
   return isExamPassed();
 }
 
-// ═══════════════════════════════════════════════════════════════
-// الجولات اليومية
-// ═══════════════════════════════════════════════════════════════
 interface RoundsData { date: string; count: number; }
 
 function loadRounds(): RoundsData {
@@ -99,9 +87,6 @@ function saveRounds(data: RoundsData) {
   try { localStorage.setItem(ROUNDS_KEY, JSON.stringify(data)); } catch { /* ignore */ }
 }
 
-// ═══════════════════════════════════════════════════════════════
-// توليد الأسئلة
-// ═══════════════════════════════════════════════════════════════
 type AudioOperation = { value: number; operator: '+' | '-' | '×' | '÷'; };
 type AudioQuestion = {
   operations: AudioOperation[];
@@ -233,10 +218,6 @@ function generateRound(section: SectionType): AudioQuestion[] {
   return questions;
 }
 
-// ═══════════════════════════════════════════════════════════════
-// ✅ قراءة العمليات بشكل صحيح
-// كل عنصر يحمل عمليته الخاصة (op.operator) — وليس العملية السابقة
-// ═══════════════════════════════════════════════════════════════
 function buildSpeechSequence(ops: AudioOperation[]): string[] {
   const parts: string[] = [];
   ops.forEach((op, i) => {
@@ -252,9 +233,6 @@ function buildSpeechSequence(ops: AudioOperation[]): string[] {
   return parts;
 }
 
-// ═══════════════════════════════════════════════════════════════
-// الشاشة الرئيسية
-// ═══════════════════════════════════════════════════════════════
 interface Props {
   onBack: () => void;
   playSound: (type: 'click' | 'success' | 'error' | 'bead' | 'whoosh' | 'levelup') => void;
@@ -287,36 +265,25 @@ export function AudioAnzanScreen({ onBack, playSound, onXP, burst }: Props) {
   const divUnlocked = hasAdditionBadge() && isDivisionUnlocked();
   const multdivUnlocked = multUnlocked || divUnlocked;
 
-  // ✅ إيقاف الصوت فقط عند تغيير القسم — وليس عند كل phase
   useEffect(() => {
     return () => { stop(); sorobana.stop(); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [section]);
 
-  // عدّاد الوقت
   useEffect(() => {
     if (phase !== 'answer' || !currentQ) return;
+    if (feedback !== 'idle') return;
     if (timeLeft <= 0) {
       setFeedback('revealed');
-      let advanced = false;
-      const startTime = Date.now();
-      const advance = () => {
-        if (advanced) return;
-        advanced = true;
-        const elapsed = Date.now() - startTime;
-        const wait = Math.max(1800, 3500 - elapsed);
-        setTimeout(() => nextQuestion(false), wait);
-      };
-      sorobana.speakWrong(advance);
-      setTimeout(advance, 6500);
+      stop();
+      sorobana.speakWrong();
       return;
     }
     const t = setTimeout(() => setTimeLeft(x => x - 1), 1000);
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [phase, timeLeft, currentQ]);
+  }, [phase, timeLeft, currentQ, feedback]);
 
-  // قراءة الأرقام (الأنزان السماعي الأساسي)
   useEffect(() => {
     if (phase !== 'listening' || !currentQ) return;
 
@@ -374,50 +341,28 @@ export function AudioAnzanScreen({ onBack, playSound, onXP, burst }: Props) {
     const newAttempts = attempts + 1;
     setAttempts(newAttempts);
 
+    stop();
+
     if (abacusValue === currentQ.answer) {
       playSound('success');
       setFeedback('correct');
-
-      let advanced = false;
-      const startTime = Date.now();
-      const advance = () => {
-        if (advanced) return;
-        advanced = true;
-        const elapsed = Date.now() - startTime;
-        const wait = Math.max(1800, 3500 - elapsed);
-        setTimeout(() => nextQuestion(true), wait);
-      };
-      sorobana.speakCorrect(advance);
-      setTimeout(advance, 6500);
-    } else if (newAttempts >= MAX_ATTEMPTS) {
-      playSound('error');
-      setFeedback('revealed');
-
-      let advanced = false;
-      const startTime = Date.now();
-      const advance = () => {
-        if (advanced) return;
-        advanced = true;
-        const elapsed = Date.now() - startTime;
-        const wait = Math.max(1800, 3500 - elapsed);
-        setTimeout(() => nextQuestion(false), wait);
-      };
-      sorobana.speakWrong(advance);
-      setTimeout(advance, 6500);
+      sorobana.speakCorrect();
     } else {
       playSound('error');
-      setFeedback('wrong');
-      setTimeout(() => setFeedback('idle'), 900);
+      setFeedback('revealed');
+      sorobana.speakWrong();
     }
   };
 
   const nextQuestion = (correct: boolean) => {
+    if (!currentQ) return;
+    sorobana.stop();
     setAbacusValue(0);
     setFeedback('idle');
     setAttempts(0);
     setReplayUsed(false);
 
-    const newCorrect = correct ? [...roundCorrect, currentQ!.level] : roundCorrect;
+    const newCorrect = correct ? [...roundCorrect, currentQ.level] : roundCorrect;
     const newScore = correct ? roundScore + 3 : roundScore;
     if (correct) {
       onXP(3);
@@ -454,7 +399,6 @@ export function AudioAnzanScreen({ onBack, playSound, onXP, burst }: Props) {
     setBadges(updatedBadges);
 
     setPhase('result');
-    sorobana.speakEndLesson();
   };
 
   if (!isSupported) {
@@ -470,7 +414,6 @@ export function AudioAnzanScreen({ onBack, playSound, onXP, burst }: Props) {
 
   return (
     <div className="px-3 sm:px-6 py-6 max-w-2xl mx-auto" dir="rtl">
-      {/* Header */}
       <div className="flex items-center gap-3 mb-6">
         <button onClick={() => { stop(); sorobana.stop(); playSound('click'); onBack(); }} className="btn-ghost !px-3 !py-2">
           <ArrowRight className="w-5 h-5" />
@@ -482,7 +425,6 @@ export function AudioAnzanScreen({ onBack, playSound, onXP, burst }: Props) {
         <Volume2 className="w-6 h-6 text-purple-300" />
       </div>
 
-      {/* Section Tabs */}
       <div className="flex gap-2 mb-5">
         <button
           onClick={() => { stop(); sorobana.stop(); playSound('click'); setSection('addition'); setPhase('intro'); }}
@@ -508,7 +450,6 @@ export function AudioAnzanScreen({ onBack, playSound, onXP, burst }: Props) {
         </button>
       </div>
 
-      {/* Rounds */}
       <div className="flex items-center justify-between mb-4 p-3 rounded-2xl bg-white/5 border border-white/10">
         <div className="flex items-center gap-2">
           <Zap className="w-4 h-4 text-electric-300" />
@@ -519,7 +460,6 @@ export function AudioAnzanScreen({ onBack, playSound, onXP, burst }: Props) {
         </span>
       </div>
 
-      {/* Badges */}
       <div className="flex gap-2 mb-4 flex-wrap">
         {badges.master_addition_audio && (
           <span className="px-2 py-1 rounded-lg bg-gold-400/20 border border-gold-400/40 text-gold-200 text-[10px] font-bold">
@@ -538,7 +478,6 @@ export function AudioAnzanScreen({ onBack, playSound, onXP, burst }: Props) {
         )}
       </div>
 
-      {/* INTRO */}
       {phase === 'intro' && (
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
           {!multdivUnlocked && section === 'multdiv' ? (
@@ -566,7 +505,7 @@ export function AudioAnzanScreen({ onBack, playSound, onXP, burst }: Props) {
                   <li>• احسبها ذهنياً.</li>
                   <li>• أدخل الإجابة على المعداد.</li>
                   <li>• يمكنك إعادة السمع مرة واحدة لكل سؤال.</li>
-                  <li>• محاولتان — ثم تظهر الإجابة.</li>
+                  <li>• محاولة واحدة — ثم تظهر الإجابة.</li>
                 </ul>
               </div>
 
@@ -578,7 +517,6 @@ export function AudioAnzanScreen({ onBack, playSound, onXP, burst }: Props) {
         </motion.div>
       )}
 
-      {/* LISTENING */}
       {phase === 'listening' && currentQ && (
         <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="glass-card p-8 text-center">
           <motion.div
@@ -595,7 +533,6 @@ export function AudioAnzanScreen({ onBack, playSound, onXP, burst }: Props) {
         </motion.div>
       )}
 
-      {/* ANSWER */}
       {phase === 'answer' && currentQ && (
         <div className="space-y-4">
           <div className="text-center">
@@ -613,7 +550,6 @@ export function AudioAnzanScreen({ onBack, playSound, onXP, burst }: Props) {
             </span>
           </div>
 
-          {/* ✅ Soroban2D5 */}
           <div className="flex justify-center">
             <Soroban2D5
               key={`audio-anzan-${currentIdx}`}
@@ -633,46 +569,38 @@ export function AudioAnzanScreen({ onBack, playSound, onXP, burst }: Props) {
           <div className="flex gap-2">
             <button
               onClick={() => { setAbacusValue(0); playSound('click'); }}
-              className="flex-1 py-3 rounded-xl bg-white/10 hover:bg-white/20 font-bold flex items-center justify-center gap-2"
+              disabled={feedback !== 'idle'}
+              className="flex-1 py-3 rounded-xl bg-white/10 hover:bg-white/20 font-bold flex items-center justify-center gap-2 disabled:opacity-40"
             >
               <RotateCcw className="w-4 h-4" /> مسح
             </button>
             <button
               onClick={handleReplay}
-              disabled={replayUsed}
+              disabled={replayUsed || feedback !== 'idle'}
               className="flex-1 py-3 rounded-xl bg-purple-500/20 border border-purple-400/40 font-bold flex items-center justify-center gap-2 disabled:opacity-40"
             >
               <Volume2 className="w-4 h-4" /> أعد السمع
             </button>
             <button
-              onClick={handleCheck}
-              disabled={feedback !== 'idle'}
+              onClick={() => {
+                if (feedback === 'idle') handleCheck();
+                else nextQuestion(feedback === 'correct');
+              }}
               className={`flex-1 py-3 rounded-xl font-bold flex items-center justify-center gap-2 ${
-                feedback === 'correct' ? 'bg-emerald-500' :
-                feedback === 'wrong' ? 'bg-red-500' :
-                'bg-gradient-to-l from-purple-600 to-amber-500'
+                feedback === 'idle'
+                  ? 'bg-gradient-to-l from-purple-600 to-amber-500'
+                  : feedback === 'correct'
+                    ? 'bg-emerald-500'
+                    : 'bg-red-500'
               }`}
             >
-              <CheckCircle2 className="w-5 h-5" /> تحقق
+              {feedback === 'idle' ? (
+                <><CheckCircle2 className="w-5 h-5" /> تحقق</>
+              ) : (
+                <>التالي <ArrowLeft className="w-5 h-5" /></>
+              )}
             </button>
           </div>
-
-          {feedback === 'correct' && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="p-3 rounded-2xl bg-emerald-500/15 border border-emerald-400/40 text-center"
-            >
-              <CheckCircle2 className="w-6 h-6 text-emerald-300 mx-auto mb-1" />
-              <p className="text-emerald-300 font-bold text-sm">أحسنت! 🎉</p>
-            </motion.div>
-          )}
-
-          {feedback === 'wrong' && attempts === 1 && (
-            <div className="p-3 rounded-2xl bg-red-500/15 border border-red-400/40 text-center">
-              <p className="text-red-300 font-bold text-sm">❌ حاول مرة أخرى</p>
-            </div>
-          )}
 
           {feedback === 'revealed' && (
             <div className="p-4 rounded-2xl bg-red-500/15 border border-red-400/40 text-center">
@@ -685,7 +613,6 @@ export function AudioAnzanScreen({ onBack, playSound, onXP, burst }: Props) {
         </div>
       )}
 
-      {/* RESULT */}
       {phase === 'result' && (
         <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="glass-card p-6 text-center">
           <Trophy className="w-16 h-16 text-gold-300 mx-auto mb-4" />
@@ -700,11 +627,9 @@ export function AudioAnzanScreen({ onBack, playSound, onXP, burst }: Props) {
         </motion.div>
       )}
 
-      {/* ✅ سوروبانا — تظهر فقط بعد "ابدأ الجولة" */}
       {phase !== 'intro' && (
         <SorobanaCompanion
           isSpeaking={sorobana.isSpeaking}
-          onClick={() => sorobana.speakTeaching()}
           variant="pointing"
           sizeOverride={120}
           offsetBottom="6rem"
