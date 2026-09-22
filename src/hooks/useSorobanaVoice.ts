@@ -70,14 +70,17 @@ export function useSorobanaVoice() {
 
   const stop = useCallback(() => {
     if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.currentTime = 0;
+      try {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+      } catch { /* ignore */ }
+      audioRef.current = null;
     }
     setIsSpeaking(false);
-    debugLog('⏹️ Stopped');
   }, []);
 
-  const playOne = useCallback((url: string) => {
+  // ═══ playOne مع onDone callback ═══
+  const playOne = useCallback((url: string, onDone?: () => void) => {
     debugLog(`📂 Loading: ${url.split('/').pop()}`);
 
     if (audioRef.current) {
@@ -90,6 +93,14 @@ export function useSorobanaVoice() {
     audio.crossOrigin = 'anonymous';
     audioRef.current = audio;
 
+    let finished = false;
+    const finish = () => {
+      if (finished) return;
+      finished = true;
+      setIsSpeaking(false);
+      onDone?.();
+    };
+
     audio.onplay = () => {
       debugLog('▶️ PLAY event fired');
       setIsSpeaking(true);
@@ -97,12 +108,12 @@ export function useSorobanaVoice() {
 
     audio.onended = () => {
       debugLog('✅ ENDED');
-      setIsSpeaking(false);
+      finish();
     };
 
     audio.onerror = () => {
       debugLog('❌ ERROR loading file');
-      setIsSpeaking(false);
+      finish();
     };
 
     audio.oncanplay = () => {
@@ -117,37 +128,39 @@ export function useSorobanaVoice() {
         })
         .catch((err: Error) => {
           debugLog(`❌ play() FAILED: ${err.name}`);
+          finish();
         });
     }
   }, []);
 
+  // ═══ الواجهة العامة ═══
   const speak = useCallback((text: string, _mood?: string, onDone?: () => void) => {
     void text;
-    void onDone;
+    onDone?.();
   }, []);
 
-  const speakLesson = useCallback(() => {
-    playOne(pickRandom(SOROBANA_AUDIO.greetings));
+  const speakLesson = useCallback((onDone?: () => void) => {
+    playOne(pickRandom(SOROBANA_AUDIO.greetings), onDone);
   }, [playOne]);
 
-  const speakTeaching = useCallback(() => {
-    playOne(pickRandom(SOROBANA_AUDIO.teaching));
+  const speakTeaching = useCallback((onDone?: () => void) => {
+    playOne(pickRandom(SOROBANA_AUDIO.teaching), onDone);
   }, [playOne]);
 
-  const speakCorrect = useCallback(() => {
-    playOne(pickRandom(SOROBANA_AUDIO.correct));
+  const speakCorrect = useCallback((onDone?: () => void) => {
+    playOne(pickRandom(SOROBANA_AUDIO.correct), onDone);
   }, [playOne]);
 
-  const speakWrong = useCallback(() => {
-    playOne(pickRandom(SOROBANA_AUDIO.wrong));
+  const speakWrong = useCallback((onDone?: () => void) => {
+    playOne(pickRandom(SOROBANA_AUDIO.wrong), onDone);
   }, [playOne]);
 
-  const speakEndLesson = useCallback(() => {
-    playOne(SOROBANA_AUDIO.endLesson);
+  const speakEndLesson = useCallback((onDone?: () => void) => {
+    playOne(SOROBANA_AUDIO.endLesson, onDone);
   }, [playOne]);
 
-  const speakFiles = useCallback((files: string[]) => {
-    if (files.length > 0) playOne(files[0]);
+  const speakFiles = useCallback((files: string[], onDone?: () => void) => {
+    if (files.length > 0) playOne(files[0], onDone);
   }, [playOne]);
 
   return {
