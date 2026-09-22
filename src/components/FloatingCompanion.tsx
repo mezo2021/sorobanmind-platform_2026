@@ -1,8 +1,20 @@
 import { useCallback, useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Companion } from './Companion';
+import { ImageAvatar } from './avatars/ImageAvatar';
 import { useCharacterVoice } from '@/hooks/useCharacterVoice';
 import type { CharacterType } from '@/types';
+
+import shamImg from '../assets/avatars/sham.png';
+import rayanImg from '../assets/avatars/rayan.png';
+import banaImg from '../assets/avatars/bana.png';
+import joudImg from '../assets/avatars/joud2.png';
+
+const CHARACTER_DATA: Record<CharacterType, { name: string; image: string }> = {
+  sham: { name: 'شام', image: shamImg },
+  rayan: { name: 'ريان', image: rayanImg },
+  bana: { name: 'بانة', image: banaImg },
+  joud: { name: 'جود', image: joudImg },
+};
 
 const PHRASES: string[] = [
   'كيف حالك اليوم؟',
@@ -19,7 +31,7 @@ const PHRASES: string[] = [
   'أنت ذكي ومجتهد!',
 ];
 
-const CHARACTER_COLORS: Record<CharacterType, string> = {
+const CHARACTER_GRADIENTS: Record<CharacterType, string> = {
   sham: 'from-violet-500 to-purple-700',
   rayan: 'from-blue-500 to-indigo-700',
   bana: 'from-teal-400 to-emerald-700',
@@ -46,7 +58,7 @@ interface FloatingCompanionProps {
 
 export function FloatingCompanion({
   playSound,
-  size = 70,
+  size = 76,
   offsetBottom = '1.5rem',
 }: FloatingCompanionProps) {
   const [character] = useState<CharacterType>(() => getStoredCharacter());
@@ -54,6 +66,9 @@ export function FloatingCompanion({
   const [usedIndices, setUsedIndices] = useState<number[]>([]);
 
   const { speak, stop, isSpeaking, isSupported } = useCharacterVoice(character);
+
+  const data = CHARACTER_DATA[character] ?? CHARACTER_DATA.sham;
+  const gradient = CHARACTER_GRADIENTS[character] ?? CHARACTER_GRADIENTS.sham;
 
   useEffect(() => {
     return () => {
@@ -98,9 +113,9 @@ export function FloatingCompanion({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.8, y: 10 }}
             transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-            className="fixed z-[45] pointer-events-none"
+            className="fixed z-[70] pointer-events-none"
             style={{
-              bottom: `calc(${offsetBottom} + ${size + 12}px)`,
+              bottom: `calc(${offsetBottom} + ${size + 14}px)`,
               right: '1rem',
               maxWidth: 'min(72vw, 240px)',
             }}
@@ -141,8 +156,8 @@ export function FloatingCompanion({
       <motion.button
         type="button"
         onClick={handleClick}
-        aria-label="الرفيق"
-        className="fixed z-40 rounded-full shadow-2xl border-2 border-white/30 overflow-hidden"
+        aria-label={`رفيقك ${data.name}`}
+        className="fixed z-[65] rounded-full shadow-2xl border-2 border-white/40 overflow-hidden select-none"
         style={{
           bottom: offsetBottom,
           right: '1rem',
@@ -154,10 +169,10 @@ export function FloatingCompanion({
         whileTap={{ scale: 0.9 }}
       >
         <motion.div
-          className={`w-full h-full rounded-full bg-gradient-to-br ${CHARACTER_COLORS[character]} flex items-center justify-center shadow-inner overflow-hidden`}
+          className={`w-full h-full rounded-full bg-gradient-to-br ${gradient} flex items-end justify-center shadow-inner overflow-hidden`}
           animate={{
             y: isSpeaking ? [0, -3, 0, -3, 0] : [0, -4, 0],
-            scale: isSpeaking ? [1, 1.08, 1] : 1,
+            scale: isSpeaking ? [1, 1.07, 1] : 1,
           }}
           transition={{
             duration: isSpeaking ? 0.7 : 2.6,
@@ -165,7 +180,12 @@ export function FloatingCompanion({
             ease: 'easeInOut',
           }}
         >
-          <Companion character={character} xp={0} />
+          <ImageAvatar
+            src={data.image}
+            alt={data.name}
+            className="w-full h-full drop-shadow-lg"
+            motionType="breathe"
+          />
         </motion.div>
       </motion.button>
     </>
