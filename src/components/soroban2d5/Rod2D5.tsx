@@ -1,4 +1,3 @@
-// src/components/soroban2d5/Rod2D5.tsx
 import { Bead2D5 } from './Bead2D5';
 import type { BeadState } from './useSorobanLogic';
 
@@ -19,43 +18,45 @@ export function Rod2D5({
   onToggleUpper,
   onSetLower,
   onReset,
-  height = 340,
-  beadSize = 26,
+  height = 440,
+  beadSize = 44,
 }: Rod2D5Props) {
   const lowerBeads = [0, 1, 2, 3];
 
-  // 🎯 حسابات رياضية دقيقة
+  // 🎯 حسابات دقيقة
   const beadHeight = beadSize * 0.42;
-  const gap = 3;
+  const gap = 2; // مسافة صغيرة جداً بين الخرزات
   const step = beadHeight + gap;
 
-  // ✅ نحتفظ بمساحة 20px أسفل القضيب لزر "تصفير"
-  const rodHeight = height - 24;          // ← القضيب أقصر قليلاً
+  // ✅ الطول الكلي للقضيب
+  const rodHeight = height - 30;
   const beamY = rodHeight / 2;
 
-  // ✅ الخرزة العلوية — غير مفعّلة أعلى، مفعّلة عند العارضة
-  const upperBeadTop = 8;
-  const upperBeadActive = beamY - beadHeight - 4;
+  // ✅ الخرزة العلوية:
+  // - عند الإلغاء (upper=0): تلامس الإطار العلوي تماماً
+  // - عند التفعيل (upper=5): تلامس العارضة تماماً
+  const upperBeadTop = 2; // ملامسة الإطار العلوي
+  const upperBeadActive = beamY - beadHeight - 2; // ملامسة العارضة
 
-  // ✅ الخرزات السفلية
-  // غير مفعّلة: من الأسفل للأعلى
-  // مفعّلة: من العارضة للأسفل
-  const lowerAreaTop = beamY + 4;
-  const lowerAreaBottom = rodHeight - beadHeight - 8;
+  // ✅ الخرزات السفلية:
+  // - عند الإلغاء: تلامس الإطار السفلي
+  // - عند التفعيل: تلامس العارضة
+  const lowerAreaTop = beamY + 4; // أول خرزة مفعلة (فوق، ملاصقة للعارضة)
+  const lowerAreaBottom = rodHeight - beadHeight - 2; // آخر خرزة غير مفعلة (تحت، ملاصقة للإطار السفلي)
 
   return (
     <div
       className="relative flex flex-col items-center"
       style={{ height, width: beadSize * 1.3 }}
     >
-      {/* ═══ القضيب الخلفي ═══ */}
+      {/* القضيب */}
       <div
         style={{
           position: 'absolute',
           top: 0,
           left: '50%',
           transform: 'translateX(-50%)',
-          width: 5,
+          width: 6,
           height: rodHeight,
           background: 'linear-gradient(90deg, #5a5a5a 0%, #999 50%, #5a5a5a 100%)',
           borderRadius: 3,
@@ -63,7 +64,7 @@ export function Rod2D5({
         }}
       />
 
-      {/* ═══ الخرزة العلوية (قيمة 5) ═══ */}
+      {/* الخرزة العلوية */}
       <div
         style={{
           position: 'absolute',
@@ -83,13 +84,13 @@ export function Rod2D5({
         />
       </div>
 
-      {/* ═══ العارضة الوسطى ═══ */}
+      {/* العارضة الوسطى */}
       <div
         style={{
           position: 'absolute',
           top: beamY - 3,
-          left: -6,
-          width: beadSize * 1.3 + 12,
+          left: -8,
+          width: beadSize * 1.3 + 16,
           height: 6,
           background: 'linear-gradient(180deg, #3d2817 0%, #1a0f08 100%)',
           borderRadius: 3,
@@ -97,11 +98,14 @@ export function Rod2D5({
         }}
       />
 
-      {/* ═══ الخرزات السفلية (قيمة 1) ═══ */}
+      {/* الخرزات السفلية */}
       {lowerBeads.map((idx) => {
         const isActive = idx < state.lower;
 
+        // ✅ عند التفعيل: من العارضة للأسفل
         const topActive = lowerAreaTop + idx * step;
+
+        // ✅ عند الإلغاء: من الإطار السفلي للأعلى
         const topInactive = lowerAreaBottom - (3 - idx) * step;
 
         return (
@@ -133,13 +137,13 @@ export function Rod2D5({
         );
       })}
 
-      {/* ✅ زر "تصفير" — داخل الإطار (أسفل القضيب) */}
+      {/* زر التصفير */}
       <button
         type="button"
         onClick={onReset}
         className="absolute text-amber-700 hover:text-amber-900 underline whitespace-nowrap"
         style={{
-          fontSize: 10,
+          fontSize: 11,
           bottom: 2,
           left: '50%',
           transform: 'translateX(-50%)',
@@ -149,12 +153,12 @@ export function Rod2D5({
         ↺ تصفير
       </button>
 
-      {/* ✅ اسم العمود — فوق القضيب */}
+      {/* اسم العمود */}
       <div
         className="absolute text-amber-800 font-bold whitespace-nowrap"
         style={{
-          fontSize: 12,
-          top: -20,
+          fontSize: 13,
+          top: -22,
           left: '50%',
           transform: 'translateX(-50%)',
         }}
