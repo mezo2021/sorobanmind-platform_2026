@@ -10,6 +10,10 @@ import type { CharacterType } from '../types';
 interface CompanionProps {
   character?: CharacterType;
   xp?: number;
+  /** 'fixed' = الشخصية العائمة (افتراضي) | 'inline' = داخل إطار */
+  variant?: 'fixed' | 'inline';
+  /** حجم الصورة داخل الإطار (يستخدم مع variant='inline') */
+  imageClassName?: string;
 }
 
 const CHARACTER_DATA: Record<
@@ -35,6 +39,8 @@ const MOTIVATIONAL_MESSAGES = [
 export const Companion: React.FC<CompanionProps> = ({
   character = 'sham',
   xp = 0,
+  variant = 'fixed',
+  imageClassName,
 }) => {
   const [currentMessage, setCurrentMessage] = useState('');
   const [showBubble, setShowBubble] = useState(false);
@@ -69,6 +75,27 @@ export const Companion: React.FC<CompanionProps> = ({
     return () => window.clearTimeout(timer);
   }, [showBubble]);
 
+  // ═══ الوضع المدمج (داخل الإطار البنفسجي) ═══
+  if (variant === 'inline') {
+    return (
+      <div
+        dir="rtl"
+        className="w-full h-full flex items-end justify-center select-none"
+      >
+        <ImageAvatar
+          src={data.image}
+          alt={data.name}
+          className={
+            imageClassName ||
+            'w-full h-full object-contain object-bottom drop-shadow-2xl'
+          }
+          motionType="breathe"
+        />
+      </div>
+    );
+  }
+
+  // ═══ الوضع العائم (الافتراضي) ═══
   return (
     <div
       dir="rtl"
