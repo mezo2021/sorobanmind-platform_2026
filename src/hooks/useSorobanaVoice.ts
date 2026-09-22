@@ -25,6 +25,10 @@ export const SOROBANA_AUDIO = {
   endLesson: '/audio/end-lesson.mp3',
 };
 
+function pickRandom(arr: string[]): string {
+  return arr[Math.floor(Math.random() * arr.length)];
+}
+
 // ═══════════════════════════════════════════════════════════════
 // Hook رئيسي
 // ═══════════════════════════════════════════════════════════════
@@ -58,7 +62,6 @@ export function useSorobanaVoice() {
     setIsSpeaking(false);
   }, []);
 
-  // ═══ تشغيل قائمة ملفات صوتية بالتتابع ═══
   const playFiles = useCallback((files: string[], onDone?: () => void) => {
     if (!mountedRef.current) return;
     cancelledRef.current = false;
@@ -119,38 +122,22 @@ export function useSorobanaVoice() {
     playNext();
   }, []);
 
-  // ═══ اختيار عشوائي من قائمة ═══
-  const pickRandom = (arr: string[]): string =>
-    arr[Math.floor(Math.random() * arr.length)];
-
   // ═══ الواجهة العامة ═══
-
-  /** تشغيل ملفات صوتية محددة */
-  const speakFiles = useCallback(
-    (files: string[], onDone?: () => void) => {
-      playFiles(files, onDone);
+  const speak = useCallback(
+    (text: string, _mood?: string, onDone?: () => void) => {
+      void text;
+      playFiles([], onDone);
     },
     [playFiles]
   );
 
-  /** الترحيب + القصة + القاعدة + الشرح */
   const speakLesson = useCallback(
-    (
-      story?: string,
-      rule?: string,
-      description?: string,
-      onDone?: () => void
-    ) => {
-      const files: string[] = [pickRandom(SOROBANA_AUDIO.greetings)];
-      void story;
-      void rule;
-      void description;
-      playFiles(files, onDone);
+    (onDone?: () => void) => {
+      playFiles([pickRandom(SOROBANA_AUDIO.greetings)], onDone);
     },
     [playFiles]
   );
 
-  /** عبارة تعليمية عشوائية */
   const speakTeaching = useCallback(
     (onDone?: () => void) => {
       playFiles([pickRandom(SOROBANA_AUDIO.teaching)], onDone);
@@ -158,7 +145,6 @@ export function useSorobanaVoice() {
     [playFiles]
   );
 
-  /** عبارة إجابة صحيحة */
   const speakCorrect = useCallback(
     (onDone?: () => void) => {
       playFiles([pickRandom(SOROBANA_AUDIO.correct)], onDone);
@@ -166,7 +152,6 @@ export function useSorobanaVoice() {
     [playFiles]
   );
 
-  /** عبارة إجابة خاطئة */
   const speakWrong = useCallback(
     (onDone?: () => void) => {
       playFiles([pickRandom(SOROBANA_AUDIO.wrong)], onDone);
@@ -174,7 +159,6 @@ export function useSorobanaVoice() {
     [playFiles]
   );
 
-  /** عبارة نهاية الدرس */
   const speakEndLesson = useCallback(
     (onDone?: () => void) => {
       playFiles([SOROBANA_AUDIO.endLesson], onDone);
@@ -182,13 +166,18 @@ export function useSorobanaVoice() {
     [playFiles]
   );
 
+  const speakFiles = useCallback(
+    (files: string[], onDone?: () => void) => {
+      playFiles(files, onDone);
+    },
+    [playFiles]
+  );
+
   return {
-    // الواجهة الأساسية (للتوافق مع الكود الحالي)
-    speak: speakFiles as unknown as (text: string, mood?: string, onDone?: () => void) => void,
+    speak,
     stop,
     isSpeaking,
     isSupported,
-    // الواجهات المخصصة (للأنماط الجديدة)
     speakLesson,
     speakTeaching,
     speakCorrect,
