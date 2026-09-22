@@ -116,7 +116,7 @@ const CertificateScreen: React.FC<Props> = ({ onBack, playSound, onGoHome }) => 
         </motion.div>
       )}
 
-      {/* ═══════ الشهادة — نسخة مضغوطة للجوال ═══════ */}
+      {/* ═══════ الشهادة ═══════ */}
       <div className="w-full flex justify-center overflow-hidden">
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
@@ -140,8 +140,8 @@ const CertificateScreen: React.FC<Props> = ({ onBack, playSound, onGoHome }) => 
             }}
           >
             {/* علامة مائية */}
-            <div className="absolute inset-0 flex items-center justify-center opacity-[0.05] pointer-events-none">
-              <CertificateLogo size={420} />
+            <div className="absolute inset-0 flex items-center justify-center opacity-[0.06] pointer-events-none">
+              <CertificateLogo size={420} watermark />
             </div>
 
             {/* إطار داخلي مزدوج */}
