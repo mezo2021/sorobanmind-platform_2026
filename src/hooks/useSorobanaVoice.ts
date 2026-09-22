@@ -4,7 +4,6 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 // تقسيم النص إلى جمل قصيرة (أقل من 100 حرف لكل جملة)
 // ═══════════════════════════════════════════════════════════════
 function splitIntoSentences(text: string): string[] {
-  // نقسم على علامات الترقيم الأساسية
   const raw = text
     .split(/([.!?؟؛]+|\n+)/g)
     .reduce<string[]>((acc, part) => {
@@ -18,14 +17,12 @@ function splitIntoSentences(text: string): string[] {
     }, [])
     .filter((s) => s.length > 1);
 
-  // إذا كانت الجملة أطول من 100 حرف، نقسمها على الفواصل
   const result: string[] = [];
   for (const sentence of raw) {
     if (sentence.length <= 100) {
       result.push(sentence);
       continue;
     }
-    // نقسم على الفواصل والمسافات
     const chunks = sentence.split(/([،,]|\s+)/);
     let current = '';
     for (const chunk of chunks) {
@@ -55,7 +52,7 @@ function buildTtsUrl(text: string): string {
 // ═══════════════════════════════════════════════════════════════
 export function useSorobanaVoice() {
   const [isSpeaking, setIsSpeaking] = useState(false);
-  const [isSupported] = useState(true); // دائماً مدعوم
+  const [isSupported] = useState(true);
   const cancelledRef = useRef(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const mountedRef = useRef(true);
@@ -87,14 +84,12 @@ export function useSorobanaVoice() {
     (text: string, _mood?: string, onDone?: () => void) => {
       if (!mountedRef.current) return;
 
-      // إلغاء أي كلام سابق
       cancelledRef.current = false;
       if (audioRef.current) {
         audioRef.current.pause();
         audioRef.current = null;
       }
 
-      // تقسيم النص إلى جمل
       const sentences = splitIntoSentences(text);
       if (sentences.length === 0) {
         onDone?.();
@@ -118,9 +113,15 @@ export function useSorobanaVoice() {
           return;
         }
 
-        const audio = new Audio(buildTtsUrl(nextSentence));
-        audioRef.current = audio;
+        const audio = new Audio();
+        // ✅ الأهم: تعطيل إرسال Referer حتى لا يرفض Google الطلب
+        audio.referrerPolicy = 'no-referrer';
+        audio.crossOrigin = 'anonymous';
         audio.preload = 'auto';
+        audio.src = buildTtsUrl(nextSentence);
+        audio.playbackRate = 0.95;
+
+        audioRef.current = audio;
 
         let advanced = false;
         const advance = () => {
@@ -131,20 +132,22 @@ export function useSorobanaVoice() {
             onDone?.();
             return;
           }
-          // وقفة صغيرة بين الجمل (250ms) لإحساس طبيعي
           setTimeout(playNext, 250);
         };
 
         audio.onended = advance;
-        audio.onerror = advance;
+        audio.onerror = () => {
+          console.warn('[Sorobana TTS] audio error for:', nextSentence);
+          advance();
+        };
 
-        // مهلة احتياطية في حال فشل الحدث (5 ثوان لكل جملة)
-        const timeout = setTimeout(advance, 5000);
+        const timeout = setTimeout(advance, 6000);
 
         audio
           .play()
           .then(() => {
-            // التشغيل نجح
+            clearTimeout(timeout);
+            // تشغيل ناجح
           })
           .catch((err) => {
             console.warn('[Sorobana TTS] play failed:', err);
