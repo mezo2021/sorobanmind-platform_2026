@@ -8,11 +8,10 @@ const FEMALE_HINTS = [
 export function useSorobanaVoice() {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [isSupported, setIsSupported] = useState(false);
-  const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
-  const primedRef = useRef(false);
+  const voicesRef = useRef<SpeechSynthesisVoice[]>([]);
   const mountedRef = useRef(true);
 
-  // ═══ تحميل الأصوات (مع انتظار voiceschanged) ═══
+  // ═══ تحميل الأصوات بشكل متكرر ═══
   useEffect(() => {
     if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
       setIsSupported(false);
@@ -23,119 +22,108 @@ export function useSorobanaVoice() {
     const loadVoices = () => {
       const v = window.speechSynthesis.getVoices();
       if (v.length > 0) {
-        setVoices(v);
-        console.log('[Sorobana] Voices loaded:', v.length);
-        console.log('[Sorobana] Arabic voices:', v.filter((x) => x.lang.startsWith('ar')).map((x) => x.name));
+        voicesRef.current = v;
+        const ar = v.filter((x) => x.lang.toLowerCase().startsWith('ar'));
+        console.log('[Sorobana] voices:', v.length, '| arabic:', ar.length,
+          ar.map((x) => `${x.name}(${x.lang})`).join(', '));
       }
     };
 
     loadVoices();
     window.speechSynthesis.onvoiceschanged = loadVoices;
 
-    // محاولة إضافية بعد ثانية
-    const t = setTimeout(loadVoices, 1000);
+    // محاولات متكررة لأن Chrome Android يتأخر في تحميل الأصوات
+    const timers = [200, 500, 1000, 2000, 3000].map((d) =>
+      setTimeout(loadVoices, d)
+    );
+
     return () => {
-      clearTimeout(t);
+      timers.forEach(clearTimeout);
       mountedRef.current = false;
     };
   }, []);
 
-  // ═══ اختيار أفضل صوت ═══
   const pickVoice = useCallback((): SpeechSynthesisVoice | null => {
-    const all = voices.length > 0 ? voices : (typeof window !== 'undefined' && 'speechSynthesis' in window ? window.speechSynthesis.getVoices() : []);
+    const all = voicesRef.current.length > 0
+      ? voicesRef.current
+      : (typeof window !== 'undefined' && 'speechSynthesis' in window
+          ? window.speechSynthesis.getVoices()
+          : []);
     if (all.length === 0) return null;
 
-    // 1. صوت عربي أنثوي
-    const arabicFemale = all.find((v) =>
-      v.lang.startsWith('ar') && FEMALE_HINTS.some((h) => v.name.toLowerCase().includes(h))
+    // 1. عربي أنثوي
+    const arF = all.find((v) =>
+      v.lang.toLowerCase().startsWith('ar') &&
+      FEMALE_HINTS.some((h) => v.name.toLowerCase().includes(h))
     );
-    if (arabicFemale) return arabicFemale;
+    if (arF) return arF;
 
-    // 2. أي صوت عربي
-    const arabic = all.find((v) => v.lang.startsWith('ar'));
-    if (arabic) return arabic;
+    // 2. أي عربي
+    const ar = all.find((v) => v.lang.toLowerCase().startsWith('ar'));
+    if (ar) return ar;
 
-    // 3. أي صوت أنثوي (أي لغة)
-    const anyFemale = all.find((v) => FEMALE_HINTS.some((h) => v.name.toLowerCase().includes(h)));
-    if (anyFemale) return anyFemale;
+    // 3. أي أنثوي
+    const f = all.find((v) =>
+      FEMALE_HINTS.some((h) => v.name.toLowerCase().includes(h))
+    );
+    if (f) return f;
 
-    // 4. الصوت الافتراضي
     return all[0];
-  }, [voices]);
-
-  // ═══ التحضير (priming) — مهم لـ Chrome Android ═══
-  const prime = useCallback(() => {
-    if (primedRef.current) return;
-    if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
-    try {
-      const u = new SpeechSynthesisUtterance(' ');
-      u.volume = 0;
-      u.rate = 1;
-      u.pitch = 1;
-      window.speechSynthesis.speak(u);
-      primedRef.current = true;
-      console.log('[Sorobana] Engine primed');
-    } catch (e) {
-      console.warn('[Sorobana] Prime failed:', e);
-    }
   }, []);
 
-  // ═══ الكلام ═══
+  // ═══ الكلام — نسخة مبسطة ومباشرة (بدون setTimeout) ═══
   const speak = useCallback(
     (text: string, onDone?: () => void) => {
       if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
-        console.warn('[Sorobana] Speech Synthesis not supported');
+        console.warn('[Sorobana] Not supported');
         onDone?.();
         return;
       }
 
-      // 1. تحضير المحرك
-      prime();
+      const synth = window.speechSynthesis;
 
-      // 2. إيقاف أي كلام سابق
-      try {
-        window.speechSynthesis.cancel();
-      } catch { /* ignore */ }
+      // إيقاف أي كلام سابق
+      try { synth.cancel(); } catch { /* ignore */ }
 
-      // 3. إنشاء الكلام
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = 'ar-SA';
-      utterance.pitch = 1.15;
-      utterance.rate = 0.85;
-      utterance.volume = 1;
+      // إنشاء الكلام
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = 'ar-SA';
+      u.pitch = 1.15;
+      u.rate = 0.85;
+      u.volume = 1;
 
       const voice = pickVoice();
       if (voice) {
-        utterance.voice = voice;
-        console.log('[Sorobana] Speaking with voice:', voice.name, voice.lang);
+        u.voice = voice;
+        console.log('[Sorobana] using voice:', voice.name, voice.lang);
       } else {
-        console.warn('[Sorobana] No voice found — using default');
+        console.warn('[Sorobana] no voice available');
       }
 
-      utterance.onstart = () => {
-        console.log('[Sorobana] Started speaking');
+      u.onstart = () => {
+        console.log('[Sorobana] started');
         if (mountedRef.current) setIsSpeaking(true);
       };
-      utterance.onend = () => {
-        console.log('[Sorobana] Finished speaking');
+      u.onend = () => {
+        console.log('[Sorobana] ended');
         if (mountedRef.current) setIsSpeaking(false);
         onDone?.();
       };
-      utterance.onerror = (e) => {
-        console.error('[Sorobana] Speech error:', e);
+      u.onerror = (e) => {
+        console.error('[Sorobana] error:', e);
         if (mountedRef.current) setIsSpeaking(false);
         onDone?.();
       };
 
-      // 4. تشغيل
+      // ⚠️ استدعاء مباشر — بدون setTimeout — ليعمل في سياق نقرة المستخدم
       try {
-        window.speechSynthesis.speak(utterance);
+        synth.speak(u);
       } catch (e) {
-        console.error('[Sorobana] Speak throw:', e);
+        console.error('[Sorobana] speak throw:', e);
         onDone?.();
       }
     },
-    [pickVoice, prime]
+    [pickVoice]
   );
 
   const stop = useCallback(() => {
@@ -149,7 +137,7 @@ export function useSorobanaVoice() {
     return () => { stop(); };
   }, [stop]);
 
-  return { speak, stop, isSpeaking, isSupported, prime, voices };
+  return { speak, stop, isSpeaking, isSupported };
 }
 
 export default useSorobanaVoice;
