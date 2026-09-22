@@ -1,21 +1,39 @@
 import { motion } from 'framer-motion';
-import sorobanaImg from '@/assets/sorobana/sorobana-main.webp';
+import mainImg from '@/assets/sorobana/sorobana-main.webp';
+import pointingImg from '@/assets/sorobana/sorobana-teaching-pointing.webp';
 
 type LessonMode = 'watch' | 'try';
+type SorobanaVariant = 'main' | 'pointing';
 
 interface SorobanaCompanionProps {
   isSpeaking: boolean;
   onClick?: () => void;
   mode?: LessonMode;
+  variant?: SorobanaVariant;
+  sizeOverride?: number;
+  offsetBottom?: string;
 }
 
 export function SorobanaCompanion({
   isSpeaking,
   onClick,
   mode = 'watch',
+  variant = 'main',
+  sizeOverride,
+  offsetBottom = '12rem',
 }: SorobanaCompanionProps) {
-  // حجم مختلف حسب الوضع
-  const size = mode === 'watch' ? 180 : 90;
+  // ✅ تحديد الحجم
+  let size: number;
+  if (sizeOverride) {
+    size = sizeOverride;
+  } else if (mode === 'try') {
+    size = 90;
+  } else {
+    size = 180;
+  }
+
+  // ✅ تحديد الصورة حسب variant
+  const img = variant === 'pointing' ? pointingImg : mainImg;
   const height = Math.round(size * 1.35);
 
   return (
@@ -25,7 +43,7 @@ export function SorobanaCompanion({
       aria-label="سوروبانا — المعلمة"
       className="fixed z-[55] select-none focus:outline-none"
       style={{
-        bottom: '12rem',
+        bottom: offsetBottom,
         right: '0.25rem',
         padding: 0,
         background: 'transparent',
@@ -45,7 +63,7 @@ export function SorobanaCompanion({
         transition={{ duration: 0.4, ease: 'easeInOut' }}
       >
         <motion.img
-          src={sorobanaImg}
+          src={img}
           alt="سوروبانا"
           className="w-full h-full pointer-events-none"
           style={{
