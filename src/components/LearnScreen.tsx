@@ -260,9 +260,22 @@ export function LearnScreen({ onBack, playSound, onXP, onNavigate }: LearnScreen
   const [feedbackMsg, setFeedbackMsg] = useState<string>('');
 
   const sorobana = useSorobanaVoice();
-
-  useEffect(() => {
-    try {
+// ═══ منع التمرير الخلفي عندما يكون الدرس مفتوحاً ═══
+useEffect(() => {
+  if (selected) {
+    const prevOverflow = document.body.style.overflow;
+    const prevPosition = document.body.style.position;
+    const prevWidth = document.body.style.width;
+    document.body.style.overflow = 'hidden';
+    document.body.style.position = 'fixed';
+    document.body.style.width = '100%';
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      document.body.style.position = prevPosition;
+      document.body.style.width = prevWidth;
+    };
+  }
+}, [selected]);
       const raw = localStorage.getItem('soroban_exam_result');
       if (raw) { const data = JSON.parse(raw); if (data?.passed === true) setExamPassed(true); }
     } catch { /* ignore */ }
