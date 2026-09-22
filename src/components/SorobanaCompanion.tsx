@@ -12,6 +12,8 @@ interface SorobanaCompanionProps {
   variant?: SorobanaVariant;
   sizeOverride?: number;
   offsetBottom?: string;
+  /** ✅ إذا true — سوروبانا لا تعترض النقرات (تبقى مرئية فقط) */
+  clickThrough?: boolean;
 }
 
 export function SorobanaCompanion({
@@ -21,8 +23,8 @@ export function SorobanaCompanion({
   variant = 'main',
   sizeOverride,
   offsetBottom = '12rem',
+  clickThrough = false,
 }: SorobanaCompanionProps) {
-  // ✅ تحديد الحجم
   let size: number;
   if (sizeOverride) {
     size = sizeOverride;
@@ -32,14 +34,13 @@ export function SorobanaCompanion({
     size = 180;
   }
 
-  // ✅ تحديد الصورة حسب variant
   const img = variant === 'pointing' ? pointingImg : mainImg;
   const height = Math.round(size * 1.35);
 
   return (
     <motion.button
       type="button"
-      onClick={onClick}
+      onClick={clickThrough ? undefined : onClick}
       aria-label="سوروبانا — المعلمة"
       className="fixed z-[55] select-none focus:outline-none"
       style={{
@@ -48,11 +49,12 @@ export function SorobanaCompanion({
         padding: 0,
         background: 'transparent',
         border: 'none',
+        pointerEvents: clickThrough ? 'none' : 'auto',
       }}
       initial={{ opacity: 0, x: 40 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ type: 'spring', stiffness: 200, damping: 22 }}
-      whileTap={{ scale: 0.95 }}
+      whileTap={clickThrough ? undefined : { scale: 0.95 }}
     >
       <motion.div
         className="flex items-end justify-center"
