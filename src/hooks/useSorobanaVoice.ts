@@ -114,9 +114,9 @@ export function useSorobanaVoice() {
         }
 
         const audio = new Audio();
-        // ✅ الأهم: تعطيل إرسال Referer حتى لا يرفض Google الطلب
-        audio.referrerPolicy = 'no-referrer';
-        audio.crossOrigin = 'anonymous';
+        // ✅ استخدام setAttribute لتفادي خطأ TypeScript
+        audio.setAttribute('referrerpolicy', 'no-referrer');
+        audio.setAttribute('crossorigin', 'anonymous');
         audio.preload = 'auto';
         audio.src = buildTtsUrl(nextSentence);
         audio.playbackRate = 0.95;
@@ -147,7 +147,6 @@ export function useSorobanaVoice() {
           .play()
           .then(() => {
             clearTimeout(timeout);
-            // تشغيل ناجح
           })
           .catch((err) => {
             console.warn('[Sorobana TTS] play failed:', err);
