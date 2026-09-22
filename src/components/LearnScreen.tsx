@@ -234,6 +234,7 @@ export function LearnScreen({ onBack, playSound, onXP, onNavigate }: LearnScreen
   const [attempts, setAttempts] = useState<Record<number, number>>({});
   const [showAnswer, setShowAnswer] = useState(false);
   const [feedbackMsg, setFeedbackMsg] = useState<string>('');
+  const [lessonCompleted, setLessonCompleted] = useState(false);
 
   const sorobana = useSorobanaVoice();
 
@@ -255,13 +256,11 @@ export function LearnScreen({ onBack, playSound, onXP, onNavigate }: LearnScreen
     try { localStorage.setItem(PROGRESS_STORAGE_KEY, JSON.stringify(lessonProgress)); } catch { /* ignore */ }
   }, [lessonProgress]);
 
-  // ✅ إيقاف الصوت عند إغلاق الشاشة فقط (مرة واحدة)
   useEffect(() => {
     return () => { sorobana.stop(); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // ✅ منع التمرير الخلفي + fix scroll bleed
   useEffect(() => {
     if (!selected) return;
     const prevOverflow = document.body.style.overflow;
@@ -304,6 +303,7 @@ export function LearnScreen({ onBack, playSound, onXP, onNavigate }: LearnScreen
     setAttempts({});
     setShowAnswer(false);
     setFeedbackMsg('');
+    setLessonCompleted(false);
   };
 
   const handleClose = () => { sorobana.stop(); setSelected(null); };
@@ -312,15 +312,22 @@ export function LearnScreen({ onBack, playSound, onXP, onNavigate }: LearnScreen
     if (!selected) return;
     if (solvedExamples.length < selected.examples.length) return;
     playSound('success');
-    sorobana.speakEndLesson();
+
+    // ✅ الصوت يكمل حتى النهاية، ثم يبقى في نهاية الدرس
+    sorobana.speakEndLesson(() => {
+      setLessonCompleted(true);
+    });
+
     if (!completed.includes(selected.id)) {
       setCompleted([...completed, selected.id]);
       onXP(30);
     }
-    setTimeout(() => {
-      sorobana.stop();
-      setSelected(null);
-    }, 5000);
+  };
+
+  const handleReturnToLessons = () => {
+    sorobana.stop();
+    setSelected(null);
+    setLessonCompleted(false);
   };
 
   const switchMode = (m: LessonMode) => {
@@ -788,12 +795,19 @@ export function LearnScreen({ onBack, playSound, onXP, onNavigate }: LearnScreen
                 </div>
               )}
 
-              <button onClick={handleComplete} disabled={!allExamplesSolved} className="btn-primary w-full disabled:opacity-40">
-                <CheckCircle2 className="w-5 h-5" />
-                {allExamplesSolved
-                  ? `أكملت الدرس +${toArabicNumber(30)} XP`
-                  : `حل ${toArabicNumber(selected.examples.length - solvedExamples.length)} أمثلة إضافية`}
-              </button>
+              {/* ✅ زر الإكمال / العودة */}
+              {!lessonCompleted ? (
+                <button onClick={handleComplete} disabled={!allExamplesSolved} className="btn-primary w-full disabled:opacity-40">
+                  <CheckCircle2 className="w-5 h-5" />
+                  {allExamplesSolved
+                    ? `أكملت الدرس +${toArabicNumber(30)} XP`
+                    : `حل ${toArabicNumber(selected.examples.length - solvedExamples.length)} أمثلة إضافية`}
+                </button>
+              ) : (
+                <button onClick={handleReturnToLessons} className="btn-primary w-full">
+                  <ArrowRight className="w-5 h-5" /> العودة للدروس
+                </button>
+              )}
             </motion.div>
           </motion.div>
         )}
