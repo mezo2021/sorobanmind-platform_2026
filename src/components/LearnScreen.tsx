@@ -9,9 +9,9 @@ import {
 } from 'lucide-react';
 import { LEARN_MODULES } from '@/data';
 import { FingerMath } from './FingerMath';
-import { SpeechButton } from './SpeechButton';
 import { FloatingCompanion } from './FloatingCompanion';
-import { useSpeech } from '@/hooks/useSpeech';
+import { SorobanaCompanion } from './SorobanaCompanion';
+import { useSorobanaVoice } from '@/hooks/useSorobanaVoice';
 import { Soroban2D5 } from './soroban2d5/Soroban2D5';
 import type { LearnModule, LessonStep, DivisionStep, LessonExample, DivisionExample, Screen } from '@/types';
 
@@ -22,6 +22,32 @@ function toArabicNumber(value: number | string): string {
 const ICONS: Record<string, LucideIcon> = {
   Info, Star, CircleDot, Combine, Hash, Sigma, Minus, Plus, X, Divide, Brain: Target, Hand,
 };
+
+const SOROBANA_PHRASES = {
+  greetings: [
+    'شلونك اليوم؟ الأمور تمام؟',
+    'مرحبا يا بطل! اليوم رح نتعلم شي جديد وممتع.',
+    'اليوم راح تتعلم شي جديد، انت جاهز؟',
+  ],
+  teaching: [
+    'شوف معي كيف منحسُب بسرعة وبسهولة.',
+    'ركّز شواي معي، وراح تشوف اديش سهلة!',
+    'كيفك فيا هي الطريقة؟ اديشها سهلة؟!',
+  ],
+  correct: [
+    'ياعيني عليك، برافو عليك عبقري!',
+    'ياعيني عليك يا بطل جواب صح!',
+  ],
+  wrong: [
+    'معليش، حاول من جديد!',
+    'مو مشكلة، جرّب مرة تانيي. ما في شي صعب!',
+  ],
+  endLesson: 'وهيك انتهى درسنا لليوم. راجعوا الدرس منيح بعدين طبقو شو تعلمتو.',
+};
+
+function pickRandom(arr: string[]): string {
+  return arr[Math.floor(Math.random() * arr.length)];
+}
 
 interface LearnScreenProps {
   onBack: () => void;
@@ -91,25 +117,15 @@ function isDivisionExample(ex: LessonExample | DivisionExample): ex is DivisionE
 
 function generateChoices(correct: number): number[] {
   const choices = new Set<number>([correct]);
-
   const candidates = [
-    correct - 1,
-    correct + 1,
-    correct - 2,
-    correct + 2,
-    correct + 5,
-    correct - 5,
-    correct + 10,
-    Math.max(0, correct - 10),
+    correct - 1, correct + 1, correct - 2, correct + 2,
+    correct + 5, correct - 5, correct + 10, Math.max(0, correct - 10),
   ].filter((n) => n >= 0 && n <= 20 && n !== correct);
-
   const shuffled = candidates.sort(() => Math.random() - 0.5);
-
   for (const n of shuffled) {
     if (choices.size >= 4) break;
     choices.add(n);
   }
-
   return Array.from(choices).sort(() => Math.random() - 0.5);
 }
 
@@ -142,50 +158,24 @@ interface LevelGroupProps {
   onOpen: (mod: LearnModule, isLocked: boolean) => void;
 }
 
-function LevelGroup({
-  title,
-  subtitle,
-  color,
-  modules,
-  completed,
-  lessonProgress,
-  onOpen,
-}: LevelGroupProps) {
+function LevelGroup({ title, subtitle, color, modules, completed, lessonProgress, onOpen }: LevelGroupProps) {
   if (modules.length === 0) return null;
-
   const totalCount = modules.length;
   const doneCount = modules.filter((m) => completed.includes(m.id)).length;
   const progressPct = totalCount > 0 ? (doneCount / totalCount) * 100 : 0;
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="mb-8"
-    >
+    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
       <div className="flex items-center gap-3 mb-4">
-        <div
-          className={`w-10 h-10 rounded-2xl bg-gradient-to-br ${color} flex items-center justify-center shadow-lg shrink-0`}
-        >
-          <span className="text-sm font-black text-white">
-            {doneCount}/{totalCount}
-          </span>
+        <div className={`w-10 h-10 rounded-2xl bg-gradient-to-br ${color} flex items-center justify-center shadow-lg shrink-0`}>
+          <span className="text-sm font-black text-white">{doneCount}/{totalCount}</span>
         </div>
         <div className="flex-1 min-w-0">
-          <h3 className="text-base sm:text-xl font-extrabold font-display text-white truncate">
-            {title}
-          </h3>
-          <p className="text-[10px] sm:text-xs text-white/50 font-body truncate">
-            {subtitle}
-          </p>
+          <h3 className="text-base sm:text-xl font-extrabold font-display text-white truncate">{title}</h3>
+          <p className="text-[10px] sm:text-xs text-white/50 font-body truncate">{subtitle}</p>
         </div>
         <div className="w-16 sm:w-24 h-2 rounded-full bg-white/10 overflow-hidden shrink-0">
-          <motion.div
-            className={`h-full rounded-full bg-gradient-to-r ${color}`}
-            initial={{ width: 0 }}
-            animate={{ width: `${progressPct}%` }}
-            transition={{ duration: 0.6 }}
-          />
+          <motion.div className={`h-full rounded-full bg-gradient-to-r ${color}`} initial={{ width: 0 }} animate={{ width: `${progressPct}%` }} transition={{ duration: 0.6 }} />
         </div>
       </div>
 
@@ -198,22 +188,14 @@ function LevelGroup({
           const isLocked = !isDone && !isFirstLesson && !previousCompleted;
           const solvedCount = (lessonProgress[mod.id] || []).length;
           const totalExamples = mod.examples.length;
-          const examplePct =
-            totalExamples > 0
-              ? Math.round((solvedCount / totalExamples) * 100)
-              : 0;
+          const examplePct = totalExamples > 0 ? Math.round((solvedCount / totalExamples) * 100) : 0;
 
           return (
             <motion.button
               key={mod.id}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{
-                delay: i * 0.04,
-                type: 'spring',
-                stiffness: 250,
-                damping: 22,
-              }}
+              transition={{ delay: i * 0.04, type: 'spring', stiffness: 250, damping: 22 }}
               whileHover={!isLocked ? { scale: 1.02, y: -3 } : {}}
               whileTap={!isLocked ? { scale: 0.98 } : {}}
               onClick={() => onOpen(mod, isLocked)}
@@ -221,20 +203,10 @@ function LevelGroup({
               className="group relative glass-card p-4 text-right overflow-hidden disabled:opacity-50"
             >
               <div className="absolute top-0 right-0 w-20 h-20 bg-purple-500/10 rounded-full blur-2xl group-hover:bg-purple-500/20 transition-all" />
-
               <div className="relative flex items-start justify-between mb-3">
-                <div
-                  className={`w-11 h-11 rounded-2xl bg-gradient-to-br ${color} flex items-center justify-center shadow-lg ${
-                    isLocked ? 'grayscale' : ''
-                  }`}
-                >
-                  {isLocked ? (
-                    <Lock className="w-5 h-5 text-white" />
-                  ) : (
-                    <Icon className="w-5 h-5 text-white" />
-                  )}
+                <div className={`w-11 h-11 rounded-2xl bg-gradient-to-br ${color} flex items-center justify-center shadow-lg ${isLocked ? 'grayscale' : ''}`}>
+                  {isLocked ? <Lock className="w-5 h-5 text-white" /> : <Icon className="w-5 h-5 text-white" />}
                 </div>
-
                 {isDone ? (
                   <span className="badge bg-emerald2-500/20 border-emerald2-400/30 text-emerald2-300 text-[10px]">
                     <CheckCircle2 className="w-3 h-3" /> مكتمل
@@ -244,31 +216,16 @@ function LevelGroup({
                     <Lock className="w-3 h-3" /> مقفل
                   </span>
                 ) : (
-                  <span className="badge bg-gold-400/20 border-gold-400/30 text-gold-300 text-[10px]">
-                    متاح
-                  </span>
+                  <span className="badge bg-gold-400/20 border-gold-400/30 text-gold-300 text-[10px]">متاح</span>
                 )}
               </div>
-
-              <h4 className="text-base font-extrabold font-display text-white mb-0.5">
-                {mod.titleAr}
-              </h4>
-              <p className="text-[10px] text-white/40 font-body mb-2">
-                {mod.title}
-              </p>
-              <p className="text-xs text-white/60 font-body leading-snug mb-3">
-                {mod.descriptionAr}
-              </p>
-
+              <h4 className="text-base font-extrabold font-display text-white mb-0.5">{mod.titleAr}</h4>
+              <p className="text-[10px] text-white/40 font-body mb-2">{mod.title}</p>
+              <p className="text-xs text-white/60 font-body leading-snug mb-3">{mod.descriptionAr}</p>
               {!isLocked && totalExamples > 0 && (
                 <div className="flex items-center gap-2">
                   <div className="flex-1 h-1.5 rounded-full bg-white/10 overflow-hidden">
-                    <motion.div
-                      className="h-full rounded-full bg-gradient-to-r from-emerald2-400 to-electric-400"
-                      initial={{ width: 0 }}
-                      animate={{ width: `${examplePct}%` }}
-                      transition={{ duration: 0.5 }}
-                    />
+                    <motion.div className="h-full rounded-full bg-gradient-to-r from-emerald2-400 to-electric-400" initial={{ width: 0 }} animate={{ width: `${examplePct}%` }} transition={{ duration: 0.5 }} />
                   </div>
                   <span className="text-[10px] text-white/40 font-body whitespace-nowrap">
                     {toArabicNumber(solvedCount)}/{toArabicNumber(totalExamples)}
@@ -286,60 +243,40 @@ function LevelGroup({
 export function LearnScreen({ onBack, playSound, onXP, onNavigate }: LearnScreenProps) {
   const [selected, setSelected] = useState<LearnModule | null>(null);
   const [completed, setCompleted] = useState<number[]>(() => {
-    try {
-      const saved = localStorage.getItem(COMPLETED_STORAGE_KEY);
-      return saved ? JSON.parse(saved) : [];
-    } catch {
-      return [];
-    }
+    try { const saved = localStorage.getItem(COMPLETED_STORAGE_KEY); return saved ? JSON.parse(saved) : []; } catch { return []; }
   });
   const [lessonProgress, setLessonProgress] = useState<Record<number, number[]>>(() => {
-    try {
-      const saved = localStorage.getItem(PROGRESS_STORAGE_KEY);
-      return saved ? JSON.parse(saved) : {};
-    } catch {
-      return {};
-    }
+    try { const saved = localStorage.getItem(PROGRESS_STORAGE_KEY); return saved ? JSON.parse(saved) : {}; } catch { return {}; }
   });
-
   const [examPassed, setExamPassed] = useState(false);
-
   const [mode, setMode] = useState<LessonMode>('watch');
   const [currentExample, setCurrentExample] = useState(0);
   const [currentStep, setCurrentStep] = useState(0);
   const [solvedExamples, setSolvedExamples] = useState<number[]>([]);
   const [showSteps, setShowSteps] = useState(false);
   const [abacusValue, setAbacusValue] = useState(0);
-
   const [attempts, setAttempts] = useState<Record<number, number>>({});
   const [showAnswer, setShowAnswer] = useState(false);
   const [feedbackMsg, setFeedbackMsg] = useState<string>('');
 
-  const { speak, stop, isSpeaking, isSupported } = useSpeech();
+  const sorobana = useSorobanaVoice();
 
   useEffect(() => {
     try {
       const raw = localStorage.getItem('soroban_exam_result');
-      if (raw) {
-        const data = JSON.parse(raw);
-        if (data?.passed === true) setExamPassed(true);
-      }
+      if (raw) { const data = JSON.parse(raw); if (data?.passed === true) setExamPassed(true); }
     } catch { /* ignore */ }
   }, []);
 
   useEffect(() => {
-    try {
-      localStorage.setItem(COMPLETED_STORAGE_KEY, JSON.stringify(completed));
-    } catch { /* ignore */ }
+    try { localStorage.setItem(COMPLETED_STORAGE_KEY, JSON.stringify(completed)); } catch { /* ignore */ }
   }, [completed]);
 
   useEffect(() => {
-    try {
-      localStorage.setItem(PROGRESS_STORAGE_KEY, JSON.stringify(lessonProgress));
-    } catch { /* ignore */ }
+    try { localStorage.setItem(PROGRESS_STORAGE_KEY, JSON.stringify(lessonProgress)); } catch { /* ignore */ }
   }, [lessonProgress]);
 
-  useEffect(() => { return () => { stop(); }; }, [stop]);
+  useEffect(() => { return () => { sorobana.stop(); }; }, [sorobana]);
 
   const handleOpen = (mod: LearnModule, isLocked: boolean) => {
     if (isLocked) return;
@@ -355,21 +292,27 @@ export function LearnScreen({ onBack, playSound, onXP, onNavigate }: LearnScreen
     setAttempts({});
     setShowAnswer(false);
     setFeedbackMsg('');
-    setTimeout(() => speak(mod.audioText), 300);
+    const greeting = pickRandom(SOROBANA_PHRASES.greetings);
+    setTimeout(() => {
+      sorobana.speak(`${greeting} ${mod.audioText}`, undefined);
+    }, 350);
   };
 
-  const handleClose = () => { stop(); setSelected(null); };
+  const handleClose = () => { sorobana.stop(); setSelected(null); };
 
   const handleComplete = () => {
     if (!selected) return;
     if (solvedExamples.length < selected.examples.length) return;
     playSound('success');
+    sorobana.speak(SOROBANA_PHRASES.endLesson);
     if (!completed.includes(selected.id)) {
       setCompleted([...completed, selected.id]);
       onXP(30);
     }
-    stop();
-    setSelected(null);
+    setTimeout(() => {
+      sorobana.stop();
+      setSelected(null);
+    }, 4500);
   };
 
   const switchMode = (m: LessonMode) => {
@@ -392,12 +335,10 @@ export function LearnScreen({ onBack, playSound, onXP, onNavigate }: LearnScreen
     if (!solvedExamples.includes(currentExample)) {
       const newSolved = [...solvedExamples, currentExample];
       setSolvedExamples(newSolved);
-      setLessonProgress({
-        ...lessonProgress,
-        [selected.id]: newSolved,
-      });
+      setLessonProgress({ ...lessonProgress, [selected.id]: newSolved });
       playSound('success');
       setFeedbackMsg('✅ أحسنت! إجابة صحيحة.');
+      sorobana.speak(pickRandom(SOROBANA_PHRASES.correct));
     }
   };
 
@@ -415,6 +356,7 @@ export function LearnScreen({ onBack, playSound, onXP, onNavigate }: LearnScreen
           ? '❌ لم تصل بعد. يمكنك رؤية الإجابة الآن.'
           : `❌ حاول مرة أخرى. المحاولة ${toArabicNumber(currentAttempts)} من ${toArabicNumber(MAX_ATTEMPTS)}`
       );
+      sorobana.speak(pickRandom(SOROBANA_PHRASES.wrong));
     }
   };
 
@@ -449,7 +391,6 @@ export function LearnScreen({ onBack, playSound, onXP, onNavigate }: LearnScreen
   const isFirstExample = currentExample === 0;
   const allExamplesSolved = selected ? solvedExamples.length === selected.examples.length : false;
   const isFingerLesson = selected?.id === 0;
-
   const currentAttempts = attempts[currentExample] || 0;
   const canShowAnswerBtn = currentAttempts >= MAX_ATTEMPTS && !isSolved;
 
@@ -464,135 +405,43 @@ export function LearnScreen({ onBack, playSound, onXP, onNavigate }: LearnScreen
   };
 
   const ADVANCED_CARDS = [
-    {
-      id: 'multiplication',
-      screen: 'multiplication' as Screen,
-      title: 'درس الضرب',
-      titleEn: 'Multiplication',
-      desc: 'طريقة الشبكة والخطوط مع قواعد السوروبان',
-      icon: Grid3X3,
-      gradient: 'from-indigo-500 to-purple-700',
-      available: true,
-    },
-    {
-      id: 'cross-multiplication',
-      screen: 'cross-multiplication' as Screen,
-      title: 'الضرب التقاطعي',
-      titleEn: 'Cross Multiplication',
-      desc: 'درس متقدم: 2×2 حتى 5×2 و 3×3',
-      icon: Hash,
-      gradient: 'from-cyan-500 to-blue-700',
-      available: true,
-    },
-    {
-      id: 'secrets',
-      screen: 'secrets' as Screen,
-      title: 'الأسرار السحرية',
-      titleEn: 'Magic Secrets',
-      desc: 'حِيَل ذكية لجدول الضرب — الجدول المختصر',
-      icon: Wand2,
-      gradient: 'from-amber-500 to-rose-600',
-      available: true,
-    },
-    {
-      id: 'division',
-      screen: 'division' as Screen,
-      title: 'القسمة',
-      titleEn: 'Division',
-      desc: 'تعلّم القسمة على السوروبان خطوة بخطوة',
-      icon: Divide,
-      gradient: 'from-blue-500 to-cyan-700',
-      available: true,
-    },
+    { id: 'multiplication', screen: 'multiplication' as Screen, title: 'درس الضرب', titleEn: 'Multiplication', desc: 'طريقة الشبكة والخطوط مع قواعد السوروبان', icon: Grid3X3, gradient: 'from-indigo-500 to-purple-700', available: true },
+    { id: 'cross-multiplication', screen: 'cross-multiplication' as Screen, title: 'الضرب التقاطعي', titleEn: 'Cross Multiplication', desc: 'درس متقدم: 2×2 حتى 5×2 و 3×3', icon: Hash, gradient: 'from-cyan-500 to-blue-700', available: true },
+    { id: 'secrets', screen: 'secrets' as Screen, title: 'الأسرار السحرية', titleEn: 'Magic Secrets', desc: 'حِيَل ذكية لجدول الضرب — الجدول المختصر', icon: Wand2, gradient: 'from-amber-500 to-rose-600', available: true },
+    { id: 'division', screen: 'division' as Screen, title: 'القسمة', titleEn: 'Division', desc: 'تعلّم القسمة على السوروبان خطوة بخطوة', icon: Divide, gradient: 'from-blue-500 to-cyan-700', available: true },
   ];
 
   const handleAdvancedClick = (card: typeof ADVANCED_CARDS[0]) => {
-    if (!examPassed) {
-      playSound('whoosh');
-      return;
-    }
-    if (!card.available || !card.screen) {
-      playSound('whoosh');
-      return;
-    }
-    if (onNavigate) {
-      playSound('click');
-      onNavigate(card.screen);
-    }
+    if (!examPassed) { playSound('whoosh'); return; }
+    if (!card.available || !card.screen) { playSound('whoosh'); return; }
+    if (onNavigate) { playSound('click'); onNavigate(card.screen); }
   };
 
   return (
     <div className="px-3 sm:px-6 py-6 max-w-5xl mx-auto">
-      {/* رأس الصفحة */}
       <div className="flex items-center gap-3 mb-6">
-        <button
-          onClick={() => { playSound('click'); onBack(); }}
-          className="btn-ghost !px-3 !py-2"
-        >
+        <button onClick={() => { playSound('click'); onBack(); }} className="btn-ghost !px-3 !py-2">
           <ArrowRight className="w-5 h-5" />
           <span className="hidden sm:inline">رجوع</span>
         </button>
         <div className="flex-1">
-          <h2 className="text-2xl sm:text-3xl font-extrabold font-display text-white">
-            التعلّم
-          </h2>
-          <p className="text-sm text-white/50 font-body">
-            تعرّف على السوروبان خطوة بخطوة
-          </p>
+          <h2 className="text-2xl sm:text-3xl font-extrabold font-display text-white">التعلّم</h2>
+          <p className="text-sm text-white/50 font-body">تعرّف على السوروبان خطوة بخطوة</p>
         </div>
       </div>
 
-      {/* 🌱 المجموعة 1: البداية (0-2) */}
-      <LevelGroup
-        title="🌱 البداية"
-        subtitle="تعرف على الأصابع والسوروبان"
-        color="from-emerald2-500 to-emerald2-700"
-        modules={LEARN_MODULES.filter((m) => m.id >= 0 && m.id <= 2)}
-        completed={completed}
-        lessonProgress={lessonProgress}
-        onOpen={handleOpen}
-      />
+      <LevelGroup title="🌱 البداية" subtitle="تعرف على الأصابع والسوروبان" color="from-emerald2-500 to-emerald2-700" modules={LEARN_MODULES.filter((m) => m.id >= 0 && m.id <= 2)} completed={completed} lessonProgress={lessonProgress} onOpen={handleOpen} />
+      <LevelGroup title="📚 القواعد الأساسية" subtitle="الجمع والطرح بكل القواعد" color="from-purple-500 to-purple-700" modules={LEARN_MODULES.filter((m) => m.id >= 3 && m.id <= 7)} completed={completed} lessonProgress={lessonProgress} onOpen={handleOpen} />
+      <LevelGroup title="🏆 الإتقان" subtitle="العمليات المركبة وتحدي السلاسل" color="from-gold-400 to-gold-600" modules={LEARN_MODULES.filter((m) => m.id >= 8 && m.id <= 9)} completed={completed} lessonProgress={lessonProgress} onOpen={handleOpen} />
 
-      {/* 📚 المجموعة 2: القواعد الأساسية (3-7) */}
-      <LevelGroup
-        title="📚 القواعد الأساسية"
-        subtitle="الجمع والطرح بكل القواعد"
-        color="from-purple-500 to-purple-700"
-        modules={LEARN_MODULES.filter((m) => m.id >= 3 && m.id <= 7)}
-        completed={completed}
-        lessonProgress={lessonProgress}
-        onOpen={handleOpen}
-      />
-
-      {/* 🏆 المجموعة 3: الإتقان (8-9) */}
-      <LevelGroup
-        title="🏆 الإتقان"
-        subtitle="العمليات المركبة وتحدي السلاسل"
-        color="from-gold-400 to-gold-600"
-        modules={LEARN_MODULES.filter((m) => m.id >= 8 && m.id <= 9)}
-        completed={completed}
-        lessonProgress={lessonProgress}
-        onOpen={handleOpen}
-      />
-
-      {/* ⭐ المجموعة 4: المستوى المتقدم */}
-      <motion.div
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.4, type: 'spring', stiffness: 200, damping: 20 }}
-        className="mt-10"
-      >
+      <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4, type: 'spring', stiffness: 200, damping: 20 }} className="mt-10">
         <div className="flex items-center gap-3 mb-5">
           <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-gold-400 to-amber-600 flex items-center justify-center shadow-lg shadow-gold-500/30">
             <Crown className="w-5 h-5 text-white" />
           </div>
           <div className="flex-1">
-            <h3 className="text-lg sm:text-xl font-extrabold font-display text-white">
-              المستوى المتقدم
-            </h3>
-            <p className="text-xs text-white/50 font-body">
-              الضرب والقسمة — بعد الامتحان النهائي
-            </p>
+            <h3 className="text-lg sm:text-xl font-extrabold font-display text-white">المستوى المتقدم</h3>
+            <p className="text-xs text-white/50 font-body">الضرب والقسمة — بعد الامتحان النهائي</p>
           </div>
         </div>
 
@@ -600,9 +449,7 @@ export function LearnScreen({ onBack, playSound, onXP, onNavigate }: LearnScreen
           <div className="mb-4 p-4 rounded-2xl bg-amber-500/10 border border-amber-400/30 flex items-start gap-3">
             <Lock className="w-5 h-5 text-amber-300 shrink-0 mt-0.5" />
             <p className="text-sm text-amber-100 font-body leading-relaxed">
-              🔒 هذه الدروس تُفتح بعد اجتياز{' '}
-              <span className="font-bold">الامتحان النهائي</span> (٦٠/١٠٠).
-              أكمل المستويات 0-9 ثم تقدّم للامتحان!
+              🔒 هذه الدروس تُفتح بعد اجتياز <span className="font-bold">الامتحان النهائي</span> (٦٠/١٠٠). أكمل المستويات 0-9 ثم تقدّم للامتحان!
             </p>
           </div>
         )}
@@ -611,44 +458,21 @@ export function LearnScreen({ onBack, playSound, onXP, onNavigate }: LearnScreen
           {ADVANCED_CARDS.map((card, i) => {
             const Icon = card.icon;
             const isLocked = !examPassed || !card.available;
-
             return (
               <motion.button
                 key={card.id}
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{
-                  delay: 0.5 + i * 0.08,
-                  type: 'spring',
-                  stiffness: 200,
-                  damping: 20,
-                }}
+                transition={{ delay: 0.5 + i * 0.08, type: 'spring', stiffness: 200, damping: 20 }}
                 whileHover={!isLocked ? { scale: 1.05, y: -5 } : {}}
                 whileTap={!isLocked ? { scale: 0.95 } : {}}
                 onClick={() => handleAdvancedClick(card)}
-                className={`group relative glass-card p-5 text-right overflow-hidden ${
-                  isLocked ? 'opacity-70 cursor-not-allowed' : ''
-                }`}
+                className={`group relative glass-card p-5 text-right overflow-hidden ${isLocked ? 'opacity-70 cursor-not-allowed' : ''}`}
               >
-                <div
-                  className={`absolute top-0 right-0 w-24 h-24 rounded-full blur-2xl transition-all ${
-                    isLocked
-                      ? 'bg-white/5'
-                      : 'bg-gold-500/10 group-hover:bg-gold-500/20'
-                  }`}
-                />
-
+                <div className={`absolute top-0 right-0 w-24 h-24 rounded-full blur-2xl transition-all ${isLocked ? 'bg-white/5' : 'bg-gold-500/10 group-hover:bg-gold-500/20'}`} />
                 <div className="relative flex items-start justify-between mb-3">
-                  <div
-                    className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${card.gradient} flex items-center justify-center shadow-lg ${
-                      isLocked ? 'grayscale' : ''
-                    }`}
-                  >
-                    {isLocked ? (
-                      <Lock className="w-6 h-6 text-white" />
-                    ) : (
-                      <Icon className="w-6 h-6 text-white" />
-                    )}
+                  <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${card.gradient} flex items-center justify-center shadow-lg ${isLocked ? 'grayscale' : ''}`}>
+                    {isLocked ? <Lock className="w-6 h-6 text-white" /> : <Icon className="w-6 h-6 text-white" />}
                   </div>
                   {examPassed ? (
                     <span className="badge bg-emerald2-500/20 border-emerald2-400/30 text-emerald2-300 text-xs">
@@ -660,13 +484,8 @@ export function LearnScreen({ onBack, playSound, onXP, onNavigate }: LearnScreen
                     </span>
                   )}
                 </div>
-
-                <h3 className="text-lg font-extrabold font-display text-white mb-1">
-                  {card.title}
-                </h3>
-                <p className="text-xs text-white/40 font-body mb-2">
-                  {card.titleEn}
-                </p>
+                <h3 className="text-lg font-extrabold font-display text-white mb-1">{card.title}</h3>
+                <p className="text-xs text-white/40 font-body mb-2">{card.titleEn}</p>
                 <p className="text-sm text-white/60 font-body leading-snug">
                   {isLocked ? '🔒 اجتز الامتحان النهائي لفتح هذا الدرس' : card.desc}
                 </p>
@@ -676,7 +495,6 @@ export function LearnScreen({ onBack, playSound, onXP, onNavigate }: LearnScreen
         </div>
       </motion.div>
 
-      {/* نافذة الدرس */}
       <AnimatePresence>
         {selected && (
           <motion.div
@@ -698,7 +516,6 @@ export function LearnScreen({ onBack, playSound, onXP, onNavigate }: LearnScreen
                 <h3 className="text-xl sm:text-2xl font-extrabold font-display text-white flex-1">
                   {selected.titleAr}
                 </h3>
-                <SpeechButton text={selected.audioText} speak={speak} stop={stop} isSpeaking={isSpeaking} isSupported={isSupported} />
                 <button
                   onClick={handleClose}
                   className="w-9 h-9 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors shrink-0"
@@ -749,17 +566,13 @@ export function LearnScreen({ onBack, playSound, onXP, onNavigate }: LearnScreen
               <div className="flex gap-2 mb-4 p-1 rounded-2xl bg-white/5 border border-white/10">
                 <button
                   onClick={() => switchMode('watch')}
-                  className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl font-bold font-body text-sm transition-all ${
-                    mode === 'watch' ? 'bg-gradient-to-br from-purple-500 to-electric-500 text-white shadow-lg' : 'text-white/50 hover:text-white/80'
-                  }`}
+                  className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl font-bold font-body text-sm transition-all ${mode === 'watch' ? 'bg-gradient-to-br from-purple-500 to-electric-500 text-white shadow-lg' : 'text-white/50 hover:text-white/80'}`}
                 >
                   <Eye className="w-4 h-4" /> شاهد
                 </button>
                 <button
                   onClick={() => switchMode('try')}
-                  className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl font-bold font-body text-sm transition-all ${
-                    mode === 'try' ? 'bg-gradient-to-br from-purple-500 to-electric-500 text-white shadow-lg' : 'text-white/50 hover:text-white/80'
-                  }`}
+                  className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl font-bold font-body text-sm transition-all ${mode === 'try' ? 'bg-gradient-to-br from-purple-500 to-electric-500 text-white shadow-lg' : 'text-white/50 hover:text-white/80'}`}
                 >
                   <Hand className="w-4 h-4" /> جرّب
                 </button>
@@ -777,12 +590,7 @@ export function LearnScreen({ onBack, playSound, onXP, onNavigate }: LearnScreen
                       </span>
                       <div className="flex gap-1">
                         {selected.examples.map((_, i) => (
-                          <span
-                            key={i}
-                            className={`w-2 h-2 rounded-full ${
-                              solvedExamples.includes(i) ? 'bg-emerald2-400' : i === currentExample ? 'bg-white' : 'bg-white/20'
-                            }`}
-                          />
+                          <span key={i} className={`w-2 h-2 rounded-full ${solvedExamples.includes(i) ? 'bg-emerald2-400' : i === currentExample ? 'bg-white' : 'bg-white/20'}`} />
                         ))}
                       </div>
                     </div>
@@ -798,13 +606,7 @@ export function LearnScreen({ onBack, playSound, onXP, onNavigate }: LearnScreen
                       {isFingerLesson ? (
                         <FingerMath value={currentEx.answer} />
                       ) : (
-                        <Soroban2D5
-                          key={`soroban-watch-${currentExample}`}
-                          columns={getColumnsForValue(currentEx.answer)}
-                          demoValue={currentEx.answer}
-                          interactive={false}
-                          showValue={true}
-                        />
+                        <Soroban2D5 key={`soroban-watch-${currentExample}`} columns={getColumnsForValue(currentEx.answer)} demoValue={currentEx.answer} interactive={false} showValue={true} />
                       )}
                     </motion.div>
                   </AnimatePresence>
@@ -836,36 +638,24 @@ export function LearnScreen({ onBack, playSound, onXP, onNavigate }: LearnScreen
                                     ? '❌ لم تصل بعد. يمكنك رؤية الإجابة الآن.'
                                     : `❌ حاول مرة أخرى. المحاولة ${toArabicNumber(currentAttempts)} من ${toArabicNumber(MAX_ATTEMPTS)}`
                                 );
+                                sorobana.speak(pickRandom(SOROBANA_PHRASES.wrong));
                               }
                             }}
                             disabled={isSolved}
-                            className={`py-4 rounded-2xl font-display font-black text-3xl transition-all ${
-                              isSolved && choice === currentEx.answer
-                                ? 'bg-emerald2-500/30 border-2 border-emerald2-400 text-emerald2-200 scale-105'
-                                : 'bg-white/10 border-2 border-white/20 text-white hover:bg-white/20 hover:scale-105 active:scale-95'
-                            }`}
+                            className={`py-4 rounded-2xl font-display font-black text-3xl transition-all ${isSolved && choice === currentEx.answer ? 'bg-emerald2-500/30 border-2 border-emerald2-400 text-emerald2-200 scale-105' : 'bg-white/10 border-2 border-white/20 text-white hover:bg-white/20 hover:scale-105 active:scale-95'}`}
                           >
                             {toArabicNumber(choice)}
                           </button>
                         ))}
                       </div>
                       {!isSolved && abacusValue !== 0 && (
-                        <button
-                          onClick={() => { setAbacusValue(0); playSound('click'); }}
-                          className="btn-ghost !py-2 !px-4 !text-xs"
-                        >
+                        <button onClick={() => { setAbacusValue(0); playSound('click'); }} className="btn-ghost !py-2 !px-4 !text-xs">
                           <RotateCcw className="w-4 h-4" /> مسح الاختيار
                         </button>
                       )}
                     </div>
                   ) : (
-                    <Soroban2D5
-                      key={`soroban-try-${currentExample}`}
-                      columns={getColumnsForValue(currentEx.answer)}
-                      interactive={true}
-                      showValue={true}
-                      onValueChange={(v) => setAbacusValue(v)}
-                    />
+                    <Soroban2D5 key={`soroban-try-${currentExample}`} columns={getColumnsForValue(currentEx.answer)} interactive={true} showValue={true} onValueChange={(v) => setAbacusValue(v)} />
                   )}
 
                   {!isFingerLesson && !isSolved && !showAnswer && (
@@ -874,11 +664,7 @@ export function LearnScreen({ onBack, playSound, onXP, onNavigate }: LearnScreen
                         <CheckCircle2 className="w-4 h-4" /> تحقق
                       </button>
                       {abacusValue !== 0 && (
-                        <button
-                          onClick={() => { setAbacusValue(0); playSound('click'); }}
-                          className="btn-ghost !py-2 !px-4 !text-sm"
-                          title="إعادة تعيين المعداد"
-                        >
+                        <button onClick={() => { setAbacusValue(0); playSound('click'); }} className="btn-ghost !py-2 !px-4 !text-sm" title="إعادة تعيين المعداد">
                           <RotateCcw className="w-4 h-4" /> مسح
                         </button>
                       )}
@@ -894,10 +680,7 @@ export function LearnScreen({ onBack, playSound, onXP, onNavigate }: LearnScreen
                   )}
 
                   {canShowAnswerBtn && !showAnswer && (
-                    <button
-                      onClick={() => { setShowAnswer(true); playSound('click'); }}
-                      className="btn-ghost !py-2 !px-4 !text-xs !border-gold-400/40 !text-gold-300"
-                    >
+                    <button onClick={() => { setShowAnswer(true); playSound('click'); }} className="btn-ghost !py-2 !px-4 !text-xs !border-gold-400/40 !text-gold-300">
                       <Lightbulb className="w-4 h-4" /> أرني الإجابة
                     </button>
                   )}
@@ -907,12 +690,8 @@ export function LearnScreen({ onBack, playSound, onXP, onNavigate }: LearnScreen
                       <p className="text-sm font-bold text-gold-300 text-center mb-1">
                         💡 الإجابة الصحيحة: {toArabicNumber(currentEx.answer)}
                       </p>
-                      <p className="text-xs text-white/70 font-body text-center leading-relaxed">
-                        {currentEx.explanation}
-                      </p>
-                      <button onClick={handleExampleSolved} className="w-full mt-3 btn-primary !py-2 !text-sm">
-                        فهمت، التالي
-                      </button>
+                      <p className="text-xs text-white/70 font-body text-center leading-relaxed">{currentEx.explanation}</p>
+                      <button onClick={handleExampleSolved} className="w-full mt-3 btn-primary !py-2 !text-sm">فهمت، التالي</button>
                     </div>
                   )}
                 </div>
@@ -931,18 +710,10 @@ export function LearnScreen({ onBack, playSound, onXP, onNavigate }: LearnScreen
                           الخطوة {toArabicNumber(currentStep + 1)} من {toArabicNumber(currentEx.steps.length)}
                         </p>
                       </div>
-
                       {currentEx.steps.slice(0, currentStep + 1).map((step: LessonStep | DivisionStep, i: number) => {
                         const isDiv = 'expectedAbacusState' in step;
                         return (
-                          <motion.div
-                            key={i}
-                            initial={{ opacity: 0, x: -20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            className={`p-3 rounded-2xl border ${
-                              i === currentStep ? 'bg-electric-500/20 border-electric-400/40' : 'bg-white/5 border-white/10'
-                            }`}
-                          >
+                          <motion.div key={i} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className={`p-3 rounded-2xl border ${i === currentStep ? 'bg-electric-500/20 border-electric-400/40' : 'bg-white/5 border-white/10'}`}>
                             <div className="flex items-start gap-3">
                               <div className="w-8 h-8 rounded-full bg-electric-500/30 flex items-center justify-center shrink-0 text-sm font-bold text-electric-200">
                                 {toArabicNumber(i + 1)}
@@ -962,17 +733,13 @@ export function LearnScreen({ onBack, playSound, onXP, onNavigate }: LearnScreen
                                   </p>
                                 )}
                                 {isDiv && (
-                                  <AbacusStatePreview
-                                    state={(step as DivisionStep).expectedAbacusState}
-                                    label="حالة المعداد المتوقعة بعد الخطوة:"
-                                  />
+                                  <AbacusStatePreview state={(step as DivisionStep).expectedAbacusState} label="حالة المعداد المتوقعة بعد الخطوة:" />
                                 )}
                               </div>
                             </div>
                           </motion.div>
                         );
                       })}
-
                       {currentStep + 1 < currentEx.steps.length && (
                         <button onClick={nextStep} className="w-full btn-primary !py-2 !text-sm mt-2">
                           <MoveRight className="w-4 h-4" /> الخطوة التالية
@@ -997,11 +764,7 @@ export function LearnScreen({ onBack, playSound, onXP, onNavigate }: LearnScreen
                 </div>
               )}
 
-              <button
-                onClick={handleComplete}
-                disabled={!allExamplesSolved}
-                className="btn-primary w-full disabled:opacity-40"
-              >
+              <button onClick={handleComplete} disabled={!allExamplesSolved} className="btn-primary w-full disabled:opacity-40">
                 <CheckCircle2 className="w-5 h-5" />
                 {allExamplesSolved
                   ? `أكملت الدرس +${toArabicNumber(30)} XP`
@@ -1012,8 +775,14 @@ export function LearnScreen({ onBack, playSound, onXP, onNavigate }: LearnScreen
         )}
       </AnimatePresence>
 
-      {/* ✅ الشخصية العائمة — النسخة التجريبية */}
       <FloatingCompanion playSound={playSound} />
+
+      {selected && (
+        <SorobanaCompanion
+          isSpeaking={sorobana.isSpeaking}
+          onClick={() => sorobana.speak(pickRandom(SOROBANA_PHRASES.teaching))}
+        />
+      )}
     </div>
   );
 }
