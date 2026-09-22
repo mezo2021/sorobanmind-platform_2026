@@ -41,9 +41,6 @@ const SECTION_STORIES: Record<SectionType, string> = {
   mixed: 'تخيل المعداد، واضرب واقسم بسرعة!',
 };
 
-// ═══════════════════════════════════════════════════════════════
-// تقدم المستويات
-// ═══════════════════════════════════════════════════════════════
 interface AnzanProgress {
   addition: number[];
   multiplication: number[];
@@ -71,9 +68,6 @@ function saveProgress(progress: AnzanProgress) {
   try { localStorage.setItem(ANZAN_PROGRESS_KEY, JSON.stringify(progress)); } catch { /* ignore */ }
 }
 
-// ═══════════════════════════════════════════════════════════════
-// الجولات اليومية
-// ═══════════════════════════════════════════════════════════════
 interface RoundsData { date: string; count: number; }
 
 function loadRounds(): RoundsData {
@@ -91,9 +85,6 @@ function saveRounds(data: RoundsData) {
   try { localStorage.setItem(ANZAN_ROUNDS_KEY, JSON.stringify(data)); } catch { /* ignore */ }
 }
 
-// ═══════════════════════════════════════════════════════════════
-// فحص الدروس
-// ═══════════════════════════════════════════════════════════════
 function isLessonCompleted(id: number): boolean {
   try {
     const raw = localStorage.getItem('soroban-completed-lessons');
@@ -102,9 +93,6 @@ function isLessonCompleted(id: number): boolean {
   } catch { return false; }
 }
 
-// ═══════════════════════════════════════════════════════════════
-// بيانات المستويات
-// ═══════════════════════════════════════════════════════════════
 interface LevelInfo {
   level: AnzanLevel;
   label: string;
@@ -175,9 +163,6 @@ function getLevelsForSection(section: SectionType): LevelInfo[] {
   }
 }
 
-// ═══════════════════════════════════════════════════════════════
-// توليد الأسئلة
-// ═══════════════════════════════════════════════════════════════
 type Question = {
   operations: Array<{ value: number; operator: '+' | '-' | '×' | '÷' }>;
   answer: number;
@@ -242,7 +227,6 @@ function generateQuestion(section: SectionType, level: AnzanLevel): Question {
     return { operations: [{ value: dividend, operator: '÷' }, { value: divisor, operator: '÷' }], answer: quotient, level };
   }
 
-  // mixed
   const result: Array<{ value: number; operator: '+' | '-' | '×' | '÷'; }> = [];
   let start = randomInt(4, 8);
   result.push({ value: start, operator: '×' });
@@ -300,7 +284,6 @@ function toArabicNumber(value: number | string): string {
   return String(value).replace(/\d/g, (d) => '٠١٢٣٤٥٦٧٨٩'[Number(d)]);
 }
 
-/** ✅ عدد الأعمدة التلقائي — من 2 إلى 5 حسب قيمة الناتج */
 function getColumnsForValue(value: number): number {
   if (value < 100) return 2;
   if (value < 1000) return 3;
@@ -313,9 +296,6 @@ function getLevelTime(section: SectionType, level: AnzanLevel): number {
   return lv ? lv.time : 20;
 }
 
-// ═══════════════════════════════════════════════════════════════
-// الشاشة الرئيسية
-// ═══════════════════════════════════════════════════════════════
 interface Props {
   onBack: () => void;
   playSound: (type: 'click' | 'success' | 'error' | 'bead' | 'whoosh' | 'levelup') => void;
@@ -451,15 +431,12 @@ export function AnzanScreen({ onBack, playSound, onXP, burst }: Props) {
     return progress[section].filter(x => x === level).length;
   };
 
-  // ═══════════════════════════════════════════════════════════════
-  // الوضع السماعي
-  // ═══════════════════════════════════════════════════════════════
   if (isAudioMode) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-slate-900 via-purple-950 to-slate-900" dir="rtl">
         <div className="px-3 sm:px-6 py-4 max-w-2xl mx-auto">
           <button
-            onClick={() => { stop(); playSound('click'); setIsAudioMode(false); }}
+            onClick={() => { stop(); sorobana.stop(); playSound('click'); setIsAudioMode(false); }}
             className="mb-4 flex items-center gap-2 px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-sm font-bold"
           >
             <ArrowRight className="w-4 h-4" /> العودة للأنزان البصري
@@ -471,21 +448,10 @@ export function AnzanScreen({ onBack, playSound, onXP, burst }: Props) {
           onXP={onXP}
           burst={burst}
         />
-        {/* ✅ سوروبانا كشكل فقط في الوضع السماعي */}
-        <SorobanaCompanion
-          isSpeaking={false}
-          variant="pointing"
-          sizeOverride={120}
-          offsetBottom="6rem"
-          clickThrough={true}
-        />
       </div>
     );
   }
 
-  // ═══════════════════════════════════════════════════════════════
-  // الوضع البصري
-  // ═══════════════════════════════════════════════════════════════
   return (
     <div className="px-3 sm:px-6 py-6 max-w-2xl mx-auto" dir="rtl">
       {/* Header */}
@@ -689,15 +655,17 @@ export function AnzanScreen({ onBack, playSound, onXP, burst }: Props) {
         </motion.div>
       )}
 
-      {/* ✅ سوروبانا في الوضع البصري */}
-      <SorobanaCompanion
-        isSpeaking={sorobana.isSpeaking}
-        onClick={() => sorobana.speakTeaching()}
-        variant="pointing"
-        sizeOverride={150}
-        offsetBottom="8rem"
-        clickThrough={true}
-      />
+      {/* ✅ سوروبانا — تظهر فقط بعد "ابدأ الجولة" */}
+      {phase !== 'intro' && (
+        <SorobanaCompanion
+          isSpeaking={sorobana.isSpeaking}
+          onClick={() => sorobana.speakTeaching()}
+          variant="pointing"
+          sizeOverride={150}
+          offsetBottom="8rem"
+          clickThrough={true}
+        />
+      )}
     </div>
   );
 }
