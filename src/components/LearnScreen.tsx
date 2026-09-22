@@ -292,10 +292,9 @@ export function LearnScreen({ onBack, playSound, onXP, onNavigate }: LearnScreen
     setAttempts({});
     setShowAnswer(false);
     setFeedbackMsg('');
+    // ⚠️ مهم: بدء الصوت مباشرة داخل onClick (بدون setTimeout)
     const greeting = pickRandom(SOROBANA_PHRASES.greetings);
-    setTimeout(() => {
-      sorobana.speak(`${greeting} ${mod.audioText}`, undefined);
-    }, 350);
+    sorobana.speak(`${greeting} ${mod.audioText}`);
   };
 
   const handleClose = () => { sorobana.stop(); setSelected(null); };
@@ -312,7 +311,7 @@ export function LearnScreen({ onBack, playSound, onXP, onNavigate }: LearnScreen
     setTimeout(() => {
       sorobana.stop();
       setSelected(null);
-    }, 4500);
+    }, 5000);
   };
 
   const switchMode = (m: LessonMode) => {
