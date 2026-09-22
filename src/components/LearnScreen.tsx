@@ -12,6 +12,7 @@ import { LEARN_MODULES } from '@/data';
 import { FingerMath } from './FingerMath';
 import { FloatingCompanion } from './FloatingCompanion';
 import { SorobanaCompanion } from './SorobanaCompanion';
+import { DebugOverlay } from './DebugOverlay';
 import { useSorobanaVoice } from '@/hooks/useSorobanaVoice';
 import { Soroban2D5 } from './soroban2d5/Soroban2D5';
 import type { LearnModule, LessonStep, DivisionStep, LessonExample, DivisionExample, Screen } from '@/types';
@@ -795,6 +796,8 @@ export function LearnScreen({ onBack, playSound, onXP, onNavigate }: LearnScreen
           onClick={() => sorobana.speakTeaching()}
         />
       )}
+
+      <DebugOverlay />
     </div>
   );
 }
