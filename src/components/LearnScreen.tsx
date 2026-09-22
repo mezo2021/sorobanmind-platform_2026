@@ -5,6 +5,7 @@ import {
   Combine, Hash, Sigma, Minus, Plus, Lightbulb, Eye, Hand,
   X, Divide, Fingerprint, MoveRight, Target,
   BookOpen, Sparkles, RotateCcw, Grid3X3, Wand2, Crown,
+  Volume2, VolumeX,
   type LucideIcon,
 } from 'lucide-react';
 import { LEARN_MODULES } from '@/data';
@@ -297,6 +298,25 @@ export function LearnScreen({ onBack, playSound, onXP, onNavigate }: LearnScreen
     };
   }, [selected]);
 
+  // ═══ زر تشغيل/إيقاف القراءة ═══
+  const handleToggleSound = () => {
+    if (!selected) return;
+    if (sorobana.isSpeaking) {
+      sorobana.stop();
+      playSound('click');
+      return;
+    }
+    playSound('click');
+    const parts: string[] = [];
+    const greeting = pickRandom(SOROBANA_PHRASES.greetings);
+    parts.push(greeting);
+    if (selected.story) parts.push(selected.story);
+    if (selected.ruleAr) parts.push(`القاعدة: ${selected.ruleAr}`);
+    if (selected.descriptionAr) parts.push(selected.descriptionAr);
+    if (currentEx && currentEx.explanation) parts.push(currentEx.explanation);
+    sorobana.speak(parts.join('. '), 'teaching');
+  };
+
   const handleOpen = (mod: LearnModule, isLocked: boolean) => {
     if (isLocked) return;
     playSound('click');
@@ -311,8 +331,6 @@ export function LearnScreen({ onBack, playSound, onXP, onNavigate }: LearnScreen
     setAttempts({});
     setShowAnswer(false);
     setFeedbackMsg('');
-    const greeting = pickRandom(SOROBANA_PHRASES.greetings);
-    sorobana.speak(`${greeting} ${mod.audioText}`);
   };
 
   const handleClose = () => { sorobana.stop(); setSelected(null); };
@@ -533,6 +551,22 @@ export function LearnScreen({ onBack, playSound, onXP, onNavigate }: LearnScreen
                 <h3 className="text-xl sm:text-2xl font-extrabold font-display text-white flex-1">
                   {selected.titleAr}
                 </h3>
+                <button
+                  onClick={handleToggleSound}
+                  className={`w-9 h-9 rounded-xl flex items-center justify-center transition-colors shrink-0 ${
+                    sorobana.isSpeaking
+                      ? 'bg-emerald2-500/30 border border-emerald2-400/50'
+                      : 'bg-white/10 hover:bg-white/20'
+                  }`}
+                  aria-label={sorobana.isSpeaking ? 'إيقاف الصوت' : 'تشغيل الصوت'}
+                  title={sorobana.isSpeaking ? 'إيقاف الصوت' : 'استمع للدرس'}
+                >
+                  {sorobana.isSpeaking ? (
+                    <VolumeX className="w-5 h-5 text-emerald2-200" />
+                  ) : (
+                    <Volume2 className="w-5 h-5 text-white/70" />
+                  )}
+                </button>
                 <button
                   onClick={handleClose}
                   className="w-9 h-9 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors shrink-0"
