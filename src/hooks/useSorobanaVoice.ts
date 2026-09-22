@@ -1,53 +1,29 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 // ═══════════════════════════════════════════════════════════════
-// تقسيم النص إلى جمل قصيرة
+// مكتبة العبارات الصوتية المحلية
 // ═══════════════════════════════════════════════════════════════
-function splitIntoSentences(text: string): string[] {
-  const raw = text
-    .split(/([.!?؟؛]+|\n+)/g)
-    .reduce<string[]>((acc, part) => {
-      if (!part) return acc;
-      if (/^[.!?؟؛]+$/.test(part) || /^\n+$/.test(part)) {
-        if (acc.length > 0) acc[acc.length - 1] += part;
-      } else {
-        acc.push(part.trim());
-      }
-      return acc;
-    }, [])
-    .filter((s) => s.length > 1);
-
-  const result: string[] = [];
-  for (const sentence of raw) {
-    if (sentence.length <= 100) {
-      result.push(sentence);
-      continue;
-    }
-    const chunks = sentence.split(/([،,]|\s+)/);
-    let current = '';
-    for (const chunk of chunks) {
-      if ((current + chunk).length > 95) {
-        if (current.trim().length > 0) result.push(current.trim());
-        current = chunk;
-      } else {
-        current += chunk;
-      }
-    }
-    if (current.trim().length > 0) result.push(current.trim());
-  }
-
-  return result;
-}
-
-// ═══════════════════════════════════════════════════════════════
-// بناء رابط Google TTS عبر بروكسي CORS
-// ═══════════════════════════════════════════════════════════════
-function buildTtsUrl(text: string): string {
-  const encoded = encodeURIComponent(text);
-  const googleUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=ar&client=tw-ob&q=${encoded}`;
-  // استخدام بروكسي CORS عام (بدون تسجيل)
-  return `https://api.allorigins.win/raw?url=${encodeURIComponent(googleUrl)}`;
-}
+export const SOROBANA_AUDIO = {
+  greetings: [
+    '/audio/greeting-1.mp3',
+    '/audio/greeting-2.mp3',
+    '/audio/greeting-3.mp3',
+  ],
+  teaching: [
+    '/audio/teaching-1.mp3',
+    '/audio/teaching-2.mp3',
+    '/audio/teaching-3.mp3',
+  ],
+  correct: [
+    '/audio/correct-1.mp3',
+    '/audio/correct-2.mp3',
+  ],
+  wrong: [
+    '/audio/wrong-1.mp3',
+    '/audio/wrong-2.mp3',
+  ],
+  endLesson: '/audio/end-lesson.mp3',
+};
 
 // ═══════════════════════════════════════════════════════════════
 // Hook رئيسي
@@ -82,86 +58,144 @@ export function useSorobanaVoice() {
     setIsSpeaking(false);
   }, []);
 
-  const speak = useCallback(
-    (text: string, _mood?: string, onDone?: () => void) => {
-      if (!mountedRef.current) return;
+  // ═══ تشغيل قائمة ملفات صوتية بالتتابع ═══
+  const playFiles = useCallback((files: string[], onDone?: () => void) => {
+    if (!mountedRef.current) return;
+    cancelledRef.current = false;
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current = null;
+    }
+    queueRef.current = [...files];
+    setIsSpeaking(true);
 
-      cancelledRef.current = false;
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current = null;
+    const playNext = () => {
+      if (!mountedRef.current || cancelledRef.current) {
+        setIsSpeaking(false);
+        onDone?.();
+        return;
       }
-
-      const sentences = splitIntoSentences(text);
-      if (sentences.length === 0) {
+      const nextFile = queueRef.current.shift();
+      if (!nextFile) {
+        setIsSpeaking(false);
         onDone?.();
         return;
       }
 
-      queueRef.current = [...sentences];
-      setIsSpeaking(true);
+      const audio = new Audio(nextFile);
+      audio.preload = 'auto';
+      audioRef.current = audio;
 
-      const playNext = () => {
+      let advanced = false;
+      const advance = () => {
+        if (advanced) return;
+        advanced = true;
         if (!mountedRef.current || cancelledRef.current) {
           setIsSpeaking(false);
           onDone?.();
           return;
         }
-
-        const nextSentence = queueRef.current.shift();
-        if (!nextSentence) {
-          setIsSpeaking(false);
-          onDone?.();
-          return;
-        }
-
-        const audio = new Audio();
-        audio.setAttribute('referrerpolicy', 'no-referrer');
-        audio.preload = 'auto';
-        audio.src = buildTtsUrl(nextSentence);
-        audio.playbackRate = 0.95;
-
-        audioRef.current = audio;
-
-        let advanced = false;
-        const advance = () => {
-          if (advanced) return;
-          advanced = true;
-          if (!mountedRef.current || cancelledRef.current) {
-            setIsSpeaking(false);
-            onDone?.();
-            return;
-          }
-          setTimeout(playNext, 250);
-        };
-
-        audio.onended = advance;
-        audio.onerror = () => {
-          console.warn('[Sorobana TTS] audio error:', nextSentence);
-          advance();
-        };
-
-        const timeout = setTimeout(advance, 8000);
-
-        audio
-          .play()
-          .then(() => {
-            clearTimeout(timeout);
-            console.log('[Sorobana TTS] playing:', nextSentence);
-          })
-          .catch((err) => {
-            console.warn('[Sorobana TTS] play failed:', err);
-            clearTimeout(timeout);
-            advance();
-          });
+        setTimeout(playNext, 250);
       };
 
-      playNext();
+      audio.onended = advance;
+      audio.onerror = () => {
+        console.warn('[Sorobana] audio error:', nextFile);
+        advance();
+      };
+
+      const timeout = setTimeout(advance, 8000);
+
+      audio
+        .play()
+        .then(() => clearTimeout(timeout))
+        .catch((err) => {
+          console.warn('[Sorobana] play failed:', err);
+          clearTimeout(timeout);
+          advance();
+        });
+    };
+
+    playNext();
+  }, []);
+
+  // ═══ اختيار عشوائي من قائمة ═══
+  const pickRandom = (arr: string[]): string =>
+    arr[Math.floor(Math.random() * arr.length)];
+
+  // ═══ الواجهة العامة ═══
+
+  /** تشغيل ملفات صوتية محددة */
+  const speakFiles = useCallback(
+    (files: string[], onDone?: () => void) => {
+      playFiles(files, onDone);
     },
-    []
+    [playFiles]
   );
 
-  return { speak, stop, isSpeaking, isSupported };
+  /** الترحيب + القصة + القاعدة + الشرح */
+  const speakLesson = useCallback(
+    (
+      story?: string,
+      rule?: string,
+      description?: string,
+      onDone?: () => void
+    ) => {
+      const files: string[] = [pickRandom(SOROBANA_AUDIO.greetings)];
+      void story;
+      void rule;
+      void description;
+      playFiles(files, onDone);
+    },
+    [playFiles]
+  );
+
+  /** عبارة تعليمية عشوائية */
+  const speakTeaching = useCallback(
+    (onDone?: () => void) => {
+      playFiles([pickRandom(SOROBANA_AUDIO.teaching)], onDone);
+    },
+    [playFiles]
+  );
+
+  /** عبارة إجابة صحيحة */
+  const speakCorrect = useCallback(
+    (onDone?: () => void) => {
+      playFiles([pickRandom(SOROBANA_AUDIO.correct)], onDone);
+    },
+    [playFiles]
+  );
+
+  /** عبارة إجابة خاطئة */
+  const speakWrong = useCallback(
+    (onDone?: () => void) => {
+      playFiles([pickRandom(SOROBANA_AUDIO.wrong)], onDone);
+    },
+    [playFiles]
+  );
+
+  /** عبارة نهاية الدرس */
+  const speakEndLesson = useCallback(
+    (onDone?: () => void) => {
+      playFiles([SOROBANA_AUDIO.endLesson], onDone);
+    },
+    [playFiles]
+  );
+
+  return {
+    // الواجهة الأساسية (للتوافق مع الكود الحالي)
+    speak: speakFiles as unknown as (text: string, mood?: string, onDone?: () => void) => void,
+    stop,
+    isSpeaking,
+    isSupported,
+    // الواجهات المخصصة (للأنماط الجديدة)
+    speakLesson,
+    speakTeaching,
+    speakCorrect,
+    speakWrong,
+    speakEndLesson,
+    speakFiles,
+  };
 }
 
 export default useSorobanaVoice;
