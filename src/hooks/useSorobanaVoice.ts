@@ -24,24 +24,34 @@ export function useSorobanaVoice() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const generationRef = useRef(0);
   const mountedRef = useRef(true);
+  const timeoutRef = useRef<number | null>(null);
+
+  const clearPendingTimeout = useCallback(() => {
+    if (timeoutRef.current !== null) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+  }, []);
 
   useEffect(() => {
     mountedRef.current = true;
     return () => {
       mountedRef.current = false;
       generationRef.current++;
+      clearPendingTimeout();
       const a = audioRef.current;
       if (a) {
         try {
+          a.onended = null;
+          a.onerror = null;
           a.pause();
           a.removeAttribute('src');
           a.load();
         } catch { /* ignore */ }
       }
     };
-  }, []);
+  }, [clearPendingTimeout]);
 
-  // ✅ عنصر Audio واحد مشترك — لا يتراكم
   const getSharedAudio = useCallback((): HTMLAudioElement => {
     if (!audioRef.current) {
       const a = new Audio();
@@ -54,15 +64,18 @@ export function useSorobanaVoice() {
 
   const stop = useCallback(() => {
     generationRef.current++;
+    clearPendingTimeout();
     const a = audioRef.current;
     if (a) {
       try {
+        a.onended = null;
+        a.onerror = null;
         a.pause();
         a.currentTime = 0;
       } catch { /* ignore */ }
     }
     setIsSpeaking(false);
-  }, []);
+  }, [clearPendingTimeout]);
 
   const playFiles = useCallback((files: string[], onDone?: () => void) => {
     if (files.length === 0) {
@@ -78,15 +91,17 @@ export function useSorobanaVoice() {
     const myGeneration = ++generationRef.current;
     const localQueue = [...files];
 
-    // إيقاف أي تشغيل سابق
-    try { audio.pause(); } catch { /* ignore */ }
+    clearPendingTimeout();
+    try {
+      audio.onended = null;
+      audio.onerror = null;
+      audio.pause();
+    } catch { /* ignore */ }
 
     setIsSpeaking(true);
 
     const playNext = () => {
-      if (myGeneration !== generationRef.current || !mountedRef.current) {
-        return;
-      }
+      if (myGeneration !== generationRef.current || !mountedRef.current) return;
       const nextFile = localQueue.shift();
       if (!nextFile) {
         setIsSpeaking(false);
@@ -94,15 +109,16 @@ export function useSorobanaVoice() {
         return;
       }
 
-      // ✅ نُعيد استخدام نفس العنصر — نغيّر src فقط
       audio.src = nextFile;
 
       let advanced = false;
       const advance = () => {
         if (advanced) return;
         advanced = true;
+        clearPendingTimeout();
         if (myGeneration !== generationRef.current || !mountedRef.current) return;
-        setTimeout(() => {
+        timeoutRef.current = window.setTimeout(() => {
+          timeoutRef.current = null;
           if (myGeneration !== generationRef.current || !mountedRef.current) return;
           playNext();
         }, 250);
@@ -111,19 +127,16 @@ export function useSorobanaVoice() {
       audio.onended = advance;
       audio.onerror = advance;
 
-      const timeout = setTimeout(advance, 8000);
+      // Safety net: يُمسح فقط عندما يُنفَّذ advance
+      timeoutRef.current = window.setTimeout(advance, 8000);
 
-      audio
-        .play()
-        .then(() => clearTimeout(timeout))
-        .catch(() => {
-          clearTimeout(timeout);
-          advance();
-        });
+      audio.play().catch(() => {
+        advance();
+      });
     };
 
     playNext();
-  }, [getSharedAudio]);
+  }, [getSharedAudio, clearPendingTimeout]);
 
   const speak = useCallback((text: string, _mood?: string, onDone?: () => void) => {
     void text;
