@@ -5,7 +5,7 @@ import {
   FileText, AlertCircle, Lock, BookOpen,
   Brain, Grid3X3,
 } from 'lucide-react';
-import { InteractiveSoroban } from './InteractiveSoroban';
+import { Soroban2D5 } from './soroban2d5/Soroban2D5';
 import { LEARN_MODULES } from '@/data';
 import {
   pickAdditionExam,
@@ -167,7 +167,6 @@ export function FinalExam({ onBack, onComplete, playSound, onGoToLearn }: FinalE
       if (passed) playSound('levelup');
       else playSound('error');
 
-      // ✅ حفظ النتيجة في localStorage
       try {
         if (tab === 'addition') {
           localStorage.setItem(
@@ -483,10 +482,13 @@ export function FinalExam({ onBack, onComplete, playSound, onGoToLearn }: FinalE
         </p>
       </motion.div>
 
+      {/* ✅ السوروبان الجديد 2D5 */}
       <div className="flex justify-center mb-4">
-        <InteractiveSoroban
+        <Soroban2D5
+          key={`exam-${currentIndex}`}
           columns={getColumnsForValue(currentQuestion?.answer ?? 99)}
-          value={abacusValue}
+          interactive={true}
+          showValue={true}
           onValueChange={(v) => setAbacusValue(v)}
         />
       </div>
