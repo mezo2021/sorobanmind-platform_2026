@@ -24,32 +24,6 @@ const ICONS: Record<string, LucideIcon> = {
   Info, Star, CircleDot, Combine, Hash, Sigma, Minus, Plus, X, Divide, Brain: Target, Hand,
 };
 
-const SOROBANA_PHRASES = {
-  greetings: [
-    'شلونك اليوم؟ الأمور تمام؟',
-    'مرحبا يا بطل! اليوم رح نتعلم شي جديد وممتع.',
-    'اليوم راح تتعلم شي جديد، انت جاهز؟',
-  ],
-  teaching: [
-    'شوف معي كيف منحسُب بسرعة وبسهولة.',
-    'ركّز شواي معي، وراح تشوف اديش سهلة!',
-    'كيفك فيا هي الطريقة؟ اديشها سهلة؟!',
-  ],
-  correct: [
-    'ياعيني عليك، برافو عليك عبقري!',
-    'ياعيني عليك يا بطل جواب صح!',
-  ],
-  wrong: [
-    'معليش، حاول من جديد!',
-    'مو مشكلة، جرّب مرة تانيي. ما في شي صعب!',
-  ],
-  endLesson: 'وهيك انتهى درسنا لليوم. راجعوا الدرس منيح بعدين طبقو شو تعلمتو.',
-};
-
-function pickRandom(arr: string[]): string {
-  return arr[Math.floor(Math.random() * arr.length)];
-}
-
 interface LearnScreenProps {
   onBack: () => void;
   playSound: (type: 'click' | 'success' | 'error' | 'bead' | 'whoosh' | 'levelup') => void;
@@ -262,7 +236,6 @@ export function LearnScreen({ onBack, playSound, onXP, onNavigate }: LearnScreen
 
   const sorobana = useSorobanaVoice();
 
-  // ═══ فحص حالة الامتحان ═══
   useEffect(() => {
     try {
       const raw = localStorage.getItem('soroban_exam_result');
@@ -273,22 +246,18 @@ export function LearnScreen({ onBack, playSound, onXP, onNavigate }: LearnScreen
     } catch { /* ignore */ }
   }, []);
 
-  // ═══ حفظ الدروس المكتملة ═══
   useEffect(() => {
     try { localStorage.setItem(COMPLETED_STORAGE_KEY, JSON.stringify(completed)); } catch { /* ignore */ }
   }, [completed]);
 
-  // ═══ حفظ تقدم الدروس ═══
   useEffect(() => {
     try { localStorage.setItem(PROGRESS_STORAGE_KEY, JSON.stringify(lessonProgress)); } catch { /* ignore */ }
   }, [lessonProgress]);
 
-  // ═══ إيقاف الصوت عند إغلاق الشاشة ═══
   useEffect(() => {
     return () => { sorobana.stop(); };
   }, [sorobana]);
 
-  // ═══ منع التمرير الخلفي عندما يكون الدرس مفتوحاً ═══
   useEffect(() => {
     if (!selected) return;
     const prevOverflow = document.body.style.overflow;
@@ -298,7 +267,6 @@ export function LearnScreen({ onBack, playSound, onXP, onNavigate }: LearnScreen
     };
   }, [selected]);
 
-  // ═══ زر تشغيل/إيقاف القراءة ═══
   const handleToggleSound = () => {
     if (!selected) return;
     if (sorobana.isSpeaking) {
@@ -307,14 +275,7 @@ export function LearnScreen({ onBack, playSound, onXP, onNavigate }: LearnScreen
       return;
     }
     playSound('click');
-    const parts: string[] = [];
-    const greeting = pickRandom(SOROBANA_PHRASES.greetings);
-    parts.push(greeting);
-    if (selected.story) parts.push(selected.story);
-    if (selected.ruleAr) parts.push(`القاعدة: ${selected.ruleAr}`);
-    if (selected.descriptionAr) parts.push(selected.descriptionAr);
-    if (currentEx && currentEx.explanation) parts.push(currentEx.explanation);
-    sorobana.speak(parts.join('. '), 'teaching');
+    sorobana.speakLesson();
   };
 
   const handleOpen = (mod: LearnModule, isLocked: boolean) => {
@@ -339,7 +300,7 @@ export function LearnScreen({ onBack, playSound, onXP, onNavigate }: LearnScreen
     if (!selected) return;
     if (solvedExamples.length < selected.examples.length) return;
     playSound('success');
-    sorobana.speak(SOROBANA_PHRASES.endLesson);
+    sorobana.speakEndLesson();
     if (!completed.includes(selected.id)) {
       setCompleted([...completed, selected.id]);
       onXP(30);
@@ -373,7 +334,7 @@ export function LearnScreen({ onBack, playSound, onXP, onNavigate }: LearnScreen
       setLessonProgress({ ...lessonProgress, [selected.id]: newSolved });
       playSound('success');
       setFeedbackMsg('✅ أحسنت! إجابة صحيحة.');
-      sorobana.speak(pickRandom(SOROBANA_PHRASES.correct));
+      sorobana.speakCorrect();
     }
   };
 
@@ -391,7 +352,7 @@ export function LearnScreen({ onBack, playSound, onXP, onNavigate }: LearnScreen
           ? '❌ لم تصل بعد. يمكنك رؤية الإجابة الآن.'
           : `❌ حاول مرة أخرى. المحاولة ${toArabicNumber(currentAttempts)} من ${toArabicNumber(MAX_ATTEMPTS)}`
       );
-      sorobana.speak(pickRandom(SOROBANA_PHRASES.wrong));
+      sorobana.speakWrong();
     }
   };
 
@@ -689,7 +650,7 @@ export function LearnScreen({ onBack, playSound, onXP, onNavigate }: LearnScreen
                                     ? '❌ لم تصل بعد. يمكنك رؤية الإجابة الآن.'
                                     : `❌ حاول مرة أخرى. المحاولة ${toArabicNumber(currentAttempts)} من ${toArabicNumber(MAX_ATTEMPTS)}`
                                 );
-                                sorobana.speak(pickRandom(SOROBANA_PHRASES.wrong));
+                                sorobana.speakWrong();
                               }
                             }}
                             disabled={isSolved}
@@ -831,7 +792,7 @@ export function LearnScreen({ onBack, playSound, onXP, onNavigate }: LearnScreen
       {selected && (
         <SorobanaCompanion
           isSpeaking={sorobana.isSpeaking}
-          onClick={() => sorobana.speak(pickRandom(SOROBANA_PHRASES.teaching))}
+          onClick={() => sorobana.speakTeaching()}
         />
       )}
     </div>
