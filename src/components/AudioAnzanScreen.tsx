@@ -5,15 +5,14 @@ import {
   Brain, Lock, CheckCircle2, Volume2, Plus, Divide,
 } from 'lucide-react';
 import { Soroban2D5 } from './soroban2d5/Soroban2D5';
+import { SorobanaCompanion } from './SorobanaCompanion';
+import { useSorobanaVoice } from '@/hooks/useSorobanaVoice';
 import { useSpeech } from '@/hooks/useSpeech';
 import {
   loadAudioAnzanBadges, saveAudioAnzanBadges, type AudioAnzanBadges,
 } from '@/utils/audioAnzanBadges';
 import { loadAnzanBadges } from '@/examBank2';
 
-// ═══════════════════════════════════════════════════════════════
-// الأنواع
-// ═══════════════════════════════════════════════════════════════
 type SectionType = 'addition' | 'multdiv';
 type Phase = 'intro' | 'listening' | 'answer' | 'result';
 type AnzanLevel = 1 | 2 | 3 | 4 | 5;
@@ -25,9 +24,6 @@ const QUESTIONS_PER_ROUND = 5;
 const MAX_ROUNDS_PER_DAY = 3;
 const ROUNDS_KEY = 'soroban_audio_anzan_rounds';
 
-// ═══════════════════════════════════════════════════════════════
-// أدوات
-// ═══════════════════════════════════════════════════════════════
 function toArabicNumber(value: number | string): string {
   return String(value).replace(/\d/g, (d) => '٠١٢٣٤٥٦٧٨٩'[Number(d)]);
 }
@@ -46,13 +42,12 @@ function randomInt(min: number, max: number): number {
 }
 
 function getColumnsForValue(value: number): number {
+  if (value < 100) return 2;
   if (value < 1000) return 3;
-  return 6;
+  if (value < 10000) return 4;
+  return 5;
 }
 
-// ═══════════════════════════════════════════════════════════════
-// فحص الدروس
-// ═══════════════════════════════════════════════════════════════
 function isExamPassed(): boolean {
   try {
     const raw = localStorage.getItem('soroban_exam_result');
@@ -75,9 +70,6 @@ function isDivisionUnlocked(): boolean {
   return isExamPassed();
 }
 
-// ═══════════════════════════════════════════════════════════════
-// الجولات اليومية
-// ═══════════════════════════════════════════════════════════════
 interface RoundsData { date: string; count: number; }
 
 function loadRounds(): RoundsData {
@@ -95,9 +87,6 @@ function saveRounds(data: RoundsData) {
   try { localStorage.setItem(ROUNDS_KEY, JSON.stringify(data)); } catch { /* ignore */ }
 }
 
-// ═══════════════════════════════════════════════════════════════
-// توليد الأسئلة
-// ═══════════════════════════════════════════════════════════════
 type AudioOperation = { value: number; operator: '+' | '-' | '×' | '÷'; };
 type AudioQuestion = {
   operations: AudioOperation[];
@@ -229,9 +218,6 @@ function generateRound(section: SectionType): AudioQuestion[] {
   return questions;
 }
 
-// ═══════════════════════════════════════════════════════════════
-// نص القراءة الصوتية
-// ═══════════════════════════════════════════════════════════════
 function buildSpeechSequence(ops: AudioOperation[]): string[] {
   const parts: string[] = [];
   ops.forEach((op, i) => {
@@ -248,9 +234,6 @@ function buildSpeechSequence(ops: AudioOperation[]): string[] {
   return parts;
 }
 
-// ═══════════════════════════════════════════════════════════════
-// الشاشة الرئيسية
-// ═══════════════════════════════════════════════════════════════
 interface Props {
   onBack: () => void;
   playSound: (type: 'click' | 'success' | 'error' | 'bead' | 'whoosh' | 'levelup') => void;
@@ -274,6 +257,7 @@ export function AudioAnzanScreen({ onBack, playSound, onXP, burst }: Props) {
   const [replayUsed, setReplayUsed] = useState(false);
 
   const { speak, stop, isSupported } = useSpeech();
+  const sorobana = useSorobanaVoice();
 
   const currentQ = questions[currentIdx];
   const canStartRound = rounds.count < MAX_ROUNDS_PER_DAY;
@@ -283,7 +267,8 @@ export function AudioAnzanScreen({ onBack, playSound, onXP, burst }: Props) {
   const multdivUnlocked = multUnlocked || divUnlocked;
 
   useEffect(() => {
-    return () => { stop(); };
+    return () => { stop(); sorobana.stop(); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [section, phase, stop]);
 
   useEffect(() => {
@@ -295,6 +280,7 @@ export function AudioAnzanScreen({ onBack, playSound, onXP, burst }: Props) {
     }
     const t = setTimeout(() => setTimeLeft(x => x - 1), 1000);
     return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase, timeLeft, currentQ]);
 
   useEffect(() => {
@@ -357,10 +343,12 @@ export function AudioAnzanScreen({ onBack, playSound, onXP, burst }: Props) {
     if (abacusValue === currentQ.answer) {
       playSound('success');
       setFeedback('correct');
+      sorobana.speakCorrect();
       setTimeout(() => nextQuestion(true), 1200);
     } else if (newAttempts >= MAX_ATTEMPTS) {
       playSound('error');
       setFeedback('revealed');
+      sorobana.speakWrong();
       setTimeout(() => nextQuestion(false), 2500);
     } else {
       playSound('error');
@@ -412,6 +400,7 @@ export function AudioAnzanScreen({ onBack, playSound, onXP, burst }: Props) {
     setBadges(updatedBadges);
 
     setPhase('result');
+    sorobana.speakEndLesson();
   };
 
   if (!isSupported) {
@@ -427,9 +416,8 @@ export function AudioAnzanScreen({ onBack, playSound, onXP, burst }: Props) {
 
   return (
     <div className="px-3 sm:px-6 py-6 max-w-2xl mx-auto" dir="rtl">
-      {/* Header */}
       <div className="flex items-center gap-3 mb-6">
-        <button onClick={() => { stop(); playSound('click'); onBack(); }} className="btn-ghost !px-3 !py-2">
+        <button onClick={() => { stop(); sorobana.stop(); playSound('click'); onBack(); }} className="btn-ghost !px-3 !py-2">
           <ArrowRight className="w-5 h-5" />
         </button>
         <div className="flex-1">
@@ -439,10 +427,9 @@ export function AudioAnzanScreen({ onBack, playSound, onXP, burst }: Props) {
         <Volume2 className="w-6 h-6 text-purple-300" />
       </div>
 
-      {/* Section Tabs */}
       <div className="flex gap-2 mb-5">
         <button
-          onClick={() => { stop(); playSound('click'); setSection('addition'); setPhase('intro'); }}
+          onClick={() => { stop(); sorobana.stop(); playSound('click'); setSection('addition'); setPhase('intro'); }}
           className={`flex-1 py-3 rounded-xl font-bold transition text-sm flex items-center justify-center gap-2 ${
             section === 'addition' ? 'bg-purple-600 shadow-lg' : 'bg-white/10'
           }`}
@@ -452,7 +439,7 @@ export function AudioAnzanScreen({ onBack, playSound, onXP, burst }: Props) {
         <button
           onClick={() => {
             if (!multdivUnlocked) { playSound('error'); return; }
-            stop(); playSound('click'); setSection('multdiv'); setPhase('intro');
+            stop(); sorobana.stop(); playSound('click'); setSection('multdiv'); setPhase('intro');
           }}
           disabled={!multdivUnlocked}
           className={`flex-1 py-3 rounded-xl font-bold transition text-sm flex items-center justify-center gap-2 ${
@@ -465,7 +452,6 @@ export function AudioAnzanScreen({ onBack, playSound, onXP, burst }: Props) {
         </button>
       </div>
 
-      {/* Rounds */}
       <div className="flex items-center justify-between mb-4 p-3 rounded-2xl bg-white/5 border border-white/10">
         <div className="flex items-center gap-2">
           <Zap className="w-4 h-4 text-electric-300" />
@@ -476,7 +462,6 @@ export function AudioAnzanScreen({ onBack, playSound, onXP, burst }: Props) {
         </span>
       </div>
 
-      {/* Badges */}
       <div className="flex gap-2 mb-4 flex-wrap">
         {badges.master_addition_audio && (
           <span className="px-2 py-1 rounded-lg bg-gold-400/20 border border-gold-400/40 text-gold-200 text-[10px] font-bold">
@@ -495,7 +480,6 @@ export function AudioAnzanScreen({ onBack, playSound, onXP, burst }: Props) {
         )}
       </div>
 
-      {/* INTRO */}
       {phase === 'intro' && (
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
           {!multdivUnlocked && section === 'multdiv' ? (
@@ -535,7 +519,6 @@ export function AudioAnzanScreen({ onBack, playSound, onXP, burst }: Props) {
         </motion.div>
       )}
 
-      {/* LISTENING */}
       {phase === 'listening' && currentQ && (
         <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="glass-card p-8 text-center">
           <motion.div
@@ -552,7 +535,6 @@ export function AudioAnzanScreen({ onBack, playSound, onXP, burst }: Props) {
         </motion.div>
       )}
 
-      {/* ANSWER */}
       {phase === 'answer' && currentQ && (
         <div className="space-y-4">
           <div className="text-center">
@@ -570,11 +552,11 @@ export function AudioAnzanScreen({ onBack, playSound, onXP, burst }: Props) {
             </span>
           </div>
 
-          {/* ✅ Soroban2D5 */}
           <div className="flex justify-center">
             <Soroban2D5
               key={`audio-anzan-${currentIdx}`}
               columns={getColumnsForValue(currentQ.answer)}
+              autoBeadSize={true}
               interactive={true}
               showValue={true}
               onValueChange={setAbacusValue}
@@ -641,7 +623,6 @@ export function AudioAnzanScreen({ onBack, playSound, onXP, burst }: Props) {
         </div>
       )}
 
-      {/* RESULT */}
       {phase === 'result' && (
         <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="glass-card p-6 text-center">
           <Trophy className="w-16 h-16 text-gold-300 mx-auto mb-4" />
@@ -654,6 +635,18 @@ export function AudioAnzanScreen({ onBack, playSound, onXP, burst }: Props) {
             <RotateCcw className="w-5 h-5" /> متابعة
           </button>
         </motion.div>
+      )}
+
+      {/* ✅ سوروبانا — تظهر فقط بعد "ابدأ الجولة" */}
+      {phase !== 'intro' && (
+        <SorobanaCompanion
+          isSpeaking={sorobana.isSpeaking}
+          onClick={() => sorobana.speakTeaching()}
+          variant="pointing"
+          sizeOverride={120}
+          offsetBottom="6rem"
+          clickThrough={true}
+        />
       )}
     </div>
   );
