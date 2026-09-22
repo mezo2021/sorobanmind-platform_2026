@@ -32,6 +32,28 @@ function pickRandom(arr: string[]): string {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
+// ═══════════════════════════════════════════════════════════════
+// نظام الرسائل التشخيصية
+// ═══════════════════════════════════════════════════════════════
+type DebugListener = (msg: string) => void;
+const debugListeners = new Set<DebugListener>();
+
+export function subscribeDebug(listener: DebugListener): () => void {
+  debugListeners.add(listener);
+  return () => {
+    debugListeners.delete(listener);
+  };
+}
+
+function debugLog(msg: string) {
+  // eslint-disable-next-line no-console
+  console.log('[Sorobana]', msg);
+  debugListeners.forEach((l) => l(msg));
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Hook رئيسي
+// ═══════════════════════════════════════════════════════════════
 export function useSorobanaVoice() {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [isSupported] = useState(true);
@@ -52,13 +74,12 @@ export function useSorobanaVoice() {
       audioRef.current.currentTime = 0;
     }
     setIsSpeaking(false);
+    debugLog('⏹️ Stopped');
   }, []);
 
-  // ═══ تشغيل ملف واحد فقط — بدون queue ═══
   const playOne = useCallback((url: string) => {
-    console.log('[Sorobana] playing:', url);
+    debugLog(`📂 Loading: ${url.split('/').pop()}`);
 
-    // إيقاف الصوت القديم
     if (audioRef.current) {
       audioRef.current.pause();
     }
@@ -66,33 +87,40 @@ export function useSorobanaVoice() {
     const audio = new Audio();
     audio.src = url;
     audio.preload = 'auto';
+    audio.crossOrigin = 'anonymous';
     audioRef.current = audio;
 
     audio.onplay = () => {
-      console.log('[Sorobana] PLAY event fired');
+      debugLog('▶️ PLAY event fired');
       setIsSpeaking(true);
     };
 
     audio.onended = () => {
-      console.log('[Sorobana] ENDED');
+      debugLog('✅ ENDED');
       setIsSpeaking(false);
     };
 
     audio.onerror = () => {
-      console.error('[Sorobana] ERROR loading:', url);
+      debugLog('❌ ERROR loading file');
       setIsSpeaking(false);
     };
 
-    audio
-      .play()
-      .then(() => console.log('[Sorobana] play() promise resolved'))
-      .catch((err) => {
-        console.error('[Sorobana] play() REJECTED:', err);
-        setIsSpeaking(false);
-      });
+    audio.oncanplay = () => {
+      debugLog('📥 Can play');
+    };
+
+    const playPromise = audio.play();
+    if (playPromise !== undefined) {
+      playPromise
+        .then(() => {
+          debugLog('✅ play() resolved');
+        })
+        .catch((err: Error) => {
+          debugLog(`❌ play() FAILED: ${err.name}`);
+        });
+    }
   }, []);
 
-  // ═══ الواجهة العامة ═══
   const speak = useCallback((text: string, _mood?: string, onDone?: () => void) => {
     void text;
     void onDone;
