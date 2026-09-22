@@ -1,12 +1,23 @@
 import { motion } from 'framer-motion';
 import sorobanaImg from '@/assets/sorobana/sorobana-main.webp';
 
+type LessonMode = 'watch' | 'try';
+
 interface SorobanaCompanionProps {
   isSpeaking: boolean;
   onClick?: () => void;
+  mode?: LessonMode;
 }
 
-export function SorobanaCompanion({ isSpeaking, onClick }: SorobanaCompanionProps) {
+export function SorobanaCompanion({
+  isSpeaking,
+  onClick,
+  mode = 'watch',
+}: SorobanaCompanionProps) {
+  // حجم مختلف حسب الوضع
+  const size = mode === 'watch' ? 180 : 90;
+  const height = Math.round(size * 1.35);
+
   return (
     <motion.button
       type="button"
@@ -14,10 +25,8 @@ export function SorobanaCompanion({ isSpeaking, onClick }: SorobanaCompanionProp
       aria-label="سوروبانا — المعلمة"
       className="fixed z-[55] select-none focus:outline-none"
       style={{
-        bottom: '8rem',
-        right: '0',
-        width: 'clamp(140px, 30vw, 200px)',
-        height: 'clamp(190px, 40vw, 270px)',
+        bottom: '12rem',
+        right: '0.25rem',
         padding: 0,
         background: 'transparent',
         border: 'none',
@@ -28,18 +37,14 @@ export function SorobanaCompanion({ isSpeaking, onClick }: SorobanaCompanionProp
       whileTap={{ scale: 0.95 }}
     >
       <motion.div
-        className="w-full h-full flex items-end justify-center"
+        className="flex items-end justify-center"
         animate={{
-          y: isSpeaking ? [0, -6, 0, -6, 0] : [0, -4, 0],
-          scale: isSpeaking ? [1, 1.06, 1] : 1,
+          width: size,
+          height: height,
         }}
-        transition={{
-          duration: isSpeaking ? 0.8 : 3,
-          repeat: Infinity,
-          ease: 'easeInOut',
-        }}
+        transition={{ duration: 0.4, ease: 'easeInOut' }}
       >
-        <img
+        <motion.img
           src={sorobanaImg}
           alt="سوروبانا"
           className="w-full h-full pointer-events-none"
@@ -49,6 +54,15 @@ export function SorobanaCompanion({ isSpeaking, onClick }: SorobanaCompanionProp
             filter: 'drop-shadow(0 6px 12px rgba(0,0,0,0.4))',
           }}
           draggable={false}
+          animate={{
+            y: isSpeaking ? [0, -3, 0, -3, 0] : [0, -2, 0],
+            scale: isSpeaking ? [1, 1.04, 1] : 1,
+          }}
+          transition={{
+            duration: isSpeaking ? 0.8 : 3,
+            repeat: Infinity,
+            ease: 'easeInOut',
+          }}
         />
       </motion.div>
     </motion.button>
