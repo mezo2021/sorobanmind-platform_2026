@@ -1,12 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 // ═══════════════════════════════════════════════════════════════
-// مسار أساسي صحيح للـ GitHub Pages
+// ⚠️ رابط مطلق مضمون — نفس الرابط الذي يعمل في المتصفح
 // ═══════════════════════════════════════════════════════════════
-const BASE = '/sorobanmind-platform_2026/';
+const BASE = 'https://mezo2021.github.io/sorobanmind-platform_2026/';
 
 function audioPath(file: string): string {
-  // BASE = "/sorobanmind-platform_2026/" على GitHub Pages
   return `${BASE}audio/${file}`;
 }
 
@@ -95,10 +94,13 @@ export function useSorobanaVoice() {
         return;
       }
 
-      console.log('[Sorobana] playing:', nextFile);
+      // 🔍 طباعة الرابط للتشخيص
+      console.log('[Sorobana] Loading:', nextFile);
 
-      const audio = new Audio(nextFile);
+      const audio = new Audio();
+      audio.crossOrigin = 'anonymous';
       audio.preload = 'auto';
+      audio.src = nextFile;
       audioRef.current = audio;
 
       let advanced = false;
@@ -114,21 +116,29 @@ export function useSorobanaVoice() {
       };
 
       audio.onended = advance;
-      audio.onerror = () => {
-        console.warn('[Sorobana] audio error:', nextFile);
+
+      audio.onerror = (e) => {
+        console.error('[Sorobana] Audio error:', e, '| src:', nextFile);
         advance();
       };
 
-      const timeout = setTimeout(advance, 8000);
+      audio.oncanplaythrough = () => {
+        console.log('[Sorobana] Can play through OK');
+      };
+
+      const timeout = setTimeout(() => {
+        console.warn('[Sorobana] Timeout (8s) — skipping:', nextFile);
+        advance();
+      }, 8000);
 
       audio
         .play()
         .then(() => {
           clearTimeout(timeout);
-          console.log('[Sorobana] playing OK');
+          console.log('[Sorobana] Playing OK:', nextFile);
         })
         .catch((err) => {
-          console.warn('[Sorobana] play failed:', err);
+          console.error('[Sorobana] Play FAILED:', err, '| src:', nextFile);
           clearTimeout(timeout);
           advance();
         });
