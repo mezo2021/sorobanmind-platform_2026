@@ -266,23 +266,27 @@ export function AudioAnzanScreen({ onBack, playSound, onXP, burst }: Props) {
   const divUnlocked = hasAdditionBadge() && isDivisionUnlocked();
   const multdivUnlocked = multUnlocked || divUnlocked;
 
+  // ✅ فقط عند تغيير القسم — وليس عند تغيير phase
   useEffect(() => {
     return () => { stop(); sorobana.stop(); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [section, phase, stop]);
+  }, [section]);
 
   useEffect(() => {
     if (phase !== 'answer' || !currentQ) return;
     if (timeLeft <= 0) {
       setFeedback('revealed');
       let advanced = false;
+      const startTime = Date.now();
       const advance = () => {
         if (advanced) return;
         advanced = true;
-        nextQuestion(false);
+        const elapsed = Date.now() - startTime;
+        const wait = Math.max(1800, 3500 - elapsed);
+        setTimeout(() => nextQuestion(false), wait);
       };
       sorobana.speakWrong(advance);
-      setTimeout(advance, 5000);
+      setTimeout(advance, 6500);
       return;
     }
     const t = setTimeout(() => setTimeLeft(x => x - 1), 1000);
@@ -351,30 +355,32 @@ export function AudioAnzanScreen({ onBack, playSound, onXP, burst }: Props) {
       playSound('success');
       setFeedback('correct');
 
-      // ✅ ننتظر انتهاء صوت سوروبانا ثم ننتقل
       let advanced = false;
+      const startTime = Date.now();
       const advance = () => {
         if (advanced) return;
         advanced = true;
-        nextQuestion(true);
+        const elapsed = Date.now() - startTime;
+        const wait = Math.max(1800, 3500 - elapsed);
+        setTimeout(() => nextQuestion(true), wait);
       };
       sorobana.speakCorrect(advance);
-      // احتياطي: لو فشل الصوت، ننتقل بعد 5 ثواني
-      setTimeout(advance, 5000);
+      setTimeout(advance, 6500);
     } else if (newAttempts >= MAX_ATTEMPTS) {
       playSound('error');
       setFeedback('revealed');
 
-      // ✅ ننتظر انتهاء صوت سوروبانا ثم ننتقل
       let advanced = false;
+      const startTime = Date.now();
       const advance = () => {
         if (advanced) return;
         advanced = true;
-        nextQuestion(false);
+        const elapsed = Date.now() - startTime;
+        const wait = Math.max(1800, 3500 - elapsed);
+        setTimeout(() => nextQuestion(false), wait);
       };
       sorobana.speakWrong(advance);
-      // احتياطي: لو فشل الصوت، ننتقل بعد 6 ثواني
-      setTimeout(advance, 6000);
+      setTimeout(advance, 6500);
     } else {
       playSound('error');
       setFeedback('wrong');
@@ -662,7 +668,6 @@ export function AudioAnzanScreen({ onBack, playSound, onXP, burst }: Props) {
         </motion.div>
       )}
 
-      {/* ✅ سوروبانا — تظهر فقط بعد "ابدأ الجولة" */}
       {phase !== 'intro' && (
         <SorobanaCompanion
           isSpeaking={sorobana.isSpeaking}
