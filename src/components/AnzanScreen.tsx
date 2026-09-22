@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
-  ArrowRight, Eye, Play, Zap, Trophy, RotateCcw,
+  ArrowRight, ArrowLeft, Eye, Play, Zap, Trophy, RotateCcw,
   Brain, Lock, CheckCircle2, Volume2,
 } from 'lucide-react';
 import { Soroban2D5 } from './soroban2d5/Soroban2D5';
@@ -22,7 +22,7 @@ const ANZAN_ROUNDS_KEY = 'soroban_anzan_rounds';
 const QUESTIONS_PER_ROUND = 5;
 const CORRECT_TO_MASTER = 10;
 const MAX_ROUNDS_PER_DAY = 3;
-const MAX_ATTEMPTS = 2;
+const MAX_ATTEMPTS = 1;
 
 const SECTION_LABELS: Record<SectionType, string> = {
   addition: '🧠 جمع وطرح',
@@ -324,7 +324,6 @@ export function AnzanScreen({ onBack, playSound, onXP, burst }: Props) {
   const hasUnlockedLevels = levels.some(l => l.unlocked);
   const canStartRound = rounds.count < MAX_ROUNDS_PER_DAY;
 
-  // ✅ فقط عند تغيير القسم أو إغلاق الشاشة — وليس عند تغيير phase
   useEffect(() => {
     return () => { stop(); sorobana.stop(); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -332,22 +331,16 @@ export function AnzanScreen({ onBack, playSound, onXP, burst }: Props) {
 
   useEffect(() => {
     if (phase !== 'answer' || !currentQ) return;
+    if (feedback !== 'idle') return;
     if (timeLeft <= 0) {
       setFeedback('revealed');
-      let advanced = false;
-      const advance = () => {
-        if (advanced) return;
-        advanced = true;
-        nextQuestion(false);
-      };
-      sorobana.speakWrong(advance);
-      setTimeout(advance, 6000);
+      sorobana.speakWrong();
       return;
     }
     const t = setTimeout(() => setTimeLeft(x => x - 1), 1000);
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [phase, timeLeft, currentQ]);
+  }, [phase, timeLeft, currentQ, feedback]);
 
   const startRound = () => {
     if (!canStartRound) { playSound('error'); return; }
@@ -363,55 +356,31 @@ export function AnzanScreen({ onBack, playSound, onXP, burst }: Props) {
     setTimeLeft(getLevelTime(section, qs[0].level));
     setPhase('answer');
     playSound('click');
-    sorobana.speakTeaching();
   };
 
   const handleCheck = () => {
     if (!currentQ || feedback !== 'idle') return;
     const newAttempts = attempts + 1;
     setAttempts(newAttempts);
+
     if (abacusValue === currentQ.answer) {
       playSound('success');
       setFeedback('correct');
-
-      let advanced = false;
-      const startTime = Date.now();
-      const advance = () => {
-        if (advanced) return;
-        advanced = true;
-        const elapsed = Date.now() - startTime;
-        const wait = Math.max(1500, 3000 - elapsed);
-        setTimeout(() => nextQuestion(true), wait);
-      };
-      sorobana.speakCorrect(advance);
-      setTimeout(advance, 6000);
-    } else if (newAttempts >= MAX_ATTEMPTS) {
-      playSound('error');
-      setFeedback('revealed');
-
-      let advanced = false;
-      const startTime = Date.now();
-      const advance = () => {
-        if (advanced) return;
-        advanced = true;
-        const elapsed = Date.now() - startTime;
-        const wait = Math.max(1800, 3500 - elapsed);
-        setTimeout(() => nextQuestion(false), wait);
-      };
-      sorobana.speakWrong(advance);
-      setTimeout(advance, 6500);
+      sorobana.speakCorrect();
     } else {
       playSound('error');
-      setFeedback('wrong');
-      setTimeout(() => setFeedback('idle'), 900);
+      setFeedback('revealed');
+      sorobana.speakWrong();
     }
   };
 
   const nextQuestion = (correct: boolean) => {
+    if (!currentQ) return;
+    sorobana.stop();
     setAbacusValue(0);
     setFeedback('idle');
     setAttempts(0);
-    const newCorrect = correct ? [...roundCorrect, currentQ!.level] : roundCorrect;
+    const newCorrect = correct ? [...roundCorrect, currentQ.level] : roundCorrect;
     const newScore = correct ? roundScore + 2 : roundScore;
     if (correct) { onXP(2); burst(0.5, 0.4); }
     if (currentIdx + 1 < questions.length) {
@@ -449,7 +418,6 @@ export function AnzanScreen({ onBack, playSound, onXP, burst }: Props) {
     saveAnzanBadges(updatedBadges);
     setBadges(updatedBadges);
     setPhase('result');
-    sorobana.speakEndLesson();
   };
 
   const getLevelCount = (level: AnzanLevel): number => {
@@ -633,19 +601,31 @@ export function AnzanScreen({ onBack, playSound, onXP, burst }: Props) {
           </div>
 
           <div className="flex gap-2">
-            <button onClick={() => { setAbacusValue(0); playSound('click'); }} className="flex-1 py-3 rounded-xl bg-white/10 hover:bg-white/20 font-bold flex items-center justify-center gap-2">
+            <button
+              onClick={() => { setAbacusValue(0); playSound('click'); }}
+              disabled={feedback !== 'idle'}
+              className="flex-1 py-3 rounded-xl bg-white/10 hover:bg-white/20 font-bold flex items-center justify-center gap-2 disabled:opacity-40"
+            >
               <RotateCcw className="w-4 h-4" /> مسح
             </button>
             <button
-              onClick={handleCheck}
-              disabled={feedback !== 'idle'}
+              onClick={() => {
+                if (feedback === 'idle') handleCheck();
+                else nextQuestion(feedback === 'correct');
+              }}
               className={`flex-1 py-3 rounded-xl font-bold flex items-center justify-center gap-2 ${
-                feedback === 'correct' ? 'bg-emerald-500' :
-                feedback === 'wrong' ? 'bg-red-500' :
-                'bg-gradient-to-l from-purple-600 to-amber-500'
+                feedback === 'idle'
+                  ? 'bg-gradient-to-l from-purple-600 to-amber-500'
+                  : feedback === 'correct'
+                    ? 'bg-emerald-500'
+                    : 'bg-red-500'
               }`}
             >
-              <CheckCircle2 className="w-5 h-5" /> تحقق
+              {feedback === 'idle' ? (
+                <><CheckCircle2 className="w-5 h-5" /> تحقق</>
+              ) : (
+                <>التالي <ArrowLeft className="w-5 h-5" /></>
+              )}
             </button>
           </div>
 
@@ -675,7 +655,6 @@ export function AnzanScreen({ onBack, playSound, onXP, burst }: Props) {
       {phase !== 'intro' && (
         <SorobanaCompanion
           isSpeaking={sorobana.isSpeaking}
-          onClick={() => sorobana.speakTeaching()}
           variant="pointing"
           sizeOverride={150}
           offsetBottom="8rem"
