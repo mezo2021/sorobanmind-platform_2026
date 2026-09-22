@@ -18,33 +18,15 @@ function pickRandom(arr: string[]): string {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
-type DebugListener = (msg: string) => void;
-const debugListeners = new Set<DebugListener>();
-
-export function subscribeDebug(listener: DebugListener): () => void {
-  debugListeners.add(listener);
-  return () => { debugListeners.delete(listener); };
-}
-
-function debugLog(msg: string) {
-  // eslint-disable-next-line no-console
-  console.log('[Sorobana]', msg);
-  debugListeners.forEach((l) => l(msg));
-}
-
 export function useSorobanaVoice() {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [isSupported] = useState(true);
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const mountedRef = useRef(true);
-  const cancelledRef = useRef(false);
-  const queueRef = useRef<string[]>([]);
+  const generationRef = useRef(0);
 
   useEffect(() => {
-    mountedRef.current = true;
     return () => {
-      mountedRef.current = false;
-      cancelledRef.current = true;
+      generationRef.current++;
       if (audioRef.current) {
         try { audioRef.current.pause(); } catch { /* ignore */ }
         audioRef.current = null;
@@ -53,8 +35,7 @@ export function useSorobanaVoice() {
   }, []);
 
   const stop = useCallback(() => {
-    cancelledRef.current = true;
-    queueRef.current = [];
+    generationRef.current++;
     if (audioRef.current) {
       try {
         audioRef.current.pause();
@@ -66,37 +47,33 @@ export function useSorobanaVoice() {
   }, []);
 
   const playFiles = useCallback((files: string[], onDone?: () => void) => {
-    if (!mountedRef.current) {
-      debugLog('❌ Not mounted — aborting');
+    if (files.length === 0) {
       onDone?.();
       return;
     }
-    cancelledRef.current = false;
+
+    // ✅ كل استدعاء له رصيده الخاص
+    const myGeneration = ++generationRef.current;
+    const localQueue = [...files];
+
+    // إيقاف أي صوت سابق
     if (audioRef.current) {
       try { audioRef.current.pause(); } catch { /* ignore */ }
       audioRef.current = null;
     }
-    queueRef.current = [...files];
+
     setIsSpeaking(true);
-    debugLog(`▶️ playFiles: ${files.length} file(s)`);
 
     const playNext = () => {
-      if (!mountedRef.current || cancelledRef.current) {
-        debugLog('⏹️ Cancelled or unmounted');
-        setIsSpeaking(false);
-        onDone?.();
-        return;
-      }
-      const nextFile = queueRef.current.shift();
-      if (!nextFile) {
-        debugLog('✅ All files done');
-        setIsSpeaking(false);
-        onDone?.();
-        return;
-      }
+      // ✅ إن كان هناك استدعاء أحدث، نتوقف
+      if (myGeneration !== generationRef.current) return;
 
-      const shortName = nextFile.split('/').pop();
-      debugLog(`📂 Loading: ${shortName}`);
+      const nextFile = localQueue.shift();
+      if (!nextFile) {
+        setIsSpeaking(false);
+        onDone?.();
+        return;
+      }
 
       const audio = new Audio();
       audio.src = nextFile;
@@ -107,32 +84,23 @@ export function useSorobanaVoice() {
       const advance = () => {
         if (advanced) return;
         advanced = true;
-        if (!mountedRef.current || cancelledRef.current) {
-          setIsSpeaking(false);
-          onDone?.();
-          return;
-        }
-        setTimeout(playNext, 250);
+        if (myGeneration !== generationRef.current) return;
+        setTimeout(() => {
+          if (myGeneration !== generationRef.current) return;
+          playNext();
+        }, 250);
       };
 
-      audio.onplay = () => debugLog(`▶️ PLAY: ${shortName}`);
-      audio.onended = () => { debugLog(`✅ ENDED: ${shortName}`); advance(); };
-      audio.onerror = () => { debugLog(`❌ ERROR: ${shortName}`); advance(); };
+      audio.onended = advance;
+      audio.onerror = advance;
 
-      const timeout = setTimeout(() => {
-        debugLog(`⏰ Timeout: ${shortName}`);
-        advance();
-      }, 8000);
+      const timeout = setTimeout(advance, 8000);
 
       audio
         .play()
-        .then(() => {
+        .then(() => clearTimeout(timeout))
+        .catch(() => {
           clearTimeout(timeout);
-          debugLog(`✅ play() OK: ${shortName}`);
-        })
-        .catch((err) => {
-          clearTimeout(timeout);
-          debugLog(`❌ play() FAILED: ${err.name} — ${shortName}`);
           advance();
         });
     };
