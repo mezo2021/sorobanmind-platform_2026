@@ -1,17 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-// ═══════════════════════════════════════════════════════════════
-// ⚠️ رابط مطلق مضمون — نفس الرابط الذي يعمل في المتصفح
-// ═══════════════════════════════════════════════════════════════
 const BASE = 'https://mezo2021.github.io/sorobanmind-platform_2026/';
 
 function audioPath(file: string): string {
   return `${BASE}audio/${file}`;
 }
 
-// ═══════════════════════════════════════════════════════════════
-// مكتبة العبارات الصوتية المحلية
-// ═══════════════════════════════════════════════════════════════
 export const SOROBANA_AUDIO = {
   greetings: [
     audioPath('greeting-1.mp3'),
@@ -38,21 +32,13 @@ function pickRandom(arr: string[]): string {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
-// ═══════════════════════════════════════════════════════════════
-// Hook رئيسي
-// ═══════════════════════════════════════════════════════════════
 export function useSorobanaVoice() {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [isSupported] = useState(true);
-  const cancelledRef = useRef(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const mountedRef = useRef(true);
-  const queueRef = useRef<string[]>([]);
 
   useEffect(() => {
     return () => {
-      mountedRef.current = false;
-      cancelledRef.current = true;
       if (audioRef.current) {
         audioRef.current.pause();
         audioRef.current = null;
@@ -61,142 +47,80 @@ export function useSorobanaVoice() {
   }, []);
 
   const stop = useCallback(() => {
-    cancelledRef.current = true;
-    queueRef.current = [];
     if (audioRef.current) {
       audioRef.current.pause();
       audioRef.current.currentTime = 0;
-      audioRef.current = null;
     }
     setIsSpeaking(false);
   }, []);
 
-  const playFiles = useCallback((files: string[], onDone?: () => void) => {
-    if (!mountedRef.current) return;
-    cancelledRef.current = false;
+  // ═══ تشغيل ملف واحد فقط — بدون queue ═══
+  const playOne = useCallback((url: string) => {
+    console.log('[Sorobana] playing:', url);
+
+    // إيقاف الصوت القديم
     if (audioRef.current) {
       audioRef.current.pause();
-      audioRef.current = null;
     }
-    queueRef.current = [...files];
-    setIsSpeaking(true);
 
-    const playNext = () => {
-      if (!mountedRef.current || cancelledRef.current) {
-        setIsSpeaking(false);
-        onDone?.();
-        return;
-      }
-      const nextFile = queueRef.current.shift();
-      if (!nextFile) {
-        setIsSpeaking(false);
-        onDone?.();
-        return;
-      }
+    const audio = new Audio();
+    audio.src = url;
+    audio.preload = 'auto';
+    audioRef.current = audio;
 
-      // 🔍 طباعة الرابط للتشخيص
-      console.log('[Sorobana] Loading:', nextFile);
-
-      const audio = new Audio();
-      audio.crossOrigin = 'anonymous';
-      audio.preload = 'auto';
-      audio.src = nextFile;
-      audioRef.current = audio;
-
-      let advanced = false;
-      const advance = () => {
-        if (advanced) return;
-        advanced = true;
-        if (!mountedRef.current || cancelledRef.current) {
-          setIsSpeaking(false);
-          onDone?.();
-          return;
-        }
-        setTimeout(playNext, 250);
-      };
-
-      audio.onended = advance;
-
-      audio.onerror = (e) => {
-        console.error('[Sorobana] Audio error:', e, '| src:', nextFile);
-        advance();
-      };
-
-      audio.oncanplaythrough = () => {
-        console.log('[Sorobana] Can play through OK');
-      };
-
-      const timeout = setTimeout(() => {
-        console.warn('[Sorobana] Timeout (8s) — skipping:', nextFile);
-        advance();
-      }, 8000);
-
-      audio
-        .play()
-        .then(() => {
-          clearTimeout(timeout);
-          console.log('[Sorobana] Playing OK:', nextFile);
-        })
-        .catch((err) => {
-          console.error('[Sorobana] Play FAILED:', err, '| src:', nextFile);
-          clearTimeout(timeout);
-          advance();
-        });
+    audio.onplay = () => {
+      console.log('[Sorobana] PLAY event fired');
+      setIsSpeaking(true);
     };
 
-    playNext();
+    audio.onended = () => {
+      console.log('[Sorobana] ENDED');
+      setIsSpeaking(false);
+    };
+
+    audio.onerror = () => {
+      console.error('[Sorobana] ERROR loading:', url);
+      setIsSpeaking(false);
+    };
+
+    audio
+      .play()
+      .then(() => console.log('[Sorobana] play() promise resolved'))
+      .catch((err) => {
+        console.error('[Sorobana] play() REJECTED:', err);
+        setIsSpeaking(false);
+      });
   }, []);
 
   // ═══ الواجهة العامة ═══
-  const speak = useCallback(
-    (text: string, _mood?: string, onDone?: () => void) => {
-      void text;
-      playFiles([], onDone);
-    },
-    [playFiles]
-  );
+  const speak = useCallback((text: string, _mood?: string, onDone?: () => void) => {
+    void text;
+    void onDone;
+  }, []);
 
-  const speakLesson = useCallback(
-    (onDone?: () => void) => {
-      playFiles([pickRandom(SOROBANA_AUDIO.greetings)], onDone);
-    },
-    [playFiles]
-  );
+  const speakLesson = useCallback(() => {
+    playOne(pickRandom(SOROBANA_AUDIO.greetings));
+  }, [playOne]);
 
-  const speakTeaching = useCallback(
-    (onDone?: () => void) => {
-      playFiles([pickRandom(SOROBANA_AUDIO.teaching)], onDone);
-    },
-    [playFiles]
-  );
+  const speakTeaching = useCallback(() => {
+    playOne(pickRandom(SOROBANA_AUDIO.teaching));
+  }, [playOne]);
 
-  const speakCorrect = useCallback(
-    (onDone?: () => void) => {
-      playFiles([pickRandom(SOROBANA_AUDIO.correct)], onDone);
-    },
-    [playFiles]
-  );
+  const speakCorrect = useCallback(() => {
+    playOne(pickRandom(SOROBANA_AUDIO.correct));
+  }, [playOne]);
 
-  const speakWrong = useCallback(
-    (onDone?: () => void) => {
-      playFiles([pickRandom(SOROBANA_AUDIO.wrong)], onDone);
-    },
-    [playFiles]
-  );
+  const speakWrong = useCallback(() => {
+    playOne(pickRandom(SOROBANA_AUDIO.wrong));
+  }, [playOne]);
 
-  const speakEndLesson = useCallback(
-    (onDone?: () => void) => {
-      playFiles([SOROBANA_AUDIO.endLesson], onDone);
-    },
-    [playFiles]
-  );
+  const speakEndLesson = useCallback(() => {
+    playOne(SOROBANA_AUDIO.endLesson);
+  }, [playOne]);
 
-  const speakFiles = useCallback(
-    (files: string[], onDone?: () => void) => {
-      playFiles(files, onDone);
-    },
-    [playFiles]
-  );
+  const speakFiles = useCallback((files: string[]) => {
+    if (files.length > 0) playOne(files[0]);
+  }, [playOne]);
 
   return {
     speak,
