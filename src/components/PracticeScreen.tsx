@@ -504,12 +504,12 @@ export function PracticeScreen({ onBack, playSound, onXP, burst }: PracticeScree
         </motion.div>
       </AnimatePresence>
 
-      {/* ✅ سوروبانا — حجم 220 + لا تعترض النقر */}
+      {/* ✅ سوروبانا — حجم 180 + لا تعترض النقر */}
       <SorobanaCompanion
         isSpeaking={sorobana.isSpeaking}
         onClick={() => sorobana.speakTeaching()}
         variant="pointing"
-        sizeOverride={220}
+        sizeOverride={180}
         offsetBottom="10rem"
         clickThrough={true}
       />
