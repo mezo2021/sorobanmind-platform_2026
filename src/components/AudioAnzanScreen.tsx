@@ -13,6 +13,9 @@ import {
 } from '@/utils/audioAnzanBadges';
 import { loadAnzanBadges } from '@/examBank2';
 
+// ═══════════════════════════════════════════════════════════════
+// الأنواع
+// ═══════════════════════════════════════════════════════════════
 type SectionType = 'addition' | 'multdiv';
 type Phase = 'intro' | 'listening' | 'answer' | 'result';
 type AnzanLevel = 1 | 2 | 3 | 4 | 5;
@@ -24,6 +27,9 @@ const QUESTIONS_PER_ROUND = 5;
 const MAX_ROUNDS_PER_DAY = 3;
 const ROUNDS_KEY = 'soroban_audio_anzan_rounds';
 
+// ═══════════════════════════════════════════════════════════════
+// أدوات
+// ═══════════════════════════════════════════════════════════════
 function toArabicNumber(value: number | string): string {
   return String(value).replace(/\d/g, (d) => '٠١٢٣٤٥٦٧٨٩'[Number(d)]);
 }
@@ -48,6 +54,9 @@ function getColumnsForValue(value: number): number {
   return 5;
 }
 
+// ═══════════════════════════════════════════════════════════════
+// فحص الدروس
+// ═══════════════════════════════════════════════════════════════
 function isExamPassed(): boolean {
   try {
     const raw = localStorage.getItem('soroban_exam_result');
@@ -70,6 +79,9 @@ function isDivisionUnlocked(): boolean {
   return isExamPassed();
 }
 
+// ═══════════════════════════════════════════════════════════════
+// الجولات اليومية
+// ═══════════════════════════════════════════════════════════════
 interface RoundsData { date: string; count: number; }
 
 function loadRounds(): RoundsData {
@@ -87,6 +99,9 @@ function saveRounds(data: RoundsData) {
   try { localStorage.setItem(ROUNDS_KEY, JSON.stringify(data)); } catch { /* ignore */ }
 }
 
+// ═══════════════════════════════════════════════════════════════
+// توليد الأسئلة
+// ═══════════════════════════════════════════════════════════════
 type AudioOperation = { value: number; operator: '+' | '-' | '×' | '÷'; };
 type AudioQuestion = {
   operations: AudioOperation[];
@@ -218,22 +233,28 @@ function generateRound(section: SectionType): AudioQuestion[] {
   return questions;
 }
 
+// ═══════════════════════════════════════════════════════════════
+// ✅ قراءة العمليات بشكل صحيح
+// كل عنصر يحمل عمليته الخاصة (op.operator) — وليس العملية السابقة
+// ═══════════════════════════════════════════════════════════════
 function buildSpeechSequence(ops: AudioOperation[]): string[] {
   const parts: string[] = [];
   ops.forEach((op, i) => {
     if (i === 0) {
       parts.push(`${op.value}`);
     } else {
-      const prevOp = ops[i - 1];
-      if (prevOp.operator === '+') parts.push(`زائد ${op.value}`);
-      else if (prevOp.operator === '-') parts.push(`ناقص ${op.value}`);
-      else if (prevOp.operator === '×') parts.push(`ضرب ${op.value}`);
-      else if (prevOp.operator === '÷') parts.push(`تقسيم ${op.value}`);
+      if (op.operator === '+') parts.push(`زائد ${op.value}`);
+      else if (op.operator === '-') parts.push(`ناقص ${op.value}`);
+      else if (op.operator === '×') parts.push(`ضرب ${op.value}`);
+      else if (op.operator === '÷') parts.push(`تقسيم ${op.value}`);
     }
   });
   return parts;
 }
 
+// ═══════════════════════════════════════════════════════════════
+// الشاشة الرئيسية
+// ═══════════════════════════════════════════════════════════════
 interface Props {
   onBack: () => void;
   playSound: (type: 'click' | 'success' | 'error' | 'bead' | 'whoosh' | 'levelup') => void;
@@ -266,12 +287,13 @@ export function AudioAnzanScreen({ onBack, playSound, onXP, burst }: Props) {
   const divUnlocked = hasAdditionBadge() && isDivisionUnlocked();
   const multdivUnlocked = multUnlocked || divUnlocked;
 
-  // ✅ فقط عند تغيير القسم — وليس عند تغيير phase
+  // ✅ إيقاف الصوت فقط عند تغيير القسم — وليس عند كل phase
   useEffect(() => {
     return () => { stop(); sorobana.stop(); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [section]);
 
+  // عدّاد الوقت
   useEffect(() => {
     if (phase !== 'answer' || !currentQ) return;
     if (timeLeft <= 0) {
@@ -294,6 +316,7 @@ export function AudioAnzanScreen({ onBack, playSound, onXP, burst }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase, timeLeft, currentQ]);
 
+  // قراءة الأرقام (الأنزان السماعي الأساسي)
   useEffect(() => {
     if (phase !== 'listening' || !currentQ) return;
 
@@ -447,6 +470,7 @@ export function AudioAnzanScreen({ onBack, playSound, onXP, burst }: Props) {
 
   return (
     <div className="px-3 sm:px-6 py-6 max-w-2xl mx-auto" dir="rtl">
+      {/* Header */}
       <div className="flex items-center gap-3 mb-6">
         <button onClick={() => { stop(); sorobana.stop(); playSound('click'); onBack(); }} className="btn-ghost !px-3 !py-2">
           <ArrowRight className="w-5 h-5" />
@@ -458,6 +482,7 @@ export function AudioAnzanScreen({ onBack, playSound, onXP, burst }: Props) {
         <Volume2 className="w-6 h-6 text-purple-300" />
       </div>
 
+      {/* Section Tabs */}
       <div className="flex gap-2 mb-5">
         <button
           onClick={() => { stop(); sorobana.stop(); playSound('click'); setSection('addition'); setPhase('intro'); }}
@@ -483,6 +508,7 @@ export function AudioAnzanScreen({ onBack, playSound, onXP, burst }: Props) {
         </button>
       </div>
 
+      {/* Rounds */}
       <div className="flex items-center justify-between mb-4 p-3 rounded-2xl bg-white/5 border border-white/10">
         <div className="flex items-center gap-2">
           <Zap className="w-4 h-4 text-electric-300" />
@@ -493,6 +519,7 @@ export function AudioAnzanScreen({ onBack, playSound, onXP, burst }: Props) {
         </span>
       </div>
 
+      {/* Badges */}
       <div className="flex gap-2 mb-4 flex-wrap">
         {badges.master_addition_audio && (
           <span className="px-2 py-1 rounded-lg bg-gold-400/20 border border-gold-400/40 text-gold-200 text-[10px] font-bold">
@@ -511,6 +538,7 @@ export function AudioAnzanScreen({ onBack, playSound, onXP, burst }: Props) {
         )}
       </div>
 
+      {/* INTRO */}
       {phase === 'intro' && (
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
           {!multdivUnlocked && section === 'multdiv' ? (
@@ -550,6 +578,7 @@ export function AudioAnzanScreen({ onBack, playSound, onXP, burst }: Props) {
         </motion.div>
       )}
 
+      {/* LISTENING */}
       {phase === 'listening' && currentQ && (
         <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="glass-card p-8 text-center">
           <motion.div
@@ -566,6 +595,7 @@ export function AudioAnzanScreen({ onBack, playSound, onXP, burst }: Props) {
         </motion.div>
       )}
 
+      {/* ANSWER */}
       {phase === 'answer' && currentQ && (
         <div className="space-y-4">
           <div className="text-center">
@@ -583,6 +613,7 @@ export function AudioAnzanScreen({ onBack, playSound, onXP, burst }: Props) {
             </span>
           </div>
 
+          {/* ✅ Soroban2D5 */}
           <div className="flex justify-center">
             <Soroban2D5
               key={`audio-anzan-${currentIdx}`}
@@ -654,6 +685,7 @@ export function AudioAnzanScreen({ onBack, playSound, onXP, burst }: Props) {
         </div>
       )}
 
+      {/* RESULT */}
       {phase === 'result' && (
         <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="glass-card p-6 text-center">
           <Trophy className="w-16 h-16 text-gold-300 mx-auto mb-4" />
@@ -668,6 +700,7 @@ export function AudioAnzanScreen({ onBack, playSound, onXP, burst }: Props) {
         </motion.div>
       )}
 
+      {/* ✅ سوروبانا — تظهر فقط بعد "ابدأ الجولة" */}
       {phase !== 'intro' && (
         <SorobanaCompanion
           isSpeaking={sorobana.isSpeaking}
