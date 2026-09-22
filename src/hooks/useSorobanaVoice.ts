@@ -1,141 +1,162 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-const FEMALE_HINTS = [
-  'female', 'woman', 'hoda', 'salma', 'zariyah', 'laila',
-  'amany', 'amina', 'zeina', 'rana', 'sana', 'mariam',
-];
+// ═══════════════════════════════════════════════════════════════
+// تقسيم النص إلى جمل قصيرة (أقل من 100 حرف لكل جملة)
+// ═══════════════════════════════════════════════════════════════
+function splitIntoSentences(text: string): string[] {
+  // نقسم على علامات الترقيم الأساسية
+  const raw = text
+    .split(/([.!?؟؛]+|\n+)/g)
+    .reduce<string[]>((acc, part) => {
+      if (!part) return acc;
+      if (/^[.!?؟؛]+$/.test(part) || /^\n+$/.test(part)) {
+        if (acc.length > 0) acc[acc.length - 1] += part;
+      } else {
+        acc.push(part.trim());
+      }
+      return acc;
+    }, [])
+    .filter((s) => s.length > 1);
 
+  // إذا كانت الجملة أطول من 100 حرف، نقسمها على الفواصل
+  const result: string[] = [];
+  for (const sentence of raw) {
+    if (sentence.length <= 100) {
+      result.push(sentence);
+      continue;
+    }
+    // نقسم على الفواصل والمسافات
+    const chunks = sentence.split(/([،,]|\s+)/);
+    let current = '';
+    for (const chunk of chunks) {
+      if ((current + chunk).length > 95) {
+        if (current.trim().length > 0) result.push(current.trim());
+        current = chunk;
+      } else {
+        current += chunk;
+      }
+    }
+    if (current.trim().length > 0) result.push(current.trim());
+  }
+
+  return result;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// بناء رابط Google Translate TTS
+// ═══════════════════════════════════════════════════════════════
+function buildTtsUrl(text: string): string {
+  const encoded = encodeURIComponent(text);
+  return `https://translate.google.com/translate_tts?ie=UTF-8&tl=ar&client=tw-ob&q=${encoded}`;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Hook رئيسي
+// ═══════════════════════════════════════════════════════════════
 export function useSorobanaVoice() {
   const [isSpeaking, setIsSpeaking] = useState(false);
-  const [isSupported, setIsSupported] = useState(false);
-  const voicesRef = useRef<SpeechSynthesisVoice[]>([]);
+  const [isSupported] = useState(true); // دائماً مدعوم
+  const cancelledRef = useRef(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
   const mountedRef = useRef(true);
+  const queueRef = useRef<string[]>([]);
 
-  // ═══ تحميل الأصوات بشكل متكرر ═══
   useEffect(() => {
-    if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
-      setIsSupported(false);
-      return;
-    }
-    setIsSupported(true);
-
-    const loadVoices = () => {
-      const v = window.speechSynthesis.getVoices();
-      if (v.length > 0) {
-        voicesRef.current = v;
-        const ar = v.filter((x) => x.lang.toLowerCase().startsWith('ar'));
-        console.log('[Sorobana] voices:', v.length, '| arabic:', ar.length,
-          ar.map((x) => `${x.name}(${x.lang})`).join(', '));
-      }
-    };
-
-    loadVoices();
-    window.speechSynthesis.onvoiceschanged = loadVoices;
-
-    // محاولات متكررة لأن Chrome Android يتأخر في تحميل الأصوات
-    const timers = [200, 500, 1000, 2000, 3000].map((d) =>
-      setTimeout(loadVoices, d)
-    );
-
     return () => {
-      timers.forEach(clearTimeout);
       mountedRef.current = false;
+      cancelledRef.current = true;
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
     };
   }, []);
-
-  const pickVoice = useCallback((): SpeechSynthesisVoice | null => {
-    const all = voicesRef.current.length > 0
-      ? voicesRef.current
-      : (typeof window !== 'undefined' && 'speechSynthesis' in window
-          ? window.speechSynthesis.getVoices()
-          : []);
-    if (all.length === 0) return null;
-
-    // 1. عربي أنثوي
-    const arF = all.find((v) =>
-      v.lang.toLowerCase().startsWith('ar') &&
-      FEMALE_HINTS.some((h) => v.name.toLowerCase().includes(h))
-    );
-    if (arF) return arF;
-
-    // 2. أي عربي
-    const ar = all.find((v) => v.lang.toLowerCase().startsWith('ar'));
-    if (ar) return ar;
-
-    // 3. أي أنثوي
-    const f = all.find((v) =>
-      FEMALE_HINTS.some((h) => v.name.toLowerCase().includes(h))
-    );
-    if (f) return f;
-
-    return all[0];
-  }, []);
-
-  // ═══ الكلام — نسخة مبسطة ومباشرة (بدون setTimeout) ═══
-  const speak = useCallback(
-    (text: string, onDone?: () => void) => {
-      if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
-        console.warn('[Sorobana] Not supported');
-        onDone?.();
-        return;
-      }
-
-      const synth = window.speechSynthesis;
-
-      // إيقاف أي كلام سابق
-      try { synth.cancel(); } catch { /* ignore */ }
-
-      // إنشاء الكلام
-      const u = new SpeechSynthesisUtterance(text);
-      u.lang = 'ar-SA';
-      u.pitch = 1.15;
-      u.rate = 0.85;
-      u.volume = 1;
-
-      const voice = pickVoice();
-      if (voice) {
-        u.voice = voice;
-        console.log('[Sorobana] using voice:', voice.name, voice.lang);
-      } else {
-        console.warn('[Sorobana] no voice available');
-      }
-
-      u.onstart = () => {
-        console.log('[Sorobana] started');
-        if (mountedRef.current) setIsSpeaking(true);
-      };
-      u.onend = () => {
-        console.log('[Sorobana] ended');
-        if (mountedRef.current) setIsSpeaking(false);
-        onDone?.();
-      };
-      u.onerror = (e) => {
-        console.error('[Sorobana] error:', e);
-        if (mountedRef.current) setIsSpeaking(false);
-        onDone?.();
-      };
-
-      // ⚠️ استدعاء مباشر — بدون setTimeout — ليعمل في سياق نقرة المستخدم
-      try {
-        synth.speak(u);
-      } catch (e) {
-        console.error('[Sorobana] speak throw:', e);
-        onDone?.();
-      }
-    },
-    [pickVoice]
-  );
 
   const stop = useCallback(() => {
-    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-      try { window.speechSynthesis.cancel(); } catch { /* ignore */ }
+    cancelledRef.current = true;
+    queueRef.current = [];
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+      audioRef.current = null;
     }
     setIsSpeaking(false);
   }, []);
 
-  useEffect(() => {
-    return () => { stop(); };
-  }, [stop]);
+  const speak = useCallback(
+    (text: string, _mood?: string, onDone?: () => void) => {
+      if (!mountedRef.current) return;
+
+      // إلغاء أي كلام سابق
+      cancelledRef.current = false;
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+
+      // تقسيم النص إلى جمل
+      const sentences = splitIntoSentences(text);
+      if (sentences.length === 0) {
+        onDone?.();
+        return;
+      }
+
+      queueRef.current = [...sentences];
+      setIsSpeaking(true);
+
+      const playNext = () => {
+        if (!mountedRef.current || cancelledRef.current) {
+          setIsSpeaking(false);
+          onDone?.();
+          return;
+        }
+
+        const nextSentence = queueRef.current.shift();
+        if (!nextSentence) {
+          setIsSpeaking(false);
+          onDone?.();
+          return;
+        }
+
+        const audio = new Audio(buildTtsUrl(nextSentence));
+        audioRef.current = audio;
+        audio.preload = 'auto';
+
+        let advanced = false;
+        const advance = () => {
+          if (advanced) return;
+          advanced = true;
+          if (!mountedRef.current || cancelledRef.current) {
+            setIsSpeaking(false);
+            onDone?.();
+            return;
+          }
+          // وقفة صغيرة بين الجمل (250ms) لإحساس طبيعي
+          setTimeout(playNext, 250);
+        };
+
+        audio.onended = advance;
+        audio.onerror = advance;
+
+        // مهلة احتياطية في حال فشل الحدث (5 ثوان لكل جملة)
+        const timeout = setTimeout(advance, 5000);
+
+        audio
+          .play()
+          .then(() => {
+            // التشغيل نجح
+          })
+          .catch((err) => {
+            console.warn('[Sorobana TTS] play failed:', err);
+            clearTimeout(timeout);
+            advance();
+          });
+      };
+
+      playNext();
+    },
+    []
+  );
 
   return { speak, stop, isSpeaking, isSupported };
 }
