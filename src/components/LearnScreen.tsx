@@ -259,22 +259,14 @@ export function LearnScreen({ onBack, playSound, onXP, onNavigate }: LearnScreen
   const [showAnswer, setShowAnswer] = useState(false);
   const [feedbackMsg, setFeedbackMsg] = useState<string>('');
 
-  const sorobana = useSorobanaVoice();
-// ═══ منع التمرير الخلفي عندما يكون الدرس مفتوحاً ═══
+  // ═══ منع التمرير الخلفي عندما يكون الدرس مفتوحاً ═══
 useEffect(() => {
-  if (selected) {
-    const prevOverflow = document.body.style.overflow;
-    const prevPosition = document.body.style.position;
-    const prevWidth = document.body.style.width;
-    document.body.style.overflow = 'hidden';
-    document.body.style.position = 'fixed';
-    document.body.style.width = '100%';
-    return () => {
-      document.body.style.overflow = prevOverflow;
-      document.body.style.position = prevPosition;
-      document.body.style.width = prevWidth;
-    };
-  }
+  if (!selected) return;
+  const prevOverflow = document.body.style.overflow;
+  document.body.style.overflow = 'hidden';
+  return () => {
+    document.body.style.overflow = prevOverflow;
+  };
 }, [selected]);
       const raw = localStorage.getItem('soroban_exam_result');
       if (raw) { const data = JSON.parse(raw); if (data?.passed === true) setExamPassed(true); }
