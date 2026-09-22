@@ -1,28 +1,38 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 // ═══════════════════════════════════════════════════════════════
+// مسار أساسي صحيح للـ GitHub Pages
+// ═══════════════════════════════════════════════════════════════
+const BASE = import.meta.env.BASE_URL || '/';
+
+function audioPath(file: string): string {
+  // BASE = "/sorobanmind-platform_2026/" على GitHub Pages
+  return `${BASE}audio/${file}`;
+}
+
+// ═══════════════════════════════════════════════════════════════
 // مكتبة العبارات الصوتية المحلية
 // ═══════════════════════════════════════════════════════════════
 export const SOROBANA_AUDIO = {
   greetings: [
-    '/audio/greeting-1.mp3',
-    '/audio/greeting-2.mp3',
-    '/audio/greeting-3.mp3',
+    audioPath('greeting-1.mp3'),
+    audioPath('greeting-2.mp3'),
+    audioPath('greeting-3.mp3'),
   ],
   teaching: [
-    '/audio/teaching-1.mp3',
-    '/audio/teaching-2.mp3',
-    '/audio/teaching-3.mp3',
+    audioPath('teaching-1.mp3'),
+    audioPath('teaching-2.mp3'),
+    audioPath('teaching-3.mp3'),
   ],
   correct: [
-    '/audio/correct-1.mp3',
-    '/audio/correct-2.mp3',
+    audioPath('correct-1.mp3'),
+    audioPath('correct-2.mp3'),
   ],
   wrong: [
-    '/audio/wrong-1.mp3',
-    '/audio/wrong-2.mp3',
+    audioPath('wrong-1.mp3'),
+    audioPath('wrong-2.mp3'),
   ],
-  endLesson: '/audio/end-lesson.mp3',
+  endLesson: audioPath('end-lesson.mp3'),
 };
 
 function pickRandom(arr: string[]): string {
@@ -85,6 +95,8 @@ export function useSorobanaVoice() {
         return;
       }
 
+      console.log('[Sorobana] playing:', nextFile);
+
       const audio = new Audio(nextFile);
       audio.preload = 'auto';
       audioRef.current = audio;
@@ -111,7 +123,10 @@ export function useSorobanaVoice() {
 
       audio
         .play()
-        .then(() => clearTimeout(timeout))
+        .then(() => {
+          clearTimeout(timeout);
+          console.log('[Sorobana] playing OK');
+        })
         .catch((err) => {
           console.warn('[Sorobana] play failed:', err);
           clearTimeout(timeout);
