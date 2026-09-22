@@ -10,6 +10,7 @@ import {
 import { LEARN_MODULES } from '@/data';
 import { FingerMath } from './FingerMath';
 import { SpeechButton } from './SpeechButton';
+import { FloatingCompanion } from './FloatingCompanion';
 import { useSpeech } from '@/hooks/useSpeech';
 import { Soroban2D5 } from './soroban2d5/Soroban2D5';
 import type { LearnModule, LessonStep, DivisionStep, LessonExample, DivisionExample, Screen } from '@/types';
@@ -131,9 +132,6 @@ function AbacusStatePreview({ state, label }: { state: number[]; label: string }
   );
 }
 
-// ═══════════════════════════════════════════════════════════
-// ✅ مكوّن مجموعة الدروس
-// ═══════════════════════════════════════════════════════════
 interface LevelGroupProps {
   title: string;
   subtitle: string;
@@ -165,7 +163,6 @@ function LevelGroup({
       animate={{ opacity: 1, y: 0 }}
       className="mb-8"
     >
-      {/* رأس المجموعة */}
       <div className="flex items-center gap-3 mb-4">
         <div
           className={`w-10 h-10 rounded-2xl bg-gradient-to-br ${color} flex items-center justify-center shadow-lg shrink-0`}
@@ -192,7 +189,6 @@ function LevelGroup({
         </div>
       </div>
 
-      {/* شبكة الدروس */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
         {modules.map((mod, i) => {
           const Icon = ICONS[mod.icon] || Info;
@@ -546,9 +542,7 @@ export function LearnScreen({ onBack, playSound, onXP, onNavigate }: LearnScreen
         </div>
       </div>
 
-      {/* ═══════════════════════════════════════════════════════════
-          🌱 المجموعة 1: البداية (0-2)
-      ═══════════════════════════════════════════════════════════ */}
+      {/* 🌱 المجموعة 1: البداية (0-2) */}
       <LevelGroup
         title="🌱 البداية"
         subtitle="تعرف على الأصابع والسوروبان"
@@ -559,9 +553,7 @@ export function LearnScreen({ onBack, playSound, onXP, onNavigate }: LearnScreen
         onOpen={handleOpen}
       />
 
-      {/* ═══════════════════════════════════════════════════════════
-          📚 المجموعة 2: القواعد الأساسية (3-7)
-      ═══════════════════════════════════════════════════════════ */}
+      {/* 📚 المجموعة 2: القواعد الأساسية (3-7) */}
       <LevelGroup
         title="📚 القواعد الأساسية"
         subtitle="الجمع والطرح بكل القواعد"
@@ -572,9 +564,7 @@ export function LearnScreen({ onBack, playSound, onXP, onNavigate }: LearnScreen
         onOpen={handleOpen}
       />
 
-      {/* ═══════════════════════════════════════════════════════════
-          🏆 المجموعة 3: الإتقان (8-9)
-      ═══════════════════════════════════════════════════════════ */}
+      {/* 🏆 المجموعة 3: الإتقان (8-9) */}
       <LevelGroup
         title="🏆 الإتقان"
         subtitle="العمليات المركبة وتحدي السلاسل"
@@ -585,9 +575,7 @@ export function LearnScreen({ onBack, playSound, onXP, onNavigate }: LearnScreen
         onOpen={handleOpen}
       />
 
-      {/* ═══════════════════════════════════════════════════════════
-          ⭐ المجموعة 4: المستوى المتقدم
-      ═══════════════════════════════════════════════════════════ */}
+      {/* ⭐ المجموعة 4: المستوى المتقدم */}
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
@@ -688,9 +676,7 @@ export function LearnScreen({ onBack, playSound, onXP, onNavigate }: LearnScreen
         </div>
       </motion.div>
 
-      {/* ============================================
-          نافذة الدرس
-      ============================================ */}
+      {/* نافذة الدرس */}
       <AnimatePresence>
         {selected && (
           <motion.div
@@ -1025,6 +1011,9 @@ export function LearnScreen({ onBack, playSound, onXP, onNavigate }: LearnScreen
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* ✅ الشخصية العائمة — النسخة التجريبية */}
+      <FloatingCompanion playSound={playSound} />
     </div>
   );
 }
