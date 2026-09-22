@@ -259,29 +259,43 @@ export function LearnScreen({ onBack, playSound, onXP, onNavigate }: LearnScreen
   const [showAnswer, setShowAnswer] = useState(false);
   const [feedbackMsg, setFeedbackMsg] = useState<string>('');
 
-  // ═══ منع التمرير الخلفي عندما يكون الدرس مفتوحاً ═══
-useEffect(() => {
-  if (!selected) return;
-  const prevOverflow = document.body.style.overflow;
-  document.body.style.overflow = 'hidden';
-  return () => {
-    document.body.style.overflow = prevOverflow;
-  };
-}, [selected]);
+  const sorobana = useSorobanaVoice();
+
+  // ═══ فحص حالة الامتحان ═══
+  useEffect(() => {
+    try {
       const raw = localStorage.getItem('soroban_exam_result');
-      if (raw) { const data = JSON.parse(raw); if (data?.passed === true) setExamPassed(true); }
+      if (raw) {
+        const data = JSON.parse(raw);
+        if (data?.passed === true) setExamPassed(true);
+      }
     } catch { /* ignore */ }
   }, []);
 
+  // ═══ حفظ الدروس المكتملة ═══
   useEffect(() => {
     try { localStorage.setItem(COMPLETED_STORAGE_KEY, JSON.stringify(completed)); } catch { /* ignore */ }
   }, [completed]);
 
+  // ═══ حفظ تقدم الدروس ═══
   useEffect(() => {
     try { localStorage.setItem(PROGRESS_STORAGE_KEY, JSON.stringify(lessonProgress)); } catch { /* ignore */ }
   }, [lessonProgress]);
 
-  useEffect(() => { return () => { sorobana.stop(); }; }, [sorobana]);
+  // ═══ إيقاف الصوت عند إغلاق الشاشة ═══
+  useEffect(() => {
+    return () => { sorobana.stop(); };
+  }, [sorobana]);
+
+  // ═══ منع التمرير الخلفي عندما يكون الدرس مفتوحاً ═══
+  useEffect(() => {
+    if (!selected) return;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [selected]);
 
   const handleOpen = (mod: LearnModule, isLocked: boolean) => {
     if (isLocked) return;
@@ -297,7 +311,6 @@ useEffect(() => {
     setAttempts({});
     setShowAnswer(false);
     setFeedbackMsg('');
-    // ⚠️ مهم: بدء الصوت مباشرة داخل onClick (بدون setTimeout)
     const greeting = pickRandom(SOROBANA_PHRASES.greetings);
     sorobana.speak(`${greeting} ${mod.audioText}`);
   };
