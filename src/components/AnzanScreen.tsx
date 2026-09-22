@@ -13,9 +13,6 @@ import {
   loadAnzanBadges, saveAnzanBadges, type AnzanBadges,
 } from '@/examBank2';
 
-// ═══════════════════════════════════════════════════════════════
-// الأنواع
-// ═══════════════════════════════════════════════════════════════
 type Phase = 'intro' | 'answer' | 'result';
 type SectionType = 'addition' | 'multiplication' | 'division' | 'mixed';
 type AnzanLevel = 1 | 2 | 3 | 4 | 5;
@@ -327,16 +324,24 @@ export function AnzanScreen({ onBack, playSound, onXP, burst }: Props) {
   const hasUnlockedLevels = levels.some(l => l.unlocked);
   const canStartRound = rounds.count < MAX_ROUNDS_PER_DAY;
 
+  // ✅ فقط عند تغيير القسم أو إغلاق الشاشة — وليس عند تغيير phase
   useEffect(() => {
     return () => { stop(); sorobana.stop(); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [section, phase, stop]);
+  }, [section]);
 
   useEffect(() => {
     if (phase !== 'answer' || !currentQ) return;
     if (timeLeft <= 0) {
       setFeedback('revealed');
-      setTimeout(() => nextQuestion(false), 2500);
+      let advanced = false;
+      const advance = () => {
+        if (advanced) return;
+        advanced = true;
+        nextQuestion(false);
+      };
+      sorobana.speakWrong(advance);
+      setTimeout(advance, 6000);
       return;
     }
     const t = setTimeout(() => setTimeLeft(x => x - 1), 1000);
@@ -368,13 +373,33 @@ export function AnzanScreen({ onBack, playSound, onXP, burst }: Props) {
     if (abacusValue === currentQ.answer) {
       playSound('success');
       setFeedback('correct');
-      sorobana.speakCorrect();
-      setTimeout(() => nextQuestion(true), 1200);
+
+      let advanced = false;
+      const startTime = Date.now();
+      const advance = () => {
+        if (advanced) return;
+        advanced = true;
+        const elapsed = Date.now() - startTime;
+        const wait = Math.max(1500, 3000 - elapsed);
+        setTimeout(() => nextQuestion(true), wait);
+      };
+      sorobana.speakCorrect(advance);
+      setTimeout(advance, 6000);
     } else if (newAttempts >= MAX_ATTEMPTS) {
       playSound('error');
       setFeedback('revealed');
-      sorobana.speakWrong();
-      setTimeout(() => nextQuestion(false), 2500);
+
+      let advanced = false;
+      const startTime = Date.now();
+      const advance = () => {
+        if (advanced) return;
+        advanced = true;
+        const elapsed = Date.now() - startTime;
+        const wait = Math.max(1800, 3500 - elapsed);
+        setTimeout(() => nextQuestion(false), wait);
+      };
+      sorobana.speakWrong(advance);
+      setTimeout(advance, 6500);
     } else {
       playSound('error');
       setFeedback('wrong');
@@ -454,7 +479,6 @@ export function AnzanScreen({ onBack, playSound, onXP, burst }: Props) {
 
   return (
     <div className="px-3 sm:px-6 py-6 max-w-2xl mx-auto" dir="rtl">
-      {/* Header */}
       <div className="flex items-center gap-3 mb-4">
         <button onClick={() => { stop(); sorobana.stop(); playSound('click'); onBack(); }} className="btn-ghost !px-3 !py-2">
           <ArrowRight className="w-5 h-5" />
@@ -466,7 +490,6 @@ export function AnzanScreen({ onBack, playSound, onXP, burst }: Props) {
         <Brain className="w-6 h-6 text-purple-300" />
       </div>
 
-      {/* التبويب */}
       <div className="flex gap-2 mb-5 bg-white/5 p-1 rounded-2xl">
         <button
           onClick={() => { stop(); sorobana.stop(); playSound('click'); setIsAudioMode(false); }}
@@ -486,7 +509,6 @@ export function AnzanScreen({ onBack, playSound, onXP, burst }: Props) {
         </button>
       </div>
 
-      {/* Section Tabs */}
       <div className="flex gap-2 mb-5 overflow-x-auto pb-1">
         {(['addition', 'multiplication', 'division', 'mixed'] as SectionType[]).map((s) => (
           <button
@@ -501,7 +523,6 @@ export function AnzanScreen({ onBack, playSound, onXP, burst }: Props) {
         ))}
       </div>
 
-      {/* Rounds */}
       <div className="flex items-center justify-between mb-4 p-3 rounded-2xl bg-white/5 border border-white/10">
         <div className="flex items-center gap-2">
           <Zap className="w-4 h-4 text-electric-300" />
@@ -512,7 +533,6 @@ export function AnzanScreen({ onBack, playSound, onXP, burst }: Props) {
         </span>
       </div>
 
-      {/* Badges */}
       {(badges.master_addition || badges.master_multiplication || badges.master_division || badges.master_mixed) && (
         <div className="flex gap-2 mb-4 flex-wrap">
           {badges.master_addition && <span className="px-2 py-1 rounded-lg bg-gold-400/20 border border-gold-400/40 text-gold-200 text-[10px] font-bold">🏅 خبير جمع وطرح</span>}
@@ -522,7 +542,6 @@ export function AnzanScreen({ onBack, playSound, onXP, burst }: Props) {
         </div>
       )}
 
-      {/* INTRO */}
       {phase === 'intro' && (
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
           {!hasUnlockedLevels ? (
@@ -580,7 +599,6 @@ export function AnzanScreen({ onBack, playSound, onXP, burst }: Props) {
         </motion.div>
       )}
 
-      {/* ANSWER */}
       {phase === 'answer' && currentQ && (
         <div className="space-y-4">
           <div className="text-center">
@@ -640,7 +658,6 @@ export function AnzanScreen({ onBack, playSound, onXP, burst }: Props) {
         </div>
       )}
 
-      {/* RESULT */}
       {phase === 'result' && (
         <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="glass-card p-6 text-center">
           <Trophy className="w-16 h-16 text-gold-300 mx-auto mb-4" />
@@ -655,7 +672,6 @@ export function AnzanScreen({ onBack, playSound, onXP, burst }: Props) {
         </motion.div>
       )}
 
-      {/* ✅ سوروبانا — تظهر فقط بعد "ابدأ الجولة" */}
       {phase !== 'intro' && (
         <SorobanaCompanion
           isSpeaking={sorobana.isSpeaking}
