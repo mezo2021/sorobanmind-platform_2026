@@ -11,8 +11,8 @@ interface SorobanaCompanionProps {
 export function SorobanaCompanion({
   isSpeaking,
   onClick,
-  size = 130,
-  offsetBottom = '12rem',
+  size = 220,
+  offsetBottom = '10rem',
 }: SorobanaCompanionProps) {
   const height = Math.round(size * 1.35);
 
@@ -24,7 +24,7 @@ export function SorobanaCompanion({
       className="fixed z-[55] select-none focus:outline-none"
       style={{
         bottom: offsetBottom,
-        right: '0.5rem',
+        right: '0.25rem',
         width: size,
         height: height,
         padding: 0,
@@ -39,8 +39,8 @@ export function SorobanaCompanion({
       <motion.div
         className="w-full h-full flex items-end justify-center"
         animate={{
-          y: isSpeaking ? [0, -5, 0, -5, 0] : [0, -3, 0],
-          scale: isSpeaking ? [1, 1.05, 1] : 1,
+          y: isSpeaking ? [0, -6, 0, -6, 0] : [0, -4, 0],
+          scale: isSpeaking ? [1, 1.06, 1] : 1,
         }}
         transition={{
           duration: isSpeaking ? 0.8 : 3,
@@ -55,6 +55,7 @@ export function SorobanaCompanion({
           style={{
             objectFit: 'contain',
             objectPosition: 'center bottom',
+            filter: 'drop-shadow(0 6px 12px rgba(0,0,0,0.4))',
           }}
           draggable={false}
         />
