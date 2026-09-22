@@ -237,7 +237,6 @@ export function HeroDashboard({
     return true;
   };
 
-  // ✅ فتح كل شيء (امتحان + دروس + شارات الأنزان)
   const handleTestUnlock = () => {
     try {
       localStorage.setItem(
@@ -271,7 +270,6 @@ export function HeroDashboard({
     } catch { /* ignore */ }
   };
 
-  // ✅ معاينة الشهادة (تجريبي) — يضبط نتائج الامتحانين وينتقل للشهادة مباشرة
   const handlePreviewCertificate = () => {
     try {
       localStorage.setItem(
@@ -366,7 +364,6 @@ export function HeroDashboard({
             <span>فتح الكل</span>
           </button>
 
-          {/* ✅ زر معاينة الشهادة (تجريبي) — احذفه بعد الانتهاء من الاختبار */}
           <button
             type="button"
             onClick={handlePreviewCertificate}
@@ -398,7 +395,7 @@ export function HeroDashboard({
         <div className="absolute -top-24 -right-24 w-64 h-64 rounded-full bg-violet-500/15 blur-3xl" />
         <div className="absolute -bottom-24 -left-24 w-64 h-64 rounded-full bg-electric-500/10 blur-3xl" />
 
-        <div className="relative grid grid-cols-1 md:grid-cols-[180px_1fr_auto] items-center gap-5">
+        <div className="relative grid grid-cols-1 md:grid-cols-[220px_1fr_auto] items-center gap-5">
           <div className="relative flex justify-center">
             <motion.div
               animate={{ y: [0, -5, 0], rotate: [-1, 1, -1] }}
@@ -406,10 +403,15 @@ export function HeroDashboard({
               className="relative"
             >
               <div className="absolute inset-0 rounded-full bg-violet-500/20 blur-3xl scale-75" />
-              <div className={`relative w-36 h-36 sm:w-40 sm:h-40 rounded-[2rem] bg-gradient-to-br ${characterInfo.color} flex items-center justify-center shadow-2xl border border-white/20 overflow-hidden`}>
+              <div className={`relative w-48 h-56 sm:w-52 sm:h-60 rounded-[2.5rem] bg-gradient-to-br ${characterInfo.color} flex items-end justify-center shadow-2xl border border-white/20 overflow-hidden`}>
                 <div className="absolute inset-0 bg-white/10" />
-                <div className="relative">
-                  <Companion character={companion} xp={xp} />
+                <div className="relative w-full h-full flex items-end justify-center">
+                  <Companion
+                    character={companion}
+                    xp={xp}
+                    variant="inline"
+                    imageClassName="w-full h-full object-contain object-bottom drop-shadow-2xl"
+                  />
                 </div>
               </div>
             </motion.div>
