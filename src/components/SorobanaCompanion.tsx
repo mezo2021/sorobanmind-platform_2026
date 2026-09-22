@@ -4,18 +4,9 @@ import sorobanaImg from '@/assets/sorobana/sorobana-main.webp';
 interface SorobanaCompanionProps {
   isSpeaking: boolean;
   onClick?: () => void;
-  size?: number;
-  offsetBottom?: string;
 }
 
-export function SorobanaCompanion({
-  isSpeaking,
-  onClick,
-  size = 220,
-  offsetBottom = '10rem',
-}: SorobanaCompanionProps) {
-  const height = Math.round(size * 1.35);
-
+export function SorobanaCompanion({ isSpeaking, onClick }: SorobanaCompanionProps) {
   return (
     <motion.button
       type="button"
@@ -23,10 +14,10 @@ export function SorobanaCompanion({
       aria-label="سوروبانا — المعلمة"
       className="fixed z-[55] select-none focus:outline-none"
       style={{
-        bottom: offsetBottom,
-        right: '0.25rem',
-        width: size,
-        height: height,
+        bottom: '8rem',
+        right: '0',
+        width: 'clamp(140px, 30vw, 200px)',
+        height: 'clamp(190px, 40vw, 270px)',
         padding: 0,
         background: 'transparent',
         border: 'none',
@@ -54,7 +45,7 @@ export function SorobanaCompanion({
           className="w-full h-full pointer-events-none"
           style={{
             objectFit: 'contain',
-            objectPosition: 'center bottom',
+            objectPosition: 'right bottom',
             filter: 'drop-shadow(0 6px 12px rgba(0,0,0,0.4))',
           }}
           draggable={false}
