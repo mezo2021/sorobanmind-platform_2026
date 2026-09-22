@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowRight, CheckCircle2, Trophy, RotateCcw, BookOpen } from 'lucide-react';
 import { LEARN_MODULES } from '@/data';
 import { Soroban2D5 } from './soroban2d5/Soroban2D5';
+import { SorobanaCompanion } from './SorobanaCompanion';
+import { useSorobanaVoice } from '@/hooks/useSorobanaVoice';
 
 const COMPLETED_STORAGE_KEY = 'soroban-completed-lessons';
 const PRACTICE_STORAGE_KEY = 'soroban_practice_stats';
@@ -10,10 +12,9 @@ const PRACTICE_STORAGE_KEY = 'soroban_practice_stats';
 const SESSION_SIZE = 10;
 const MAX_ATTEMPTS = 2;
 
-// ✅ إعدادات أسئلة الضرب والقسمة
-const MULT_RANGE = [2, 3, 4, 5, 6, 7, 8, 9];   // مضاعفات شائعة (نتجنب 1 و 0 للتبسيط)
-const MULT_QUESTIONS_COUNT = 3;                // عدد أسئلة الضرب في الجلسة
-const DIV_QUESTIONS_COUNT = 2;                 // عدد أسئلة القسمة في الجلسة
+const MULT_RANGE = [2, 3, 4, 5, 6, 7, 8, 9];
+const MULT_QUESTIONS_COUNT = 3;
+const DIV_QUESTIONS_COUNT = 2;
 
 interface PracticeQuestion {
   question: string;
@@ -75,7 +76,6 @@ function shuffle<T>(arr: T[]): T[] {
   return a;
 }
 
-/** ✅ حساب عدد الأعمدة المطلوبة لعرض القيمة */
 function getColumnsForValue(value: number): number {
   if (value < 10) return 1;
   if (value < 100) return 2;
@@ -83,7 +83,6 @@ function getColumnsForValue(value: number): number {
   return 4;
 }
 
-/** ✅ توليد سؤال ضرب بسيط */
 function generateMultQuestion(): PracticeQuestion {
   const a = MULT_RANGE[Math.floor(Math.random() * MULT_RANGE.length)];
   const b = MULT_RANGE[Math.floor(Math.random() * MULT_RANGE.length)];
@@ -95,7 +94,6 @@ function generateMultQuestion(): PracticeQuestion {
   };
 }
 
-/** ✅ توليد سؤال قسمة بسيط (مكافئ لضرب) */
 function generateDivQuestion(): PracticeQuestion {
   const b = MULT_RANGE[Math.floor(Math.random() * MULT_RANGE.length)];
   const result = MULT_RANGE[Math.floor(Math.random() * MULT_RANGE.length)];
@@ -108,12 +106,10 @@ function generateDivQuestion(): PracticeQuestion {
   };
 }
 
-/** ✅ توليد مجموعة فريدة من أسئلة الضرب والقسمة */
 function generateExtraQuestions(): PracticeQuestion[] {
   const extras: PracticeQuestion[] = [];
   const seen = new Set<string>();
 
-  // 3 أسئلة ضرب
   let attempts = 0;
   while (extras.filter((q) => q.type === 'mult').length < MULT_QUESTIONS_COUNT && attempts < 50) {
     const q = generateMultQuestion();
@@ -124,7 +120,6 @@ function generateExtraQuestions(): PracticeQuestion[] {
     attempts++;
   }
 
-  // 2 أسئلة قسمة
   attempts = 0;
   while (extras.filter((q) => q.type === 'div').length < DIV_QUESTIONS_COUNT && attempts < 50) {
     const q = generateDivQuestion();
@@ -153,6 +148,8 @@ export function PracticeScreen({ onBack, playSound, onXP, burst }: PracticeScree
     } catch { return []; }
   });
 
+  const sorobana = useSorobanaVoice();
+
   useEffect(() => {
     const saved = localStorage.getItem(COMPLETED_STORAGE_KEY);
     if (saved) {
@@ -160,17 +157,20 @@ export function PracticeScreen({ onBack, playSound, onXP, burst }: PracticeScree
     }
   }, []);
 
-  // ============ بناء بنك الأسئلة ============
+  // ✅ إيقاف الصوت عند إغلاق الشاشة
+  useEffect(() => {
+    return () => { sorobana.stop(); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const buildSession = (): PracticeQuestion[] => {
     const pool: PracticeQuestion[] = [];
 
-    // 1) أسئلة من الدروس المكتملة (جمع وطرح)
     for (const lessonId of completed) {
       const mod = LEARN_MODULES.find((m) => m.id === lessonId);
       if (!mod) continue;
 
       for (const ex of mod.examples) {
-        // نقبل كل رموز الطرح (ASCII + Unicode)
         if (!/[+\-−–—×÷]/.test(ex.problemText)) continue;
 
         pool.push({
@@ -182,7 +182,6 @@ export function PracticeScreen({ onBack, playSound, onXP, burst }: PracticeScree
       }
     }
 
-    // 2) خلط + اختيار أسئلة الجمع والطرح (حتى SESSION_SIZE - عدد الإضافات)
     const shuffledLearn = shuffle(pool);
     const selectedLearn: PracticeQuestion[] = [];
     const seen = new Set<string>();
@@ -195,15 +194,11 @@ export function PracticeScreen({ onBack, playSound, onXP, burst }: PracticeScree
       selectedLearn.push(q);
     }
 
-    // 3) ✅ إضافة أسئلة الضرب والقسمة
     const extras = generateExtraQuestions();
-
-    // 4) دمج الكل + خلط نهائي
     const combined = [...selectedLearn, ...extras];
     return shuffle(combined);
   };
 
-  // ============ State ============
   const [questions, setQuestions] = useState<PracticeQuestion[]>(() => buildSession());
   const [index, setIndex] = useState(0);
   const [score, setScore] = useState(0);
@@ -212,7 +207,6 @@ export function PracticeScreen({ onBack, playSound, onXP, burst }: PracticeScree
   const [finished, setFinished] = useState(false);
   const [currentAbacusValue, setCurrentAbacusValue] = useState(0);
 
-  // ✅ إعادة بناء الجلسة عند تغيير الدروس المكتملة
   useEffect(() => {
     setQuestions(buildSession());
     setIndex(0);
@@ -224,14 +218,12 @@ export function PracticeScreen({ onBack, playSound, onXP, burst }: PracticeScree
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [completed.length]);
 
-  // ✅ إعادة تعيين قيمة السوروبان عند تغيير السؤال
   useEffect(() => {
     setCurrentAbacusValue(0);
   }, [index]);
 
   const question = questions[index];
 
-  // ✅ يكتشف كل رموز الطرح (عربي، يونيكود، ASCII)
   const hasMinus = Boolean(
     question?.question.includes('-') ||
     question?.question.includes('−') ||
@@ -244,7 +236,6 @@ export function PracticeScreen({ onBack, playSound, onXP, burst }: PracticeScree
   const isMultiplication = Boolean(question?.question.includes('×'));
   const isDivision = Boolean(question?.question.includes('÷'));
 
-  // ============ منطق المحاولات ============
   const handleAttempt = (isCorrect: boolean) => {
     if (feedback === 'correct' || feedback === 'revealed') return;
 
@@ -255,6 +246,9 @@ export function PracticeScreen({ onBack, playSound, onXP, burst }: PracticeScree
         setScore((s) => s + 1);
         onXP(2);
         burst(0.5, 0.5);
+
+        // ✅ سوروبانا: إجابة صحيحة
+        sorobana.speakCorrect();
 
         const stats = loadPracticeStats();
         savePracticeStats({
@@ -274,6 +268,9 @@ export function PracticeScreen({ onBack, playSound, onXP, burst }: PracticeScree
         playSound('error');
         setFeedback('revealed');
 
+        // ✅ سوروبانا: محاولة أخيرة فاشلة
+        sorobana.speakWrong();
+
         const stats = loadPracticeStats();
         savePracticeStats({
           totalProblems: stats.totalProblems + 1,
@@ -291,19 +288,16 @@ export function PracticeScreen({ onBack, playSound, onXP, burst }: PracticeScree
     }
   };
 
-  // ============ تغيّر قيمة السوروبان ============
   const handleValueChange = (value: number) => {
     setCurrentAbacusValue(value);
     if (!question) return;
     if (feedback === 'correct' || feedback === 'revealed') return;
 
-    // ✅ التحقق التلقائي عند مطابقة الإجابة (فقط إذا كانت القيمة > 0)
     if (value > 0 && value === question.answer) {
       handleAttempt(true);
     }
   };
 
-  // ============ التنقل ============
   const nextQuestion = () => {
     setCurrentAbacusValue(0);
     if (index + 1 < questions.length) {
@@ -313,6 +307,8 @@ export function PracticeScreen({ onBack, playSound, onXP, burst }: PracticeScree
     } else {
       setFinished(true);
       playSound('levelup');
+      // ✅ سوروبانا: نهاية الجلسة
+      sorobana.speakEndLesson();
     }
   };
 
@@ -412,7 +408,6 @@ export function PracticeScreen({ onBack, playSound, onXP, burst }: PracticeScree
             المحاولة {toArabicNumber(attempts + 1)}/{toArabicNumber(MAX_ATTEMPTS)}
           </span>
         </div>
-        {/* ✅ شارة نوع السؤال */}
         {isMultiplication && (
           <div className="badge bg-purple-500/15 border-purple-400/20">
             <span className="text-purple-200 text-sm">✖️ ضرب</span>
@@ -440,7 +435,6 @@ export function PracticeScreen({ onBack, playSound, onXP, burst }: PracticeScree
             {question.question} = ؟
           </p>
 
-          {/* ✅ إجابة صحيحة */}
           {feedback === 'correct' && (
             <motion.div
               initial={{ opacity: 0, y: 10 }}
@@ -452,7 +446,6 @@ export function PracticeScreen({ onBack, playSound, onXP, burst }: PracticeScree
             </motion.div>
           )}
 
-          {/* ❌ محاولة خاطئة */}
           {feedback === 'wrong' && (
             <motion.div
               initial={{ opacity: 0, y: 10 }}
@@ -463,7 +456,6 @@ export function PracticeScreen({ onBack, playSound, onXP, burst }: PracticeScree
             </motion.div>
           )}
 
-          {/* 🔍 الإجابة المكشوفة */}
           {feedback === 'revealed' && (
             <motion.div
               initial={{ opacity: 0, y: 10 }}
@@ -477,7 +469,6 @@ export function PracticeScreen({ onBack, playSound, onXP, burst }: PracticeScree
             </motion.div>
           )}
 
-          {/* ✅ السوروبان 2D5 — يظهر عند عدم الإجابة */}
           {feedback !== 'correct' && feedback !== 'revealed' && (
             <div className="flex flex-col items-center gap-3">
               <Soroban2D5
@@ -509,7 +500,6 @@ export function PracticeScreen({ onBack, playSound, onXP, burst }: PracticeScree
             </div>
           )}
 
-          {/* زر الانتقال */}
           {(feedback === 'correct' || feedback === 'revealed') && (
             <motion.button
               initial={{ opacity: 0, y: 10 }}
@@ -522,6 +512,15 @@ export function PracticeScreen({ onBack, playSound, onXP, burst }: PracticeScree
           )}
         </motion.div>
       </AnimatePresence>
+
+      {/* ✅ سوروبانا — معلمة تشير (وضع التمرين) */}
+      <SorobanaCompanion
+        isSpeaking={sorobana.isSpeaking}
+        onClick={() => sorobana.speakTeaching()}
+        variant="pointing"
+        sizeOverride={110}
+        offsetBottom="10rem"
+      />
     </div>
   );
 }
