@@ -76,11 +76,10 @@ function shuffle<T>(arr: T[]): T[] {
   return a;
 }
 
+/** ✅ حساب عدد الأعمدة — 3 للأعداد الصغيرة، 6 للأعداد ≥ 1000 */
 function getColumnsForValue(value: number): number {
-  if (value < 10) return 1;
-  if (value < 100) return 2;
   if (value < 1000) return 3;
-  return 4;
+  return 6;
 }
 
 function generateMultQuestion(): PracticeQuestion {
@@ -157,7 +156,6 @@ export function PracticeScreen({ onBack, playSound, onXP, burst }: PracticeScree
     }
   }, []);
 
-  // ✅ إيقاف الصوت عند إغلاق الشاشة
   useEffect(() => {
     return () => { sorobana.stop(); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -247,7 +245,6 @@ export function PracticeScreen({ onBack, playSound, onXP, burst }: PracticeScree
         onXP(2);
         burst(0.5, 0.5);
 
-        // ✅ سوروبانا: إجابة صحيحة
         sorobana.speakCorrect();
 
         const stats = loadPracticeStats();
@@ -268,7 +265,6 @@ export function PracticeScreen({ onBack, playSound, onXP, burst }: PracticeScree
         playSound('error');
         setFeedback('revealed');
 
-        // ✅ سوروبانا: محاولة أخيرة فاشلة
         sorobana.speakWrong();
 
         const stats = loadPracticeStats();
@@ -307,7 +303,6 @@ export function PracticeScreen({ onBack, playSound, onXP, burst }: PracticeScree
     } else {
       setFinished(true);
       playSound('levelup');
-      // ✅ سوروبانا: نهاية الجلسة
       sorobana.speakEndLesson();
     }
   };
@@ -372,7 +367,6 @@ export function PracticeScreen({ onBack, playSound, onXP, burst }: PracticeScree
   // ============ الشاشة الرئيسية ============
   return (
     <div className="px-3 sm:px-6 py-6 max-w-2xl mx-auto" dir="rtl">
-      {/* الرأس */}
       <div className="flex items-center gap-3 mb-6">
         <button onClick={() => { playSound('click'); onBack(); }} className="btn-ghost !px-3 !py-2">
           <ArrowRight className="w-5 h-5" />
@@ -383,7 +377,6 @@ export function PracticeScreen({ onBack, playSound, onXP, burst }: PracticeScree
         </div>
       </div>
 
-      {/* شريط التقدم */}
       <div className="flex items-center gap-3 mb-5">
         <div className="flex-1 h-3 rounded-full bg-white/10 overflow-hidden">
           <motion.div
@@ -397,7 +390,6 @@ export function PracticeScreen({ onBack, playSound, onXP, burst }: PracticeScree
         </span>
       </div>
 
-      {/* شارات المعلومات */}
       <div className="flex gap-3 mb-5 flex-wrap">
         <div className="badge bg-emerald2-500/15 border-emerald2-400/20">
           <CheckCircle2 className="w-4 h-4 text-emerald2-300" />
@@ -420,7 +412,6 @@ export function PracticeScreen({ onBack, playSound, onXP, burst }: PracticeScree
         )}
       </div>
 
-      {/* بطاقة السؤال */}
       <AnimatePresence mode="wait">
         <motion.div
           key={index}
@@ -513,12 +504,12 @@ export function PracticeScreen({ onBack, playSound, onXP, burst }: PracticeScree
         </motion.div>
       </AnimatePresence>
 
-      {/* ✅ سوروبانا — معلمة تشير (وضع التمرين) */}
+      {/* ✅ سوروبانا — حجم كبير (80% من طول عمود السوروبان) */}
       <SorobanaCompanion
         isSpeaking={sorobana.isSpeaking}
         onClick={() => sorobana.speakTeaching()}
         variant="pointing"
-        sizeOverride={110}
+        sizeOverride={220}
         offsetBottom="10rem"
       />
     </div>
