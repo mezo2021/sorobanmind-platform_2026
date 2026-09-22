@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useCharacterVoice } from '@/hooks/useCharacterVoice';
 import type { CharacterType } from '@/types';
 
 import shamImg from '../assets/avatars/sham.png';
@@ -64,16 +63,8 @@ export function FloatingCompanion({
   const [currentPhrase, setCurrentPhrase] = useState<string | null>(null);
   const [usedIndices, setUsedIndices] = useState<number[]>([]);
 
-  const { speak, stop, isSpeaking, isSupported } = useCharacterVoice(character);
-
   const data = CHARACTER_DATA[character] ?? CHARACTER_DATA.sham;
   const gradient = CHARACTER_GRADIENTS[character] ?? CHARACTER_GRADIENTS.sham;
-
-  useEffect(() => {
-    return () => {
-      stop();
-    };
-  }, [stop]);
 
   const pickPhrase = useCallback((): string => {
     let available = PHRASES.map((_, i) => i).filter((i) => !usedIndices.includes(i));
@@ -87,24 +78,14 @@ export function FloatingCompanion({
   }, [usedIndices]);
 
   const handleClick = useCallback(() => {
-    if (isSpeaking) {
-      stop();
-      setCurrentPhrase(null);
-      return;
-    }
     playSound('whoosh');
     const phrase = pickPhrase();
     setCurrentPhrase(phrase);
-    setTimeout(() => {
-      speak(phrase, () => setCurrentPhrase(null));
-    }, 250);
-  }, [isSpeaking, stop, playSound, pickPhrase, speak]);
-
-  if (!isSupported) return null;
+    setTimeout(() => setCurrentPhrase(null), 4500);
+  }, [playSound, pickPhrase]);
 
   return (
     <>
-      {/* فقاعة الكلام */}
       <AnimatePresence>
         {currentPhrase && (
           <motion.div
@@ -127,10 +108,7 @@ export function FloatingCompanion({
                 color: '#5D3A1A',
               }}
             >
-              <p
-                className="text-xs sm:text-sm font-bold font-body leading-snug text-right"
-                dir="rtl"
-              >
+              <p className="text-xs sm:text-sm font-bold font-body leading-snug text-right" dir="rtl">
                 {currentPhrase}
               </p>
               <div
@@ -151,7 +129,6 @@ export function FloatingCompanion({
         )}
       </AnimatePresence>
 
-      {/* زر الشخصية */}
       <motion.button
         type="button"
         onClick={handleClick}
@@ -169,15 +146,8 @@ export function FloatingCompanion({
       >
         <motion.div
           className={`w-full h-full rounded-full bg-gradient-to-br ${gradient} flex items-end justify-center shadow-inner overflow-hidden relative`}
-          animate={{
-            y: isSpeaking ? [0, -3, 0, -3, 0] : [0, -4, 0],
-            scale: isSpeaking ? [1, 1.07, 1] : 1,
-          }}
-          transition={{
-            duration: isSpeaking ? 0.7 : 2.6,
-            repeat: Infinity,
-            ease: 'easeInOut',
-          }}
+          animate={{ y: [0, -4, 0] }}
+          transition={{ duration: 2.6, repeat: Infinity, ease: 'easeInOut' }}
         >
           <img
             src={data.image}
