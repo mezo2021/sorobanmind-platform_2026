@@ -261,12 +261,21 @@ export function LearnScreen({ onBack, playSound, onXP, onNavigate }: LearnScreen
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // ✅ منع التمرير الخلفي + fix scroll bleed
   useEffect(() => {
     if (!selected) return;
     const prevOverflow = document.body.style.overflow;
+    const prevOverscroll = document.body.style.overscrollBehavior;
+    const prevTouchAction = document.body.style.touchAction;
+
     document.body.style.overflow = 'hidden';
+    document.body.style.overscrollBehavior = 'contain';
+    document.body.style.touchAction = 'none';
+
     return () => {
       document.body.style.overflow = prevOverflow;
+      document.body.style.overscrollBehavior = prevOverscroll;
+      document.body.style.touchAction = prevTouchAction;
     };
   }, [selected]);
 
@@ -501,7 +510,7 @@ export function LearnScreen({ onBack, playSound, onXP, onNavigate }: LearnScreen
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={handleClose}
-            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
+            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 overscroll-contain"
           >
             <motion.div
               initial={{ scale: 0.8, opacity: 0, y: 30 }}
@@ -509,7 +518,7 @@ export function LearnScreen({ onBack, playSound, onXP, onNavigate }: LearnScreen
               exit={{ scale: 0.8, opacity: 0, y: 30 }}
               transition={{ type: 'spring', stiffness: 250, damping: 25 }}
               onClick={(e) => e.stopPropagation()}
-              className="glass-strong p-5 sm:p-7 max-w-lg w-full max-h-[90vh] overflow-y-auto scrollbar-hide"
+              className="glass-strong p-5 sm:p-7 max-w-lg w-full max-h-[90vh] overflow-y-auto scrollbar-hide overscroll-contain touch-pan-y"
             >
               <div className="flex items-center justify-between mb-4 gap-2">
                 <h3 className="text-xl sm:text-2xl font-extrabold font-display text-white flex-1">
@@ -796,6 +805,7 @@ export function LearnScreen({ onBack, playSound, onXP, onNavigate }: LearnScreen
         <SorobanaCompanion
           isSpeaking={sorobana.isSpeaking}
           onClick={() => sorobana.speakTeaching()}
+          mode={mode}
         />
       )}
 
