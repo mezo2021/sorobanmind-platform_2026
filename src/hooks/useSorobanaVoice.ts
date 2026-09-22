@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 // ═══════════════════════════════════════════════════════════════
-// تقسيم النص إلى جمل قصيرة (أقل من 100 حرف لكل جملة)
+// تقسيم النص إلى جمل قصيرة
 // ═══════════════════════════════════════════════════════════════
 function splitIntoSentences(text: string): string[] {
   const raw = text
@@ -40,11 +40,13 @@ function splitIntoSentences(text: string): string[] {
 }
 
 // ═══════════════════════════════════════════════════════════════
-// بناء رابط Google Translate TTS
+// بناء رابط Google TTS عبر بروكسي CORS
 // ═══════════════════════════════════════════════════════════════
 function buildTtsUrl(text: string): string {
   const encoded = encodeURIComponent(text);
-  return `https://translate.google.com/translate_tts?ie=UTF-8&tl=ar&client=tw-ob&q=${encoded}`;
+  const googleUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=ar&client=tw-ob&q=${encoded}`;
+  // استخدام بروكسي CORS عام (بدون تسجيل)
+  return `https://api.allorigins.win/raw?url=${encodeURIComponent(googleUrl)}`;
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -114,9 +116,7 @@ export function useSorobanaVoice() {
         }
 
         const audio = new Audio();
-        // ✅ استخدام setAttribute لتفادي خطأ TypeScript
         audio.setAttribute('referrerpolicy', 'no-referrer');
-        audio.setAttribute('crossorigin', 'anonymous');
         audio.preload = 'auto';
         audio.src = buildTtsUrl(nextSentence);
         audio.playbackRate = 0.95;
@@ -137,16 +137,17 @@ export function useSorobanaVoice() {
 
         audio.onended = advance;
         audio.onerror = () => {
-          console.warn('[Sorobana TTS] audio error for:', nextSentence);
+          console.warn('[Sorobana TTS] audio error:', nextSentence);
           advance();
         };
 
-        const timeout = setTimeout(advance, 6000);
+        const timeout = setTimeout(advance, 8000);
 
         audio
           .play()
           .then(() => {
             clearTimeout(timeout);
+            console.log('[Sorobana TTS] playing:', nextSentence);
           })
           .catch((err) => {
             console.warn('[Sorobana TTS] play failed:', err);
