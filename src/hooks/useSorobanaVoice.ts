@@ -6,6 +6,11 @@ function audioPath(file: string): string {
   return `${BASE}audio/${file}`;
 }
 
+// ✅ مسار ملفات القصص
+function storyPath(id: number): string {
+  return `${BASE}audio/stories/story-${id}.mp3`;
+}
+
 export const SOROBANA_AUDIO = {
   greetings: [audioPath('greeting-1.mp3'), audioPath('greeting-2.mp3'), audioPath('greeting-3.mp3')],
   teaching: [audioPath('teaching-1.mp3'), audioPath('teaching-2.mp3'), audioPath('teaching-3.mp3')],
@@ -36,7 +41,6 @@ function getAudioContext(): AudioContext {
   return sharedAudioContext;
 }
 
-// ─── فتح AudioContext على أول لمسة في أي مكان بالتطبيق ───
 function installGlobalUnlock() {
   if (globalUnlockInstalled) return;
   if (typeof window === 'undefined') return;
@@ -135,7 +139,6 @@ export function useSorobanaVoice() {
     }
   }, []);
 
-  // ✅ تثبيت المستمع العام عند mount
   useEffect(() => {
     installGlobalUnlock();
   }, []);
@@ -201,7 +204,6 @@ export function useSorobanaVoice() {
 
       log('🍞 Buffer ready');
 
-      // ✅ الأهم: ننتظر resume() قبل التشغيل
       const ctx = getAudioContext();
       log(`🔊 ctx.state=${ctx.state}`);
       if (ctx.state === 'suspended') {
@@ -282,9 +284,15 @@ export function useSorobanaVoice() {
     playFiles(files, onDone);
   }, [playFiles]);
 
+  // ✅ جديد: تشغيل موجز قصة الدرس من ملف MP3
+  const speakStory = useCallback((id: number, onDone?: () => void) => {
+    playFiles([storyPath(id)], onDone);
+  }, [playFiles]);
+
   return {
     speak, stop, isSpeaking, isSupported,
     speakLesson, speakTeaching, speakCorrect, speakWrong, speakEndLesson, speakFiles,
+    speakStory,
     debugLogs, clearDebugLogs,
   };
 }
