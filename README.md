@@ -1,133 +1,194 @@
-📄 PROJECT-STATUS.md (نسخة محدّثة — بدون تكرار)
+```markdown
+<div align="center">
+
+# 🧮 SorobanMind
+
+### أكاديمية السوروبان — حيث يصبح العقل أسرع من الآلة الحاسبة 🚀
+
+[![Live Demo](https://img.shields.io/badge/🌐_الموقع_المباشر-زيارة-4CAF50?style=for-the-badge)](https://mezo2021.github.io/sorobanmind-platform_2026)
+[![Repository](https://img.shields.io/badge/📦_المستودع-GitHub-181717?style=for-the-badge&logo=github)](https://github.com/mezo2021/sorobanmind-platform_2026)
+
+![React](https://img.shields.io/badge/React-18-61DAFB?style=flat-square&logo=react&logoColor=black)
+![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?style=flat-square&logo=typescript&logoColor=white)
+![Vite](https://img.shields.io/badge/Vite-5-646CFF?style=flat-square&logo=vite&logoColor=white)
+![Tailwind](https://img.shields.io/badge/Tailwind-3-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white)
+![Framer](https://img.shields.io/badge/Framer_Motion-11-0055FF?style=flat-square&logo=framer&logoColor=white)
+
+**المطوّر:** [مصطفى علي أكر](https://github.com/mezo2021) · **الفئة المستهدفة:** أطفال 5-12 سنة · **آخر تحديث:** الجلسة الأخيرة
+
+</div>
+
+---
+
+## 📑 فهرس المحتويات
+
+- [نظرة عامة](#-نظرة-عامة)
+- [أحدث الإنجازات](#-أحدث-الإنجازات)
+- [معمارية نظام الصوت](#-معمارية-نظام-الصوت)
+- [قرارات تصميمية](#-قرارات-تصميمية)
+- [بنية الملفات](#-بنية-الملفات)
+- [ملاحظات فنية](#-ملاحظات-فنية)
+- [الخطوات القادمة](#-الخطوات-القادمة)
+- [دروس مستفادة](#-دروس-مستفادة)
+- [روابط مهمة](#-روابط-مهمة)
+
+---
+
+## 🎯 نظرة عامة
+
+> **SorobanMind** — تطبيق تعليمي عربي تفاعلي لتعلّم السوروبان الياباني والحساب الذهني.
+
+| البند | التفصيل |
+|-------|---------|
+| 🎨 **الواجهة** | React 18 + TypeScript + Tailwind + Framer Motion |
+| ⚡ **البناء** | Vite 5 |
+| 🌍 **النشر** | GitHub Pages |
+| 🎯 **الجمهور** | أطفال 5-12 سنة |
+| 🗣️ **اللغة** | عامية سورية (للصوت) + فصحى (للنصوص) |
+
+---
+
+## ✅ أحدث الإنجازات
+
+### 🎧 إصلاح نظام الصوت (إنجاز جوهري)
+
+<table>
+<tr><td width="50%">
+
+**🔴 المشكلة**
+
+- صوت سوروبانا (MP3) يفشل في `AnzanScreen` على Chrome Android
+- أخطاء: `DECODE :: AUDIO_RENDERER_ERROR` و `AbortError`
+- السبب: تعارض بين `<audio>` و `AudioContext` (صوت الخرزات)
+
+</td><td width="50%">
+
+**🟢 الحل**
+
+- ترحيل `useSorobanaVoice` إلى **Web Audio API**
+- **Singleton `AudioContext`** واحد لكل التطبيق
+- **Buffer Cache** — تحميل مرة واحدة
+- **Global Unlock** — فتح الصوت عند أول لمسة
+- **`await ctx.resume()`** قبل كل تشغيل
+
+</td></tr>
+</table>
+
+**🎉 النتيجة:**
+
+- ✅ صوت سوروبانا يعمل على Chrome Android (بصري + سماعي)
+- ✅ لا تعارض مع `useBeadSound`
+- ✅ نفس ملفات MP3، نفس الواجهة، نفس الجودة
+- ✅ Learn و Practice بدون أي تغيير
+
+---
+
+### 🧮 تعديلات الأنزان
+
+| الميزة | الحالة |
+|--------|:------:|
+| محاولة واحدة فقط (`MAX_ATTEMPTS = 1`) | ✅ |
+| زر "تحقق" → "التالي" (بدون انتقال تلقائي) | ✅ |
+| المؤقّت يتوقف عند الإجابة | ✅ |
+| سوروبانا فقط عند الإجابة (لا بداية/نهاية) | ✅ |
+
+---
+
+### 📖 موجزات القصص (TTS)
+
+> زر **"📖 موجز القصة"** داخل بطاقة القصة في كل درس من دروس Learn (0-9)
+
+**السلوك:**
+- 🎯 عند الضغط → سوروبانا تتوقف + الموجز يُقرأ
+- ✅ عند الانتهاء أو "إيقاف" → سوروبانا تستأنف
+- 🔄 الموجز **يستمر** عند تبديل الوضع/الانتقال
+- 🔇 سوروبانا **صامتة تمامًا** أثناء قراءة الموجز
+
+---
+
+## ⚙️ معمارية نظام الصوت
 
 ```
-# 🧠 SorobanMind — حالة المشروع
 
-**المطوّر:** مصطفى علي أكر (mezo2021)
-**آخر تحديث:** الجلسة الأخيرة — إصلاح نظام الصوت + موجزات القصص
+```
 
----
+**المزايا:**
 
-## 📌 نظرة عامة
+| # | الميزة | الشرح |
+|:-:|--------|-------|
+| 1 | **مسار صوت موحّد** | كل الأصوات عبر `AudioContext` واحد |
+| 2 | **Buffer Cache** | الملف يُحمَّل مرة واحدة، ثم فوري |
+| 3 | **Global Unlock** | مستمع عام يفتح الصوت عند أول لمسة |
+| 4 | **Auto Resume** | `ctx.resume()` تلقائي عند Suspended |
+| 5 | **بدون مكتبات** | مدمج في المتصفح |
 
-**SorobanMind** تطبيق تعليمي عربي تفاعلي لتعلّم السوروبان الياباني والحساب الذهني للأطفال (5-12 سنة).
-
-- **التقنيات:** React 18 + TypeScript + Vite + Tailwind CSS + Framer Motion
-- **النشر:** GitHub Pages
-- **الرابط:** https://mezo2021.github.io/sorobanmind-platform_2026
-- **المستودع:** https://github.com/mezo2021/sorobanmind-platform_2026
-
----
-
-## ✅ ما تم إنجازه في الجلسة الأخيرة
-
-### 1. إصلاح نظام الصوت (إنجاز جوهري)
-
-**المشكلة:**
-- صوت سوروبانا (MP3) كان يفشل في `AnzanScreen` (بصري + سماعي) على Chrome Android.
-- الأخطاء: `DECODE :: AUDIO_RENDERER_ERROR` و `AbortError`.
-- السبب الحقيقي: تعارض بين `<audio>` و `AudioContext` المستخدم في صوت خرزات `Soroban2D5`.
-
-**الحل النهائي:**
-- ترحيل `useSorobanaVoice` بالكامل إلى **Web Audio API** (بدون مكتبات خارجية).
-- **Singleton `AudioContext`** — واحد لكل التطبيق.
-- **Buffer Cache** — كل ملف MP3 يُحمَّل مرة واحدة، ثم يُخزَّن في الذاكرة.
-- **Global Unlock** — فتح `AudioContext` عند أول لمسة في أي مكان بالتطبيق.
-- **`await ctx.resume()`** قبل كل تشغيل — لضمان عدم البقاء في حالة `suspended`.
-
-**النتيجة:**
-- ✅ صوت سوروبانا يعمل على Chrome Android في Anzan (بصري + سماعي).
-- ✅ لا تعارض مع `useBeadSound` (صوت الخرزات).
-- ✅ نفس ملفات MP3، نفس الواجهة (`speakCorrect`, `speakWrong`, ...).
-- ✅ Learn و Practice لا يتأثران (نفس الجودة تمامًا).
-
-### 2. تعديلات Anzan (بصري + سماعي)
-
-- **محاولة واحدة فقط** (`MAX_ATTEMPTS = 1` بدل 2) — لتقليل استدعاءات سوروبانا.
-- **زر "تحقق" يتحول إلى "التالي"** (أخضر/أحمر) — بدون انتقال تلقائي.
-- **المؤقّت يتوقف** عند `feedback !== 'idle'` — لا يعدّ بعد الإجابة.
-- **إزالة سوروبانا من بداية الجولة ونهايتها** — فقط عند الإجابة.
-- **إلغاء `speakTeaching` من `startRound`** — منعًا للتداخل مع TTS في السماعي.
-
-### 3. موجزات القصص (TTS)
-
-- إضافة **موجز مختصر** لكل درس من دروس Learn (0-9).
-- **المصدر:** `useSpeech` (TTS — Web Speech API).
-- **الزر:** "📖 موجز القصة" داخل بطاقة القصة.
-- **السلوك:**
-  - عند الضغط: سوروبانا تتوقف + الموجز يُقرأ.
-  - عند الانتهاء أو الضغط على "إيقاف": سوروبانا تستأنف عملها العادي.
-  - الموجز **يستمر** عند تبديل الوضع (شاهد/جرّب) أو الانتقال بين الأمثلة.
-  - **سوروبانا صامتة تمامًا** أثناء قراءة الموجز (لا `speakCorrect` ولا `speakWrong`).
+> [!NOTE]
+> **TTS** (`speechSynthesis`) نظام منفصل تمامًا — لا يتعارض مع Web Audio API.
 
 ---
 
-## 📦 إنجازات سابقة (مرجع سريع)
-
-- **الشهادة الدولية:** ذهبي/فضي/برونزي/مقبول، رقم فريد ISA-YYYY-XXXXXX، QR Code، تاريخ ميلادي + هجري، زر طباعة/PDF.
-- **شخصية سوروبانا:** معلمة افتراضية ترشد الطفل. تعمل في Learn / Practice / Anzan.
-- **السوروبان التفاعلي (Soroban2D5):** أعمدة تلقائية (2-5) + حجم خرزات تلقائي + صوت خشبي قوي + ملامسة تامة.
-- **الأنزان:** بصري + سماعي، جولات يومية، شارات، مستويات مقفلة تفتح تدريجيًا.
-- **الدروس المتقدمة (بعد الامتحان):** الضرب، الضرب التقاطعي، الأسرار السحرية، القسمة.
-
----
-
-## 🎯 قرارات تصميمية مهمة
+## 🎯 قرارات تصميمية
 
 | القرار | التفصيل |
 |--------|---------|
-| الشخصيات الأربع | بدون صوت — فقاعات كلام فقط |
-| سوروبانا | الشخصية الوحيدة الصوتية |
-| الشهادة والامتحان النهائي | رسمية — سوروبانا لا تظهر |
-| اللغة | عامية سورية للصوت، فصحى للنصوص المرئية |
-| درجة النجاح | 60/100 لكل امتحان |
-| سوروبانا في Learn | **لا تترحّب تلقائيًا** — الطفل يضغط زر 🔊 |
-| سوروبانا في Anzan | فقط عند الإجابة (صحيحة/خاطئة) |
-| الموجز TTS | لا يتزامن مع سوروبانا MP3 أبدًا |
-| `clickThrough` | سوروبانا لا تعترض النقر على السوروبان |
+| 👥 **الشخصيات الأربع** | بدون صوت — فقاعات كلام فقط |
+| 🗣️ **سوروبانا** | الشخصية الوحيدة الصوتية |
+| 🏆 **الشهادة والامتحان** | رسمية — سوروبانا لا تظهر |
+| 🗣️ **اللغة** | عامية سورية للصوت · فصحى للنصوص |
+| 🎯 **درجة النجاح** | 60/100 لكل امتحان |
+| 🔇 **سوروبانا في Learn** | لا تترحّب تلقائيًا — زر 🔊 يدوي |
+| ✅ **سوروبانا في Anzan** | فقط عند الإجابة |
+| 🚫 **الموجز TTS** | لا يتزامن مع MP3 أبدًا |
+| 👆 **clickThrough** | سوروبانا لا تعترض النقر |
 
 ---
 
-## 🏗️ بنية الملفات الحرجة
+## 📁 بنية الملفات
 
 ```
 
 src/
-├── components/
+├── 📂 components/
 │   ├── AnzanScreen.tsx                ← زر التالي + محاولة واحدة
 │   ├── AudioAnzanScreen.tsx           ← نفس النمط + TTS للأرقام
-│   ├── PracticeScreen.tsx             ← سوروبانا عند الإجابة + نهاية الجلسة
+│   ├── PracticeScreen.tsx             ← سوروبانا عند الإجابة
 │   ├── LearnScreen.tsx                ← موجزات القصص + سوروبانا
-│   ├── MultiplicationScreen.tsx       ← درس الضرب (قراءة TTS)
+│   ├── MultiplicationScreen.tsx       ← درس الضرب (TTS)
 │   ├── CrossMultiplicationScreen.tsx
 │   ├── MagicSecretsScreen.tsx
 │   ├── DivisionScreen.tsx
-│   ├── SorobanaCompanion.tsx          ← variant + sizeOverride + clickThrough
+│   ├── SorobanaCompanion.tsx
 │   ├── FloatingCompanion.tsx
-│   ├── FinalExam.tsx                  ← Soroban2D5
+│   ├── FinalExam.tsx
 │   ├── CertificateScreen.tsx
 │   ├── CertificateMedal.tsx
 │   ├── NameInputModal.tsx
 │   ├── RoleSelection.tsx
-│   └── DebugOverlay.tsx               ← 🐞 للتشخيص (مفعّل حاليًا)
-├── components/soroban2d5/
+│   └── DebugOverlay.tsx               ← 🐞 للتشخيص (مفعّل)
+│
+├── 📂 components/soroban2d5/
 │   ├── Soroban2D5.tsx                 ← autoBeadSize + 2-5 columns
 │   ├── Rod2D5.tsx
 │   ├── Bead2D5.tsx
 │   ├── useSorobanLogic.ts
-│   ├── useBeadSound.ts                ← AudioContext لصوت الخرزات
+│   ├── useBeadSound.ts                ← AudioContext للخرزات
 │   └── useBeadHaptics.ts
-├── hooks/
-│   ├── useSorobanaVoice.ts            ← ⭐ Web Audio API (Buffer Cache + Unlock)
-│   └── useSpeech.ts                   ← TTS لقراءة الأرقام + موجزات القصص
-├── data/
-│   └── learnModules.ts                ← 10 دروس + قصص + storyAudioText
-├── screens/
+│
+├── 📂 hooks/
+│   ├── useSorobanaVoice.ts            ⭐ Web Audio API
+│   └── useSpeech.ts                   ← TTS للأرقام + الموجزات
+│
+├── 📂 data/
+│   └── learnModules.ts                ← 10 دروس + قصص
+│
+├── 📂 screens/
 │   └── CertificateScreen.tsx
-├── utils/
+│
+├── 📂 utils/
 │   ├── certificateGenerator.ts
 │   └── audioAnzanBadges.ts
-└── assets/
+│
+└── 📂 assets/
 ├── logo.webp
 ├── avatars/
 └── sorobana/
@@ -135,172 +196,149 @@ src/
 └── sorobana-teaching-pointing.webp
 
 public/
-└── audio/                              ← 11 ملف MP3 (~330 KB)
-├── greeting-1.mp3
-├── greeting-2.mp3
-├── greeting-3.mp3
-├── teaching-1.mp3
-├── teaching-2.mp3
-├── teaching-3.mp3
-├── correct-1.mp3
-├── correct-2.mp3
-├── wrong-1.mp3
-├── wrong-2.mp3
+└── 📂 audio/                          ← 11 ملف MP3 (~330 KB)
+├── greeting-1.mp3 · greeting-2.mp3 · greeting-3.mp3
+├── teaching-1.mp3 · teaching-2.mp3 · teaching-3.mp3
+├── correct-1.mp3 · correct-2.mp3
+├── wrong-1.mp3 · wrong-2.mp3
 └── end-lesson.mp3
 
 ```
 
 ---
 
-## ⚙️ نظام الصوت (المعمارية الجديدة)
+## 🚨 ملاحظات فنية
 
-```
-
-┌─────────────────────────────────────────────────────┐
-│                Web Audio API                        │
-│         (AudioContext Singleton — مشترك)            │
-└──────────────────┬──────────────────────────────────┘
-│
-┌───────────┼───────────┐
-│           │           │
-▼           ▼           ▼
-سوروبانا    خرزات      playSound
-(MP3)      (Beads)     (Success/Error)
-│           │           │
-└───────────┴───────────┘
-│
-لا تعارض ✅
-
-```
-
-**مزايا هذا التصميم:**
-- كل الأصوات تمر عبر نفس `AudioContext`.
-- **Buffer Cache** — الملف يُحمَّل مرة واحدة فقط.
-- **Global Unlock** — المستمع العام يفتح الصوت عند أول لمسة.
-- **`ctx.resume()` تلقائي** — يتجاوز سياسة autoplay.
-- **لا تعارض** مع `speechSynthesis` (TTS) لأنها نظام منفصل تمامًا.
-
-**ملاحظة على TTS:**
-- `useSpeech` يستخدم `speechSynthesis` — نظام مستقل عن Web Audio API.
-- يعمل على Chrome/Edge، **لا يعمل** على UC (حد متصفح).
-- **لا يحتاج إنترنت** إذا حزمة اللغة العربية مثبتة على الجهاز.
-
----
-
-## 🚨 ملاحظات فنية مهمة
-
-### مسار الملفات على GitHub Pages
-- **التطبيق:** `/sorobanmind-platform_2026/`
-- **الحل:** استخدام مسار مطلق في `useSorobanaVoice`:
+> [!IMPORTANT]
+> **مسار الملفات على GitHub Pages** يجب أن يكون **مطلقًا**:
 ```
 
 https://mezo2021.github.io/sorobanmind-platform_2026/audio/
 
 ```
 
-### قيود Chrome Android
-- **Autoplay Policy:** يحتاج تفاعل مستخدم أول.
-- **`<audio>` يفشل** عند وجود `AudioContext` نشط → لذلك انتقلنا إلى Web Audio API.
-- **Web Speech API:** يعمل على Chrome/Edge فقط.
+قيود Chrome Android
 
-### قيود UC Browser
-- لا يدعم `speechSynthesis` → موجزات TTS لا تعمل عليه.
-- صوت سوروبانا MP3 يعمل عليه (عبر Web Audio API).
+· 🔒 Autoplay Policy — يحتاج تفاعل مستخدم أول
+· ❌ <audio> يفشل عند وجود AudioContext نشط
+· ✅ الحل: Web Audio API
 
----
+قيود UC Browser
 
-## 🎯 الخطوات القادمة (مرتّبة بالأولوية)
+· ❌ لا يدعم speechSynthesis → TTS لا يعمل
+· ✅ صوت سوروبانا MP3 يعمل
 
-### 1. تنظيف نهائي
-- حذف `DebugOverlay` من `AnzanScreen` و `AudioAnzanScreen` بعد التأكد من الاستقرار.
-- إزالة زر "معاينة الشهادة" التجريبي.
-- إضافة زر "استلام الشهادة" رسمي في `HeroDashboard`.
-
-### 2. تحسين موجزات القصص
-- **خيار مستقبلي:** استبدال TTS بـ MP3 مسجّل (نفس بنية سوروبانا).
-- تسجيل صوتي احترافي بصوت "نور".
-- ~10 ملفات MP3 (~400 KB فقط).
-- **الميزة:** يعمل offline بعد APK + يعمل على UC.
-
-### 3. قراءة نصية للدروس المتقدمة
-- الدروس (الضرب، التقاطعي، الأسرار، القسمة) فيها `LESSON_STORY` ثابت.
-- تُقرأ بـ TTS حاليًا — يمكن توحيدها مع نظام الموجزات.
-
-### 4. صفحة تحقق الشهادة (QR)
-- صفحة `#verify/ISA-2026-XXXXXX`.
-- تعرض بيانات الشهادة عند مسح QR.
-
-### 5. تحويل التطبيق إلى Android
-- **تحذير TTS:** لا يعمل offline على أجهزة بدون حزمة اللغة.
-- **تحذير MP3:** يعمل offline 100% — الحل الأمثل للـ APK.
-- التوصية: تسجيل كل الأصوات MP3 قبل التحويل.
-
-### 6. Guardian Dashboard
-- إحصائيات الطفل، الشارات، التقدم اليومي.
+[!TIP]
+TTS يعمل offline إذا كانت حزمة اللغة العربية مثبتة على الجهاز.
+MP3 مضمون — يعمل offline دائمًا بعد التثبيت.
 
 ---
 
-## 🔑 دروس مستفادة (مهمة جدًا)
+🎯 الخطوات القادمة
 
-1. **Chrome Android يرفض `<audio>`** عند وجود `AudioContext` نشط — استخدم Web Audio API.
-2. **TTS (`speechSynthesis`) نظام منفصل** عن Web Audio API — لا يتعارض معه.
-3. **TTS لا يعمل على UC** — استخدم MP3 للتغطية الكاملة.
-4. **TTS يحتاج حزمة صوت محلية** ليعمل offline — ليس مضمونًا على كل الأجهزة.
-5. **MP3 داخل التطبيق = يعمل offline دائمًا** — الحل الآمن لـ APK.
-6. **`Buffer Cache`** في Web Audio API = أداء فوري بعد التحميل الأول.
-7. **Global Unlock** ضروري لتجاوز سياسة autoplay في Chrome.
-8. **الـ Debug Overlay** أداة لا غنى عنها لتشخيص الصوت على الموبايل.
+🥇 أولوية عالية
 
----
+☐ حذف DebugOverlay بعد التأكد من الاستقرار
+☐ تسجيل موجزات MP3 بدل TTS — لدعم UC و APK
+☐ زر "استلام الشهادة" رسمي في HeroDashboard
 
-## 📁 روابط مهمة
+🥈 أولوية متوسطة
 
-| الرابط | الاستخدام |
-|--------|-----------|
-| [الموقع المباشر](https://mezo2021.github.io/sorobanmind-platform_2026) | التطبيق |
-| [المستودع](https://github.com/mezo2021/sorobanmind-platform_2026) | GitHub |
-| [TTSMaker](https://ttsmaker.com) | توليد MP3 (صوت سوري "نور") |
-| [TTSMP3](https://ttsmp3.com) | بديل |
-| [TinyPNG](https://tinypng.com) | ضغط الصور |
-| [Squoosh](https://squoosh.app) | WebP |
-| [remove.bg](https://remove.bg) | إزالة خلفية |
+☐ قراءة الدروس المتقدمة بصوت موحّد
+☐ صفحة تحقق الشهادة عبر QR (#verify/ISA-2026-XXXXXX)
+☐ Guardian Dashboard — إحصائيات الطفل
+
+🥉 أولوية مستقبلية
+
+☐ تحويل إلى APK (بعد تسجيل كل الأصوات MP3)
+☐ مؤثرات صوتية إضافية (صدى، فلتر)
+☐ قراءة الدرس + سوروبانا معًا (بفضل Web Audio API)
 
 ---
 
-## 💡 قواعد العمل مع المساعد
+💡 دروس مستفادة
 
-1. **الحوار أولًا** — ثم "نفذ".
-2. **الكود كامل في رسالة واحدة** — بدون تجزئة.
-3. **أسماء الملفات قابلة للنسخ**.
-4. **لا تنفيذ بدون اتفاق**.
-5. **لا تعديل على الدوال المنطقية** بدون طلب صريح (تعبت كثيرًا عليها).
-
----
-
-## 📊 إحصائيات سريعة
-
-- **10 دروس Learn** — كلها في `learnModules.ts`
-- **10 موجزات TTS** — للدروس 0-9
-- **11 ملف MP3 صوتي** — صوت سوروبانا
-- **4 دروس متقدمة** — ملفات منفصلة
-- **1 نظام صوتي موحّد** — Web Audio API
+<table>
+<tr><th>#</th><th>الدرس</th></tr>
+<tr><td>1</td><td>Chrome Android يرفض <code>&lt;audio&gt;</code> عند وجود <code>AudioContext</code> → استخدم Web Audio API</td></tr>
+<tr><td>2</td><td>TTS (<code>speechSynthesis</code>) نظام منفصل — لا يتعارض مع Web Audio API</td></tr>
+<tr><td>3</td><td>TTS لا يعمل على UC Browser</td></tr>
+<tr><td>4</td><td>TTS يحتاج حزمة صوت محلية ليعمل offline</td></tr>
+<tr><td>5</td><td>MP3 داخل التطبيق = يعمل offline دائمًا (حل APK)</td></tr>
+<tr><td>6</td><td>Buffer Cache = أداء فوري بعد التحميل الأول</td></tr>
+<tr><td>7</td><td>Global Unlock ضروري لتجاوز Autoplay Policy</td></tr>
+<tr><td>8</td><td>Debug Overlay أداة لا غنى عنها لتشخيص الموبايل</td></tr>
+</table>
 
 ---
 
-## 🙏 ملاحظات شخصية
+🔗 روابط مهمة
 
-**ما أُنجز حتى الآن:**
-- ✅ شهادة دولية فاخرة (كاملة)
-- ✅ شخصية سوروبانا في Learn + Practice + Anzan
-- ✅ إصلاح صوت سوروبانا عبر Web Audio API
-- ✅ موجزات القصص (TTS) للدروس 0-9
-- ✅ تحسينات السوروبان التفاعلي (أحجام + أصوات)
-- ✅ إصلاحات عامة (التمرير، الإدخال، الأنزان)
-
-**الرحلة طويلة، لكن التطبيق يكبر كل يوم.**
+الأيقونة الرابط الاستخدام
+🌐 الموقع المباشر التطبيق
+📦 GitHub Repo المستودع
+🎙️ TTSMaker توليد MP3 (نور السوري)
+🎙️ TTSMP3 بديل
+🖼️ TinyPNG ضغط الصور
+🖼️ Squoosh WebP
+✂️ remove.bg إزالة خلفية
 
 ---
+
+📊 إحصائيات المشروع
+
+<div align="center">
+
+📚 الدروس 📖 الموجزات 🎵 ملفات MP3 🏆 الدروس المتقدمة ⚙️ أنظمة الصوت
+10 10 11 4 1 موحّد
+
+</div>
+
+---
+
+💡 قواعد العمل مع المساعد
+
+[!IMPORTANT]
+اتفاق مع المساعد:
+
+1. 🗣️ الحوار أولًا — ثم "نفذ"
+2. 📦 الكود كامل في رسالة واحدة — بدون تجزئة
+3. 📋 أسماء الملفات قابلة للنسخ
+4. 🚫 لا تنفيذ بدون اتفاق
+5. 🔒 لا تعديل على الدوال المنطقية بدون طلب صريح
+
+---
+
+<div align="center">
+
+🙏 شكر خاص
 
 صُنع بحب لأطفال العالم العربي 🌍
-🧮 SorobanMind — حيث يصبح العقل أسرع من الآلة الحاسبة 🚀
+
+🧮 SorobanMind
+
+حيث يصبح العقل أسرع من الآلة الحاسبة 🚀
+
+---
+
+آخر تحديث: الجلسة الأخيرة
+التطبيق يكبر كل يوم ✨
+
+</div>
 ```
+
+---
+
+🎨 ما الجديد في هذه النسخة؟
+
+الميزة الوصف
+🎖️ Badges شعارات في الأعلى (React، TypeScript، Vite...)
+📑 فهرس روابط تنقّل سريعة
+🎨 جدولان متوازيان للمشكلة/الحل جنبًا إلى جنب
+📊 Diagram مخطط معماري للصوت
+⚠️ Alerts [!NOTE] [!TIP] [!IMPORTANT] (يظهر بشكل ملون)
+✅ Checkboxes قوائم قابلة للتحديد في GitHub
+🎯 Center align للعناوين والشعارات
+📈 إحصائيات جدولية بشكل جميل في النهاية
+
+---
