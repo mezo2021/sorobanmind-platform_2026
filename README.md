@@ -1,11 +1,12 @@
-📄 PROJECT-STATUS.md —  GitHub
+📄 ملف README.md (نسخة نهائية احترافية)
 
 ```markdown
 <div align="center">
 
 # 🧮 SorobanMind
 
-### أكاديمية السوروبان — حيث يصبح العقل أسرع من الآلة الحاسبة 🚀
+### أكاديمية السوروبان الدولية
+### حيث يصبح العقل أسرع من الآلة الحاسبة 🚀
 
 [![Live Demo](https://img.shields.io/badge/🌐_الموقع_المباشر-زيارة-4CAF50?style=for-the-badge)](https://mezo2021.github.io/sorobanmind-platform_2026)
 [![Repository](https://img.shields.io/badge/📦_المستودع-GitHub-181717?style=for-the-badge&logo=github)](https://github.com/mezo2021/sorobanmind-platform_2026)
@@ -16,7 +17,7 @@
 ![Tailwind](https://img.shields.io/badge/Tailwind-3-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white)
 ![Framer](https://img.shields.io/badge/Framer_Motion-11-0055FF?style=flat-square&logo=framer&logoColor=white)
 
-**المطوّر:** [مصطفى علي أكر](https://github.com/mezo2021) · **الفئة المستهدفة:** أطفال 5-12 سنة · **آخر تحديث:** الجلسة الأخيرة
+**المطوّر:** [مصطفى علي أكر](https://github.com/mezo2021) · **الفئة المستهدفة:** أطفال 5-12 سنة
 
 </div>
 
@@ -54,34 +55,19 @@
 
 ### 🎧 إصلاح نظام الصوت (إنجاز جوهري)
 
-<table>
-<tr><td width="50%">
-
-**🔴 المشكلة**
-
-- صوت سوروبانا (MP3) يفشل في `AnzanScreen` على Chrome Android
-- أخطاء: `DECODE :: AUDIO_RENDERER_ERROR` و `AbortError`
-- السبب: تعارض بين `<audio>` و `AudioContext` (صوت الخرزات)
-
-</td><td width="50%">
-
-**🟢 الحل**
-
-- ترحيل `useSorobanaVoice` إلى **Web Audio API**
-- **Singleton `AudioContext`** واحد لكل التطبيق
-- **Buffer Cache** — تحميل مرة واحدة
-- **Global Unlock** — فتح الصوت عند أول لمسة
-- **`await ctx.resume()`** قبل كل تشغيل
-
-</td></tr>
-</table>
+| 🔴 المشكلة | 🟢 الحل |
+|-----------|---------|
+| صوت سوروبانا (MP3) يفشل على Chrome Android | ترحيل `useSorobanaVoice` إلى **Web Audio API** |
+| أخطاء: `DECODE :: AUDIO_RENDERER_ERROR` و `AbortError` | **Singleton AudioContext** واحد لكل التطبيق |
+| تعارض بين `<audio>` و `AudioContext` | **Buffer Cache** — تحميل مرة واحدة |
+| — | **Global Unlock** — فتح الصوت عند أول لمسة |
+| — | **`await ctx.resume()`** قبل كل تشغيل |
 
 **🎉 النتيجة:**
-
 - ✅ صوت سوروبانا يعمل على Chrome Android (بصري + سماعي)
 - ✅ لا تعارض مع `useBeadSound`
 - ✅ نفس ملفات MP3، نفس الواجهة، نفس الجودة
-- ✅ Learn و Practice بدون أي تغيير
+- ✅ Learn و Practice بدون تغيير
 
 ---
 
@@ -92,7 +78,7 @@
 | محاولة واحدة فقط (`MAX_ATTEMPTS = 1`) | ✅ |
 | زر "تحقق" → "التالي" (بدون انتقال تلقائي) | ✅ |
 | المؤقّت يتوقف عند الإجابة | ✅ |
-| سوروبانا فقط عند الإجابة (لا بداية/نهاية) | ✅ |
+| سوروبانا فقط عند الإجابة | ✅ |
 
 ---
 
@@ -100,11 +86,27 @@
 
 > زر **"📖 موجز القصة"** داخل بطاقة القصة في كل درس من دروس Learn (0-9)
 
-**السلوك:**
-- 🎯 عند الضغط → سوروبانا تتوقف + الموجز يُقرأ
-- ✅ عند الانتهاء أو "إيقاف" → سوروبانا تستأنف
-- 🔄 الموجز **يستمر** عند تبديل الوضع/الانتقال
-- 🔇 سوروبانا **صامتة تمامًا** أثناء قراءة الموجز
+| السلوك | التفصيل |
+|--------|---------|
+| 🎯 عند الضغط | سوروبانا تتوقف + الموجز يُقرأ |
+| ✅ عند الانتهاء أو "إيقاف" | سوروبانا تستأنف عملها |
+| 🔄 الموجز | **يستمر** عند تبديل الوضع/الانتقال |
+| 🔇 سوروبانا | **صامتة تمامًا** أثناء قراءة الموجز |
+
+---
+
+### 🎓 شاشة الترحيب (Welcome Screen) — جديد
+
+> تُعرض **مرة كل 7 أيام** — أو يدوياً من لوحة ولي الأمر.
+
+| العنصر | التفصيل |
+|--------|---------|
+| 🖼️ **الشعار** | `logo-header.png` (الشعار الجديد البنفسجي/الذهبي) |
+| 👩‍🏫 **سوروبانا** | تظهر بحركة Bounce، وعند النقر → تتكلم |
+| 💬 **الفقاعة** | "مرحباً! أنا سوروبانا معلمتكم. جاهزين نصير أسرع من الحاسبة!" |
+| ✨ **5 ميزات** | أنزان، تدريب، دروس، شهادة، متابعة |
+| 🎬 **زر "ابدأ الرحلة"** | ينقل لشاشة اختيار الدور |
+| 🔄 **زر "شاشة الترحيب"** | في لوحة ولي الأمر — لإعادة عرضها |
 
 ---
 
@@ -112,9 +114,22 @@
 
 ```
 
-```
+┌─────────────────────────────────────────────────────┐
+│                Web Audio API                        │
+│         (AudioContext Singleton — مشترك)            │
+└──────────────────┬──────────────────────────────────┘
+│
+┌───────────┼───────────┐
+│           │           │
+▼           ▼           ▼
+سوروبانا    خرزات      playSound
+(MP3)     (Beads)   (Success/Error)
+│           │           │
+└───────────┴───────────┘
+│
+لا تعارض ✅
 
-**المزايا:**
+```
 
 | # | الميزة | الشرح |
 |:-:|--------|-------|
@@ -142,6 +157,8 @@
 | ✅ **سوروبانا في Anzan** | فقط عند الإجابة |
 | 🚫 **الموجز TTS** | لا يتزامن مع MP3 أبدًا |
 | 👆 **clickThrough** | سوروبانا لا تعترض النقر |
+| 🖼️ **الشعار الرسمي** | بنفسجي/ذهبي (من Ideogram) |
+| 🎬 **شاشة الترحيب** | مرة كل 7 أيام + يدوياً من لوحة ولي الأمر |
 
 ---
 
@@ -151,6 +168,7 @@
 
 src/
 ├── 📂 components/
+│   ├── WelcomeScreen.tsx              ⭐ جديد — شاشة الترحيب
 │   ├── AnzanScreen.tsx                ← زر التالي + محاولة واحدة
 │   ├── AudioAnzanScreen.tsx           ← نفس النمط + TTS للأرقام
 │   ├── PracticeScreen.tsx             ← سوروبانا عند الإجابة
@@ -191,19 +209,23 @@ src/
 │   └── audioAnzanBadges.ts
 │
 └── 📂 assets/
-├── logo.webp
+├── logo.webp                      ← احتياطي
+├── logo-header.png                ⭐ شعار الهيدر
+├── logo-intro.webp                ⭐ شعار الشاشة التعريفية
+├── logo-certificate.webp          ⭐ شعار الشهادة
 ├── avatars/
 └── sorobana/
 ├── sorobana-main.webp
 └── sorobana-teaching-pointing.webp
 
 public/
-└── 📂 audio/                          ← 11 ملف MP3 (~330 KB)
+└── 📂 audio/                          ← 13 ملف MP3 (~370 KB)
 ├── greeting-1.mp3 · greeting-2.mp3 · greeting-3.mp3
 ├── teaching-1.mp3 · teaching-2.mp3 · teaching-3.mp3
 ├── correct-1.mp3 · correct-2.mp3
 ├── wrong-1.mp3 · wrong-2.mp3
-└── end-lesson.mp3
+├── end-lesson.mp3
+└── welcome-sorobana.mp3           ⭐ ترحيب الشاشة التعريفية
 
 ```
 
@@ -231,8 +253,9 @@ https://mezo2021.github.io/sorobanmind-platform_2026/audio/
 · ✅ صوت سوروبانا MP3 يعمل
 
 [!TIP]
-TTS يعمل offline إذا كانت حزمة اللغة العربية مثبتة على الجهاز.
-MP3 مضمون — يعمل offline دائمًا بعد التثبيت.
+
+· TTS: يعمل offline إذا كانت حزمة اللغة العربية مثبتة على الجهاز.
+· MP3: مضمون — يعمل offline دائمًا بعد التثبيت.
 
 ---
 
@@ -243,40 +266,42 @@ MP3 مضمون — يعمل offline دائمًا بعد التثبيت.
 ☐ حذف DebugOverlay بعد التأكد من الاستقرار
 ☐ تسجيل موجزات MP3 بدل TTS — لدعم UC و APK
 ☐ زر "استلام الشهادة" رسمي في HeroDashboard
+☐ تسجيل نصوص الدروس المتقدمة MP3 (الضرب، التقاطعي، الأسرار، القسمة)
 
 🥈 أولوية متوسطة
 
-☐ قراءة الدروس المتقدمة بصوت موحّد
 ☐ صفحة تحقق الشهادة عبر QR (#verify/ISA-2026-XXXXXX)
-☐ Guardian Dashboard — إحصائيات الطفل
+☐ إضافة معلومات التواصل (واتساب، إيميل) في مكان مناسب
+☐ معلومات التواصل + قسم "من نحن"
 
 🥉 أولوية مستقبلية
 
 ☐ تحويل إلى APK (بعد تسجيل كل الأصوات MP3)
 ☐ مؤثرات صوتية إضافية (صدى، فلتر)
-☐ قراءة الدرس + سوروبانا معًا (بفضل Web Audio API)
+☐ صفحة هبوط (Landing Page) للتسويق
+☐ نظام KYU الياباني (تأهيل للبطولات الدولية)
 
 ---
 
 💡 دروس مستفادة
 
-<table>
-<tr><th>#</th><th>الدرس</th></tr>
-<tr><td>1</td><td>Chrome Android يرفض <code>&lt;audio&gt;</code> عند وجود <code>AudioContext</code> → استخدم Web Audio API</td></tr>
-<tr><td>2</td><td>TTS (<code>speechSynthesis</code>) نظام منفصل — لا يتعارض مع Web Audio API</td></tr>
-<tr><td>3</td><td>TTS لا يعمل على UC Browser</td></tr>
-<tr><td>4</td><td>TTS يحتاج حزمة صوت محلية ليعمل offline</td></tr>
-<tr><td>5</td><td>MP3 داخل التطبيق = يعمل offline دائمًا (حل APK)</td></tr>
-<tr><td>6</td><td>Buffer Cache = أداء فوري بعد التحميل الأول</td></tr>
-<tr><td>7</td><td>Global Unlock ضروري لتجاوز Autoplay Policy</td></tr>
-<tr><td>8</td><td>Debug Overlay أداة لا غنى عنها لتشخيص الموبايل</td></tr>
-</table>
+# الدرس
+1 Chrome Android يرفض <audio> عند وجود AudioContext → استخدم Web Audio API
+2 TTS (speechSynthesis) نظام منفصل — لا يتعارض مع Web Audio API
+3 TTS لا يعمل على UC Browser
+4 TTS يحتاج حزمة صوت محلية ليعمل offline
+5 MP3 داخل التطبيق = يعمل offline دائمًا (حل APK)
+6 Buffer Cache = أداء فوري بعد التحميل الأول
+7 Global Unlock ضروري لتجاوز Autoplay Policy
+8 Debug Overlay أداة لا غنى عنها لتشخيص الموبايل
+9 الأرقام في الشعار الرسمي تحتاج حجماً أكبر من المُقدَّر
+10 استخدام نفس صوت "نور" يوحد هوية الصوت في كل التطبيق
 
 ---
 
 🔗 روابط مهمة
 
-الأيقونة الرابط الاستخدام
+الرابط الاستخدام
 🌐 الموقع المباشر التطبيق
 📦 GitHub Repo المستودع
 🎙️ TTSMaker توليد MP3 (نور السوري)
@@ -284,6 +309,7 @@ MP3 مضمون — يعمل offline دائمًا بعد التثبيت.
 🖼️ TinyPNG ضغط الصور
 🖼️ Squoosh WebP
 ✂️ remove.bg إزالة خلفية
+🎨 Ideogram توليد الشعارات
 
 ---
 
@@ -292,7 +318,7 @@ MP3 مضمون — يعمل offline دائمًا بعد التثبيت.
 <div align="center">
 
 📚 الدروس 📖 الموجزات 🎵 ملفات MP3 🏆 الدروس المتقدمة ⚙️ أنظمة الصوت
-10 10 11 4 1 موحّد
+10 10 13 4 1 موحّد
 
 </div>
 
@@ -323,7 +349,6 @@ MP3 مضمون — يعمل offline دائمًا بعد التثبيت.
 
 ---
 
-آخر تحديث: الجلسة الأخيرة
 التطبيق يكبر كل يوم ✨
 
 </div>
