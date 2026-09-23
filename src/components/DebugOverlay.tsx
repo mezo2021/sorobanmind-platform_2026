@@ -2,11 +2,11 @@
 import { useState } from 'react';
 
 interface Props {
-  logs: string[];
+  logs?: string[];
   onClear?: () => void;
 }
 
-export function DebugOverlay({ logs, onClear }: Props) {
+export function DebugOverlay({ logs = [], onClear }: Props) {
   const [open, setOpen] = useState(false);
 
   return (
