@@ -24,6 +24,7 @@ const MAX_DEBUG_LOGS = 40;
 // Web Audio API — Singleton + Buffer Cache
 // ─────────────────────────────────────────────────────────
 let sharedAudioContext: AudioContext | null = null;
+let globalUnlockInstalled = false;
 
 function getAudioContext(): AudioContext {
   if (!sharedAudioContext) {
@@ -33,6 +34,28 @@ function getAudioContext(): AudioContext {
     sharedAudioContext = new Ctor();
   }
   return sharedAudioContext;
+}
+
+// ─── فتح AudioContext على أول لمسة في أي مكان بالتطبيق ───
+function installGlobalUnlock() {
+  if (globalUnlockInstalled) return;
+  if (typeof window === 'undefined') return;
+  globalUnlockInstalled = true;
+
+  const unlock = () => {
+    try {
+      const ctx = getAudioContext();
+      if (ctx.state === 'suspended') {
+        ctx.resume().catch(() => { /* ignore */ });
+      }
+    } catch { /* ignore */ }
+  };
+
+  window.addEventListener('touchstart', unlock, { passive: true });
+  window.addEventListener('touchend', unlock, { passive: true });
+  window.addEventListener('mousedown', unlock);
+  window.addEventListener('click', unlock);
+  window.addEventListener('keydown', unlock);
 }
 
 const bufferCache = new Map<string, AudioBuffer>();
@@ -112,6 +135,11 @@ export function useSorobanaVoice() {
     }
   }, []);
 
+  // ✅ تثبيت المستمع العام عند mount
+  useEffect(() => {
+    installGlobalUnlock();
+  }, []);
+
   useEffect(() => {
     mountedRef.current = true;
     return () => {
@@ -141,14 +169,6 @@ export function useSorobanaVoice() {
     clearTimers();
     killActiveSource();
     setIsSpeaking(true);
-
-    // Ensure context is running (bypass autoplay policy quietly)
-    try {
-      const ctx = getAudioContext();
-      if (ctx.state === 'suspended') {
-        ctx.resume().catch(() => { /* ignore */ });
-      }
-    } catch { /* ignore */ }
 
     const playNext = async () => {
       if (myGeneration !== generationRef.current || !mountedRef.current) return;
@@ -181,6 +201,21 @@ export function useSorobanaVoice() {
 
       log('🍞 Buffer ready');
 
+      // ✅ الأهم: ننتظر resume() قبل التشغيل
+      const ctx = getAudioContext();
+      log(`🔊 ctx.state=${ctx.state}`);
+      if (ctx.state === 'suspended') {
+        try {
+          await ctx.resume();
+          log(`🔊 after resume: ${ctx.state}`);
+        } catch (err) {
+          const msg = err instanceof Error ? err.message : String(err);
+          log(`❌ resume failed: ${msg}`);
+        }
+      }
+
+      if (myGeneration !== generationRef.current || !mountedRef.current) return;
+
       let advanced = false;
       const advance = () => {
         if (advanced) return;
@@ -195,7 +230,6 @@ export function useSorobanaVoice() {
       };
 
       try {
-        const ctx = getAudioContext();
         const source = ctx.createBufferSource();
         source.buffer = buffer;
         source.connect(ctx.destination);
@@ -203,7 +237,6 @@ export function useSorobanaVoice() {
         activeSourceRef.current = source;
         source.start(0);
         log('▶ PLAY fired');
-        // safety net: duration + 2s
         const ms = Math.max(1000, buffer.duration * 1000 + 2000);
         safetyTimeoutRef.current = window.setTimeout(() => {
           safetyTimeoutRef.current = null;
