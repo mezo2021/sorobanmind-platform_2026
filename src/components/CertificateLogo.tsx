@@ -1,4 +1,4 @@
-import logoImg from '@/assets/logo.webp';
+import logoImg from '@/assets/logo-certificate.webp';
 
 interface CertificateLogoProps {
   size?: number;
