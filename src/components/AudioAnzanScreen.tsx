@@ -338,22 +338,20 @@ export function AudioAnzanScreen({ onBack, playSound, onXP, burst }: Props) {
   };
 
   const handleCheck = () => {
-    if (!currentQ || feedback !== 'idle') return;
-    const newAttempts = attempts + 1;
-    setAttempts(newAttempts);
+  if (!currentQ || feedback !== 'idle') return;
+  const newAttempts = attempts + 1;
+  setAttempts(newAttempts);
 
-    stop();
-
-    if (abacusValue === currentQ.answer) {
-      playSound('success');
-      setFeedback('correct');
-      sorobana.speakCorrect();
-    } else {
-      playSound('error');
-      setFeedback('revealed');
-      sorobana.speakWrong();
-    }
-  };
+  if (abacusValue === currentQ.answer) {
+    // playSound('success');
+    setFeedback('correct');
+    sorobana.speakCorrect();
+  } else {
+    // playSound('error');
+    setFeedback('revealed');
+    sorobana.speakWrong();
+  }
+};
 
   const nextQuestion = (correct: boolean) => {
     if (!currentQ) return;
