@@ -5,7 +5,7 @@ import {
   Brain, Calendar, Zap, CheckCircle2, BarChart3,
   Star, Eye, Crown, Diamond, Trophy, Lock as LockBadge,
   Swords, ShieldCheck, Circle, Lock, Volume2, RefreshCw,
-  Home, Sparkles,
+  Home, Sparkles, PlayCircle,
   type LucideIcon,
 } from 'lucide-react';
 import { LEVELS, BADGES } from '@/data';
@@ -31,8 +31,9 @@ interface GuardianDashboardProps {
   childXP: number;
   childStreak: number;
   childLevel: number;
-  /** ✅ اختياري: للتبديل إلى وضع البطل */
   onSwitchToHero?: () => void;
+  /** ✅ جديد: لعرض شاشة الترحيب */
+  onShowWelcome?: () => void;
 }
 
 interface AnzanStats {
@@ -63,13 +64,7 @@ const BADGE_GRADIENTS: Record<string, string> = {
   'eternal-legend': 'from-gold-400 to-gold-600',
 };
 
-function LevelNodeButton({
-  level,
-  index,
-}: {
-  level: LevelNode;
-  index: number;
-}) {
+function LevelNodeButton({ level, index }: { level: LevelNode; index: number }) {
   const isOdd = index % 2 === 1;
   const Icon =
     level.status === 'locked' ? Lock
@@ -116,6 +111,7 @@ export function GuardianDashboard({
   childStreak,
   childLevel,
   onSwitchToHero,
+  onShowWelcome,
 }: GuardianDashboardProps) {
   const [savedName, setSavedName] = useState(childName);
   const [completed, setCompleted] = useState<number[]>([]);
@@ -132,7 +128,6 @@ export function GuardianDashboard({
 
   const quests = useQuests();
 
-  // ✅ دالة إعادة القراءة
   const loadAllData = () => {
     const name = localStorage.getItem('soroban_child_name');
     if (name) setSavedName(name);
@@ -234,7 +229,6 @@ export function GuardianDashboard({
   ];
   const earnedAudioCount = audioAnzanBadgeList.filter(b => b.earned).length;
 
-  // ✅ وقت آخر تحديث
   const lastRefreshText = (() => {
     const diff = Date.now() - lastRefresh;
     const sec = Math.floor(diff / 1000);
@@ -264,6 +258,18 @@ export function GuardianDashboard({
           <RefreshCw className="w-4 h-4" />
           <span>تحديث البيانات</span>
         </button>
+
+        {/* ✅ جديد: زر عرض شاشة الترحيب */}
+        {onShowWelcome && (
+          <button
+            onClick={() => { playSound('click'); onShowWelcome(); }}
+            className="flex items-center gap-2 px-3 py-2 rounded-2xl bg-amber-500/15 border border-amber-400/30 text-amber-200 hover:bg-amber-500/25 transition-all text-sm font-body"
+            title="عرض شاشة الترحيب"
+          >
+            <PlayCircle className="w-4 h-4" />
+            <span>شاشة الترحيب</span>
+          </button>
+        )}
 
         {onSwitchToHero && (
           <button
