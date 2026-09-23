@@ -7,6 +7,7 @@ import { useConfetti } from './hooks/useConfetti';
 import { BADGES } from './data';
 import { Header } from './components/Header';
 import { RoleSelection } from './components/RoleSelection';
+import { WelcomeScreen } from './components/WelcomeScreen';
 import { HeroDashboard } from './components/HeroDashboard';
 import { LearnScreen } from './components/LearnScreen';
 import { FinalExam } from './components/FinalExam';
@@ -17,14 +18,12 @@ import { GuardianDashboard } from './components/GuardianDashboard';
 import InteractiveSorobanScreen from './components/InteractiveSorobanScreen';
 import { BadgeModal } from './components/BadgeModal';
 
-// ✅ استيراد الشاشات الجديدة
 import MultiplicationScreen from './screens/MultiplicationScreen';
 import MagicSecretsScreen from './screens/MagicSecretsScreen';
 import CrossMultiplicationScreen from './screens/CrossMultiplicationScreen';
 import DivisionScreen from './screens/DivisionScreen';
 import CertificateScreen from './screens/CertificateScreen';
 
-// ✅ الشاشات التي تتطلب اجتياز الامتحان النهائي
 const EXAM_REQUIRED_SCREENS: Screen[] = [
   'multiplication',
   'secrets',
@@ -33,16 +32,24 @@ const EXAM_REQUIRED_SCREENS: Screen[] = [
   'certificate',
 ];
 
+const WELCOME_KEY = 'soroban_seen_welcome';
+
 function App() {
   const [role, setRole] = useState<Role>(null);
   const [screen, setScreen] = useState<Screen>('role');
   const [examPassed, setExamPassed] = useState(false);
+  const [showWelcome, setShowWelcome] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem(WELCOME_KEY) !== 'true';
+    } catch {
+      return true;
+    }
+  });
 
   const { stats, addXP, toggleSound, incrementStreak, newBadge, clearNewBadge } = useGameStats();
   const playSound = useSound(stats.soundEnabled);
   const { burst, celebrate } = useConfetti();
 
-  // ✅ قراءة حالة اجتياز الامتحان عند الإقلاع
   useEffect(() => {
     try {
       const raw = localStorage.getItem('soroban_exam_result');
@@ -52,9 +59,7 @@ function App() {
           setExamPassed(true);
         }
       }
-    } catch {
-      /* ignore */
-    }
+    } catch { /* ignore */ }
   }, []);
 
   useEffect(() => {
@@ -78,8 +83,6 @@ function App() {
   }, []);
 
   const handleNavigate = useCallback((s: Screen) => {
-    // ✅ إعادة قراءة حالة الامتحان من localStorage عند كل تنقل
-    // لضمان عمل زر "معاينة الشهادة" التجريبي دون إعادة تحميل الصفحة
     let currentlyPassed = examPassed;
     if (!currentlyPassed) {
       try {
@@ -91,19 +94,22 @@ function App() {
             setExamPassed(true);
           }
         }
-      } catch {
-        /* ignore */
-      }
+      } catch { /* ignore */ }
     }
-
-    // ✅ الحماية المزدوجة: منع الوصول لشاشات مقفلة
     if (EXAM_REQUIRED_SCREENS.includes(s) && !currentlyPassed) {
       return;
     }
     setScreen(s);
   }, [examPassed]);
 
-  const showHeader = role !== null && screen !== 'role';
+  const handleWelcomeStart = useCallback(() => {
+    try {
+      localStorage.setItem(WELCOME_KEY, 'true');
+    } catch { /* ignore */ }
+    setShowWelcome(false);
+  }, []);
+
+  const showHeader = !showWelcome && role !== null && screen !== 'role';
 
   return (
     <div className="min-h-screen relative">
@@ -125,6 +131,22 @@ function App() {
         />
       </div>
 
+      {/* ✅ Welcome Screen — يظهر مرة واحدة فقط */}
+      <AnimatePresence>
+        {showWelcome && (
+          <motion.div
+            key="welcome"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.4 }}
+            className="fixed inset-0 z-[100] bg-gradient-to-b from-slate-900 via-purple-950 to-slate-900 overflow-y-auto"
+          >
+            <WelcomeScreen onStart={handleWelcomeStart} />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {showHeader && (
         <Header
           xp={stats.xp}
@@ -144,7 +166,7 @@ function App() {
           exit={{ opacity: 0 }}
           transition={{ duration: 0.2 }}
         >
-          {screen === 'role' && (
+          {screen === 'role' && !showWelcome && (
             <RoleSelection onSelect={handleRoleSelect} playSound={playSound} />
           )}
 
@@ -215,7 +237,6 @@ function App() {
             />
           )}
 
-          {/* ✅ درس الضرب — محمي */}
           {screen === 'multiplication' && examPassed && (
             <MultiplicationScreen
               onBack={() => handleNavigate('hero-dashboard')}
@@ -223,7 +244,6 @@ function App() {
             />
           )}
 
-          {/* ✅ الضرب التقاطعي — محمي */}
           {screen === 'cross-multiplication' && examPassed && (
             <CrossMultiplicationScreen
               onBack={() => handleNavigate('hero-dashboard')}
@@ -232,7 +252,6 @@ function App() {
             />
           )}
 
-          {/* ✅ الأسرار السحرية — محمي */}
           {screen === 'secrets' && examPassed && (
             <MagicSecretsScreen
               onBack={() => handleNavigate('hero-dashboard')}
@@ -241,7 +260,6 @@ function App() {
             />
           )}
 
-          {/* ✅ القسمة — محمي */}
           {screen === 'division' && examPassed && (
             <DivisionScreen
               onBack={() => handleNavigate('hero-dashboard')}
@@ -250,7 +268,6 @@ function App() {
             />
           )}
 
-          {/* ✅ الشهادة — محمي */}
           {screen === 'certificate' && examPassed && (
             <CertificateScreen
               onBack={() => handleNavigate('hero-dashboard')}
