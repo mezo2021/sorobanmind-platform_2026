@@ -14,7 +14,6 @@ import { FloatingCompanion } from './FloatingCompanion';
 import { SorobanaCompanion } from './SorobanaCompanion';
 import { DebugOverlay } from './DebugOverlay';
 import { useSorobanaVoice } from '@/hooks/useSorobanaVoice';
-import { useSpeech } from '@/hooks/useSpeech';
 import { Soroban2D5 } from './soroban2d5/Soroban2D5';
 import type { LearnModule, LessonStep, DivisionStep, LessonExample, DivisionExample, Screen } from '@/types';
 
@@ -22,7 +21,11 @@ function toArabicNumber(value: number | string): string {
   return String(value).replace(/\d/g, (d) => '٠١٢٣٤٥٦٧٨٩'[Number(d)]);
 }
 
-// 📖 موجزات القصة (TTS-friendly — الأرقام مكتوبة كلمات)
+/* ═══════════════════════════════════════════════════════════
+   📖 مرجع موجزات القصص (تم تسجيلها كـ MP3 في public/audio/stories/)
+   الصوت يُشغَّل من الملفات MP3 عبر useSorobanaVoice.speakStory()
+   القصة الكاملة (selected.story) تُعرض على الشاشة كما هي.
+
 const STORY_SUMMARIES: Record<number, string> = {
   0: 'يدك اليمنى للآحاد، ويدك اليسرى للعشرات. الإبهام قيمته خمسة، وكل إصبع آخر قيمته واحد. اجتمعوا معًا لصنع الأعداد من صفر إلى تسعة وتسعين.',
   1: 'وصل ثلاثة أبطال إلى قلعة السوروبان. حارس القلعة الإطار رحّب بهم وقال: في هذه القلعة أربعة أطفال نشيطون تحت الجسر، كل واحد قيمته واحد. وفوق الجسر تسكن الجدة الحنونة، قيمتها خمسة.',
@@ -35,6 +38,7 @@ const STORY_SUMMARIES: Record<number, string> = {
   8: 'وصل الأبطال إلى العرش المزدوج حيث تلتقي الجدة خمسة مع العملاق عشرة. في المسائل الصعبة، يحتاج البطل للاتصال بالعملاق عشرة والجدة خمسة في نفس اللحظة.',
   9: 'وصل الأبطال إلى ساحة التحديات الكبرى. على لوح خشبي، صُفّت الأعداد في سلاسل طويلة. قال كبير الفرسان: من يحل السلسلة كاملة يصبح فارساً.',
 };
+   ═══════════════════════════════════════════════════════════ */
 
 const ICONS: Record<string, LucideIcon> = {
   Info, Star, CircleDot, Combine, Hash, Sigma, Minus, Plus, X, Divide, Brain: Target, Hand,
@@ -254,7 +258,6 @@ export function LearnScreen({ onBack, playSound, onXP, onNavigate }: LearnScreen
   const [isReadingSummary, setIsReadingSummary] = useState(false);
 
   const sorobana = useSorobanaVoice();
-  const { speak: speakTTS, stop: stopTTS, isSupported: ttsSupported } = useSpeech();
 
   useEffect(() => {
     try {
@@ -275,7 +278,7 @@ export function LearnScreen({ onBack, playSound, onXP, onNavigate }: LearnScreen
   }, [lessonProgress]);
 
   useEffect(() => {
-    return () => { sorobana.stop(); stopTTS(); };
+    return () => { sorobana.stop(); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -296,14 +299,14 @@ export function LearnScreen({ onBack, playSound, onXP, onNavigate }: LearnScreen
     };
   }, [selected]);
 
-  // 📖 تشغيل/إيقاف موجز القصة
+  // 📖 تشغيل/إيقاف موجز القصة (MP3)
   const handleToggleSummary = () => {
     if (!selected) return;
-    const summary = STORY_SUMMARIES[selected.id];
-    if (!summary) return;
+    const storyId = selected.id;
+    if (storyId < 0 || storyId > 9) return;
 
     if (isReadingSummary) {
-      stopTTS();
+      sorobana.stop();
       setIsReadingSummary(false);
       playSound('click');
       return;
@@ -313,22 +316,16 @@ export function LearnScreen({ onBack, playSound, onXP, onNavigate }: LearnScreen
     playSound('click');
     setIsReadingSummary(true);
 
-    speakTTS(summary, {
-      rate: 1.0,
-      onEnd: () => {
-        setIsReadingSummary(false);
-      },
+    sorobana.speakStory(storyId, () => {
+      setIsReadingSummary(false);
     });
   };
 
   const handleToggleSound = () => {
     if (!selected) return;
-    if (isReadingSummary) {
-      stopTTS();
-      setIsReadingSummary(false);
-    }
     if (sorobana.isSpeaking) {
       sorobana.stop();
+      setIsReadingSummary(false);
       playSound('click');
       return;
     }
@@ -356,7 +353,6 @@ export function LearnScreen({ onBack, playSound, onXP, onNavigate }: LearnScreen
 
   const handleClose = () => {
     sorobana.stop();
-    stopTTS();
     setIsReadingSummary(false);
     setSelected(null);
   };
@@ -367,7 +363,7 @@ export function LearnScreen({ onBack, playSound, onXP, onNavigate }: LearnScreen
     playSound('success');
 
     if (isReadingSummary) {
-      stopTTS();
+      sorobana.stop();
       setIsReadingSummary(false);
     }
 
@@ -383,7 +379,6 @@ export function LearnScreen({ onBack, playSound, onXP, onNavigate }: LearnScreen
 
   const handleReturnToLessons = () => {
     sorobana.stop();
-    stopTTS();
     setIsReadingSummary(false);
     setSelected(null);
     setLessonCompleted(false);
@@ -646,7 +641,7 @@ export function LearnScreen({ onBack, playSound, onXP, onNavigate }: LearnScreen
                     <div className="flex-1">
                       <div className="flex items-center justify-between gap-2 mb-1">
                         <p className="text-xs font-bold text-pink-300">القصة:</p>
-                        {ttsSupported && STORY_SUMMARIES[selected.id] && (
+                        {selected.id >= 0 && selected.id <= 9 && (
                           <button
                             onClick={handleToggleSummary}
                             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 ${
