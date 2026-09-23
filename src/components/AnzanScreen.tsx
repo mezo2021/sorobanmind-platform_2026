@@ -8,7 +8,6 @@ import { Soroban2D5 } from './soroban2d5/Soroban2D5';
 import { SorobanaCompanion } from './SorobanaCompanion';
 import { DebugOverlay } from './DebugOverlay';
 import { useSorobanaVoice } from '@/hooks/useSorobanaVoice';
-import { useSpeech } from '@/hooks/useSpeech';
 import AudioAnzanScreen from './AudioAnzanScreen';
 import {
   loadAnzanBadges, saveAnzanBadges, type AnzanBadges,
@@ -317,7 +316,6 @@ export function AnzanScreen({ onBack, playSound, onXP, burst }: Props) {
   const [badges, setBadges] = useState<AnzanBadges>(loadAnzanBadges());
   const [rounds, setRounds] = useState<RoundsData>(loadRounds());
 
-  const { stop } = useSpeech();
   const sorobana = useSorobanaVoice();
 
   const currentQ = questions[currentIdx];
@@ -326,7 +324,7 @@ export function AnzanScreen({ onBack, playSound, onXP, burst }: Props) {
   const canStartRound = rounds.count < MAX_ROUNDS_PER_DAY;
 
   useEffect(() => {
-    return () => { stop(); sorobana.stop(); };
+    return () => { sorobana.stop(); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [section]);
 
@@ -430,7 +428,7 @@ export function AnzanScreen({ onBack, playSound, onXP, burst }: Props) {
       <div className="min-h-screen bg-gradient-to-b from-slate-900 via-purple-950 to-slate-900" dir="rtl">
         <div className="px-3 sm:px-6 py-4 max-w-2xl mx-auto">
           <button
-            onClick={() => { stop(); sorobana.stop(); playSound('click'); setIsAudioMode(false); }}
+            onClick={() => { sorobana.stop(); playSound('click'); setIsAudioMode(false); }}
             className="mb-4 flex items-center gap-2 px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-sm font-bold"
           >
             <ArrowRight className="w-4 h-4" /> العودة للأنزان البصري
@@ -451,7 +449,7 @@ export function AnzanScreen({ onBack, playSound, onXP, burst }: Props) {
       <DebugOverlay logs={sorobana.debugLogs} onClear={sorobana.clearDebugLogs} />
 
       <div className="flex items-center gap-3 mb-4">
-        <button onClick={() => { stop(); sorobana.stop(); playSound('click'); onBack(); }} className="btn-ghost !px-3 !py-2">
+        <button onClick={() => { sorobana.stop(); playSound('click'); onBack(); }} className="btn-ghost !px-3 !py-2">
           <ArrowRight className="w-5 h-5" />
         </button>
         <div className="flex-1">
@@ -463,7 +461,7 @@ export function AnzanScreen({ onBack, playSound, onXP, burst }: Props) {
 
       <div className="flex gap-2 mb-5 bg-white/5 p-1 rounded-2xl">
         <button
-          onClick={() => { stop(); sorobana.stop(); playSound('click'); setIsAudioMode(false); }}
+          onClick={() => { sorobana.stop(); playSound('click'); setIsAudioMode(false); }}
           className={`flex-1 py-3 rounded-xl font-bold transition text-sm flex items-center justify-center gap-2 ${
             !isAudioMode ? 'bg-purple-600 shadow-lg' : 'text-white/60'
           }`}
@@ -471,7 +469,7 @@ export function AnzanScreen({ onBack, playSound, onXP, burst }: Props) {
           <Eye className="w-4 h-4" /> الأنزان البصري
         </button>
         <button
-          onClick={() => { stop(); sorobana.stop(); playSound('click'); setIsAudioMode(true); }}
+          onClick={() => { sorobana.stop(); playSound('click'); setIsAudioMode(true); }}
           className={`flex-1 py-3 rounded-xl font-bold transition text-sm flex items-center justify-center gap-2 ${
             isAudioMode ? 'bg-purple-600 shadow-lg' : 'text-white/60'
           }`}
@@ -484,7 +482,7 @@ export function AnzanScreen({ onBack, playSound, onXP, burst }: Props) {
         {(['addition', 'multiplication', 'division', 'mixed'] as SectionType[]).map((s) => (
           <button
             key={s}
-            onClick={() => { stop(); sorobana.stop(); playSound('click'); setSection(s); setPhase('intro'); }}
+            onClick={() => { sorobana.stop(); playSound('click'); setSection(s); setPhase('intro'); }}
             className={`px-3 py-2 rounded-xl whitespace-nowrap font-bold text-xs transition ${
               section === s ? 'bg-purple-600 shadow-lg' : 'bg-white/10'
             }`}
