@@ -5,7 +5,7 @@ import {
   Combine, Hash, Sigma, Minus, Plus, Lightbulb, Eye, Hand,
   X, Divide, Fingerprint, MoveRight, Target,
   BookOpen, Sparkles, RotateCcw, Grid3X3, Wand2, Crown,
-  Volume2, VolumeX,
+  Volume2, VolumeX, Square,
   type LucideIcon,
 } from 'lucide-react';
 import { LEARN_MODULES } from '@/data';
@@ -14,12 +14,18 @@ import { FloatingCompanion } from './FloatingCompanion';
 import { SorobanaCompanion } from './SorobanaCompanion';
 import { DebugOverlay } from './DebugOverlay';
 import { useSorobanaVoice } from '@/hooks/useSorobanaVoice';
+import { useSpeech } from '@/hooks/useSpeech';
 import { Soroban2D5 } from './soroban2d5/Soroban2D5';
 import type { LearnModule, LessonStep, DivisionStep, LessonExample, DivisionExample, Screen } from '@/types';
 
 function toArabicNumber(value: number | string): string {
   return String(value).replace(/\d/g, (d) => '٠١٢٣٤٥٦٧٨٩'[Number(d)]);
 }
+
+// 📖 موجزات القصة (TTS-friendly — الأرقام مكتوبة كلمات)
+const STORY_SUMMARIES: Record<number, string> = {
+  0: 'يدك اليمنى للآحاد، ويدك اليسرى للعشرات. الإبهام قيمته خمسة، وكل إصبع آخر قيمته واحد. اجتمعوا معًا لصنع الأعداد من صفر إلى تسعة وتسعين.',
+};
 
 const ICONS: Record<string, LucideIcon> = {
   Info, Star, CircleDot, Combine, Hash, Sigma, Minus, Plus, X, Divide, Brain: Target, Hand,
@@ -235,8 +241,11 @@ export function LearnScreen({ onBack, playSound, onXP, onNavigate }: LearnScreen
   const [showAnswer, setShowAnswer] = useState(false);
   const [feedbackMsg, setFeedbackMsg] = useState<string>('');
   const [lessonCompleted, setLessonCompleted] = useState(false);
+  // 📖 حالة قراءة موجز القصة
+  const [isReadingSummary, setIsReadingSummary] = useState(false);
 
   const sorobana = useSorobanaVoice();
+  const { speak: speakTTS, stop: stopTTS, isSupported: ttsSupported } = useSpeech();
 
   useEffect(() => {
     try {
@@ -257,7 +266,7 @@ export function LearnScreen({ onBack, playSound, onXP, onNavigate }: LearnScreen
   }, [lessonProgress]);
 
   useEffect(() => {
-    return () => { sorobana.stop(); };
+    return () => { sorobana.stop(); stopTTS(); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -278,8 +287,40 @@ export function LearnScreen({ onBack, playSound, onXP, onNavigate }: LearnScreen
     };
   }, [selected]);
 
+  // 📖 تشغيل/إيقاف موجز القصة
+  const handleToggleSummary = () => {
+    if (!selected) return;
+    const summary = STORY_SUMMARIES[selected.id];
+    if (!summary) return;
+
+    if (isReadingSummary) {
+      // إيقاف الموجز يدويًا
+      stopTTS();
+      setIsReadingSummary(false);
+      playSound('click');
+      return;
+    }
+
+    // تشغيل الموجز: أوقف سوروبانا أولًا
+    sorobana.stop();
+    playSound('click');
+    setIsReadingSummary(true);
+
+    speakTTS(summary, {
+      rate: 1.0,
+      onEnd: () => {
+        setIsReadingSummary(false);
+      },
+    });
+  };
+
   const handleToggleSound = () => {
     if (!selected) return;
+    // إذا كانت قراءة الموجز جارية → أوقفها قبل تشغيل صوت الدرس
+    if (isReadingSummary) {
+      stopTTS();
+      setIsReadingSummary(false);
+    }
     if (sorobana.isSpeaking) {
       sorobana.stop();
       playSound('click');
@@ -304,16 +345,21 @@ export function LearnScreen({ onBack, playSound, onXP, onNavigate }: LearnScreen
     setShowAnswer(false);
     setFeedbackMsg('');
     setLessonCompleted(false);
+    setIsReadingSummary(false);
   };
 
-  const handleClose = () => { sorobana.stop(); setSelected(null); };
+  const handleClose = () => {
+    sorobana.stop();
+    stopTTS();
+    setIsReadingSummary(false);
+    setSelected(null);
+  };
 
   const handleComplete = () => {
     if (!selected) return;
     if (solvedExamples.length < selected.examples.length) return;
     playSound('success');
 
-    // ✅ الصوت يكمل حتى النهاية، ثم يبقى في نهاية الدرس
     sorobana.speakEndLesson(() => {
       setLessonCompleted(true);
     });
@@ -326,11 +372,14 @@ export function LearnScreen({ onBack, playSound, onXP, onNavigate }: LearnScreen
 
   const handleReturnToLessons = () => {
     sorobana.stop();
+    stopTTS();
+    setIsReadingSummary(false);
     setSelected(null);
     setLessonCompleted(false);
   };
 
   const switchMode = (m: LessonMode) => {
+    if (isReadingSummary) { stopTTS(); setIsReadingSummary(false); }
     playSound('click');
     setMode(m);
     setCurrentExample(0);
@@ -353,7 +402,8 @@ export function LearnScreen({ onBack, playSound, onXP, onNavigate }: LearnScreen
       setLessonProgress({ ...lessonProgress, [selected.id]: newSolved });
       playSound('success');
       setFeedbackMsg('✅ أحسنت! إجابة صحيحة.');
-      sorobana.speakCorrect();
+      // سوروبانا لا تتكلم أثناء قراءة الموجز
+      if (!isReadingSummary) sorobana.speakCorrect();
     }
   };
 
@@ -371,13 +421,15 @@ export function LearnScreen({ onBack, playSound, onXP, onNavigate }: LearnScreen
           ? '❌ لم تصل بعد. يمكنك رؤية الإجابة الآن.'
           : `❌ حاول مرة أخرى. المحاولة ${toArabicNumber(currentAttempts)} من ${toArabicNumber(MAX_ATTEMPTS)}`
       );
-      sorobana.speakWrong();
+      // سوروبانا لا تتكلم أثناء قراءة الموجز
+      if (!isReadingSummary) sorobana.speakWrong();
     }
   };
 
   const nextExample = () => {
     if (!selected) return;
     if (currentExample + 1 < selected.examples.length) {
+      if (isReadingSummary) { stopTTS(); setIsReadingSummary(false); }
       setCurrentExample(currentExample + 1);
       setCurrentStep(0);
       setAbacusValue(0);
@@ -390,6 +442,7 @@ export function LearnScreen({ onBack, playSound, onXP, onNavigate }: LearnScreen
 
   const prevExample = () => {
     if (currentExample > 0) {
+      if (isReadingSummary) { stopTTS(); setIsReadingSummary(false); }
       setCurrentExample(currentExample - 1);
       setCurrentStep(0);
       setAbacusValue(0);
@@ -584,8 +637,26 @@ export function LearnScreen({ onBack, playSound, onXP, onNavigate }: LearnScreen
                 <div className="mb-4 p-3 rounded-2xl bg-gradient-to-br from-pink-500/10 to-purple-500/10 border border-pink-400/30">
                   <div className="flex items-start gap-2">
                     <Sparkles className="w-5 h-5 text-pink-300 shrink-0 mt-0.5" />
-                    <div>
-                      <p className="text-xs font-bold text-pink-300 mb-1">القصة:</p>
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between gap-2 mb-1">
+                        <p className="text-xs font-bold text-pink-300">القصة:</p>
+                        {ttsSupported && STORY_SUMMARIES[selected.id] && (
+                          <button
+                            onClick={handleToggleSummary}
+                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 ${
+                              isReadingSummary
+                                ? 'bg-red-500/30 border border-red-400/50 text-red-200'
+                                : 'bg-rose-500/20 border border-rose-400/40 text-rose-200 hover:bg-rose-500/30'
+                            }`}
+                          >
+                            {isReadingSummary ? (
+                              <><Square className="w-3.5 h-3.5" /> إيقاف</>
+                            ) : (
+                              <><Volume2 className="w-3.5 h-3.5" /> موجز القصة</>
+                            )}
+                          </button>
+                        )}
+                      </div>
                       <p className="text-sm text-white/80 font-body leading-relaxed">{selected.story}</p>
                     </div>
                   </div>
@@ -669,7 +740,7 @@ export function LearnScreen({ onBack, playSound, onXP, onNavigate }: LearnScreen
                                     ? '❌ لم تصل بعد. يمكنك رؤية الإجابة الآن.'
                                     : `❌ حاول مرة أخرى. المحاولة ${toArabicNumber(currentAttempts)} من ${toArabicNumber(MAX_ATTEMPTS)}`
                                 );
-                                sorobana.speakWrong();
+                                if (!isReadingSummary) sorobana.speakWrong();
                               }
                             }}
                             disabled={isSolved}
@@ -795,7 +866,6 @@ export function LearnScreen({ onBack, playSound, onXP, onNavigate }: LearnScreen
                 </div>
               )}
 
-              {/* ✅ زر الإكمال / العودة */}
               {!lessonCompleted ? (
                 <button onClick={handleComplete} disabled={!allExamplesSolved} className="btn-primary w-full disabled:opacity-40">
                   <CheckCircle2 className="w-5 h-5" />
@@ -818,7 +888,10 @@ export function LearnScreen({ onBack, playSound, onXP, onNavigate }: LearnScreen
       {selected && (
         <SorobanaCompanion
           isSpeaking={sorobana.isSpeaking}
-          onClick={() => sorobana.speakTeaching()}
+          onClick={() => {
+            if (isReadingSummary) return;
+            sorobana.speakTeaching();
+          }}
           mode={mode}
         />
       )}
