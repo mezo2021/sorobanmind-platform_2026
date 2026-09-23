@@ -20,27 +20,67 @@ function pickRandom(arr: string[]): string {
 
 const MAX_DEBUG_LOGS = 40;
 
-function describeMediaError(err: MediaError | null): string {
-  if (!err) return 'unknown';
-  const codeMap: Record<number, string> = {
-    1: 'ABORTED',
-    2: 'NETWORK',
-    3: 'DECODE',
-    4: 'SRC_NOT_SUPPORTED',
-  };
-  const codeName = codeMap[err.code] || `code=${err.code}`;
-  return `${codeName}${err.message ? ` :: ${err.message}` : ''}`;
+// ─────────────────────────────────────────────────────────
+// Web Audio API — Singleton + Buffer Cache
+// ─────────────────────────────────────────────────────────
+let sharedAudioContext: AudioContext | null = null;
+
+function getAudioContext(): AudioContext {
+  if (!sharedAudioContext) {
+    const Ctor =
+      window.AudioContext ||
+      (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+    sharedAudioContext = new Ctor();
+  }
+  return sharedAudioContext;
 }
 
+const bufferCache = new Map<string, AudioBuffer>();
+const bufferPromises = new Map<string, Promise<AudioBuffer>>();
+
+async function loadBuffer(url: string): Promise<AudioBuffer> {
+  const cached = bufferCache.get(url);
+  if (cached) return cached;
+  const pending = bufferPromises.get(url);
+  if (pending) return pending;
+
+  const promise = (async (): Promise<AudioBuffer> => {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const arr = await res.arrayBuffer();
+    const ctx = getAudioContext();
+    const buf = await ctx.decodeAudioData(arr.slice(0));
+    bufferCache.set(url, buf);
+    bufferPromises.delete(url);
+    return buf;
+  })();
+
+  bufferPromises.set(url, promise);
+  try {
+    return await promise;
+  } catch (err) {
+    bufferPromises.delete(url);
+    throw err;
+  }
+}
+
+// ─────────────────────────────────────────────────────────
+// Hook
+// ─────────────────────────────────────────────────────────
 export function useSorobanaVoice() {
   const [isSpeaking, setIsSpeaking] = useState(false);
-  const [isSupported] = useState(true);
+  const [isSupported] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    return !!(window.AudioContext ||
+      (window as unknown as { webkitAudioContext?: unknown }).webkitAudioContext);
+  });
   const [debugLogs, setDebugLogs] = useState<string[]>([]);
 
-  const audioRef = useRef<HTMLAudioElement | null>(null);
   const generationRef = useRef(0);
   const mountedRef = useRef(true);
-  const timeoutRef = useRef<number | null>(null);
+  const activeSourceRef = useRef<AudioBufferSourceNode | null>(null);
+  const nextTimeoutRef = useRef<number | null>(null);
+  const safetyTimeoutRef = useRef<number | null>(null);
 
   const log = useCallback((msg: string) => {
     setDebugLogs((prev) => {
@@ -51,10 +91,24 @@ export function useSorobanaVoice() {
 
   const clearDebugLogs = useCallback(() => setDebugLogs([]), []);
 
-  const clearPendingTimeout = useCallback(() => {
-    if (timeoutRef.current !== null) {
-      clearTimeout(timeoutRef.current);
-      timeoutRef.current = null;
+  const clearTimers = useCallback(() => {
+    if (nextTimeoutRef.current !== null) {
+      clearTimeout(nextTimeoutRef.current);
+      nextTimeoutRef.current = null;
+    }
+    if (safetyTimeoutRef.current !== null) {
+      clearTimeout(safetyTimeoutRef.current);
+      safetyTimeoutRef.current = null;
+    }
+  }, []);
+
+  const killActiveSource = useCallback(() => {
+    const src = activeSourceRef.current;
+    if (src) {
+      try { src.onended = null; } catch { /* ignore */ }
+      try { src.stop(); } catch { /* ignore */ }
+      try { src.disconnect(); } catch { /* ignore */ }
+      activeSourceRef.current = null;
     }
   }, []);
 
@@ -63,71 +117,40 @@ export function useSorobanaVoice() {
     return () => {
       mountedRef.current = false;
       generationRef.current++;
-      clearPendingTimeout();
-      const a = audioRef.current;
-      if (a) {
-        try {
-          a.onended = null;
-          a.onerror = null;
-          a.pause();
-          a.removeAttribute('src');
-          a.load();
-        } catch { /* ignore */ }
-      }
+      clearTimers();
+      killActiveSource();
     };
-  }, [clearPendingTimeout]);
-
-  const getSharedAudio = useCallback((): HTMLAudioElement => {
-    if (!audioRef.current) {
-      const a = new Audio();
-      a.preload = 'auto';
-      // لا نضع crossOrigin — نفس الدومين، لا حاجة له، وقد يُسبب فشل CORS
-      audioRef.current = a;
-    }
-    return audioRef.current;
-  }, []);
+  }, [clearTimers, killActiveSource]);
 
   const stop = useCallback(() => {
     generationRef.current++;
-    clearPendingTimeout();
-    const a = audioRef.current;
-    if (a) {
-      try {
-        a.onended = null;
-        a.onerror = null;
-        a.pause();
-        a.currentTime = 0;
-      } catch { /* ignore */ }
-    }
+    clearTimers();
+    killActiveSource();
     setIsSpeaking(false);
-  }, [clearPendingTimeout]);
+  }, [clearTimers, killActiveSource]);
 
   const playFiles = useCallback((files: string[], onDone?: () => void) => {
-    if (files.length === 0) {
-      onDone?.();
-      return;
-    }
-    if (!mountedRef.current) {
-      onDone?.();
-      return;
-    }
+    if (files.length === 0) { onDone?.(); return; }
+    if (!mountedRef.current) { onDone?.(); return; }
 
-    const audio = getSharedAudio();
     const myGeneration = ++generationRef.current;
     const localQueue = [...files];
 
     log(`▶ CALL playFiles (${files.length})`);
 
-    clearPendingTimeout();
-    try {
-      audio.onended = null;
-      audio.onerror = null;
-      audio.pause();
-    } catch { /* ignore */ }
-
+    clearTimers();
+    killActiveSource();
     setIsSpeaking(true);
 
-    const playNext = () => {
+    // Ensure context is running (bypass autoplay policy quietly)
+    try {
+      const ctx = getAudioContext();
+      if (ctx.state === 'suspended') {
+        ctx.resume().catch(() => { /* ignore */ });
+      }
+    } catch { /* ignore */ }
+
+    const playNext = async () => {
       if (myGeneration !== generationRef.current || !mountedRef.current) return;
       const nextFile = localQueue.shift();
       if (!nextFile) {
@@ -138,46 +161,64 @@ export function useSorobanaVoice() {
       }
 
       const filename = nextFile.split('/').pop() || nextFile;
-      audio.src = nextFile;
       log(`📁 Loading: ${filename}`);
 
-      // إعادة التحميل الصريحة
-      try { audio.load(); } catch { /* ignore */ }
+      let buffer: AudioBuffer;
+      try {
+        buffer = await loadBuffer(nextFile);
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        log(`❌ load failed: ${msg}`);
+        if (myGeneration !== generationRef.current || !mountedRef.current) return;
+        nextTimeoutRef.current = window.setTimeout(() => {
+          nextTimeoutRef.current = null;
+          playNext();
+        }, 100);
+        return;
+      }
+
+      if (myGeneration !== generationRef.current || !mountedRef.current) return;
+
+      log('🍞 Buffer ready');
 
       let advanced = false;
       const advance = () => {
         if (advanced) return;
         advanced = true;
-        clearPendingTimeout();
+        clearTimers();
         if (myGeneration !== generationRef.current || !mountedRef.current) return;
-        timeoutRef.current = window.setTimeout(() => {
-          timeoutRef.current = null;
+        nextTimeoutRef.current = window.setTimeout(() => {
+          nextTimeoutRef.current = null;
           if (myGeneration !== generationRef.current || !mountedRef.current) return;
           playNext();
-        }, 250);
+        }, 200);
       };
 
-      audio.onended = () => { log('✔ ENDED'); advance(); };
-      audio.onerror = () => {
-        log(`❌ ERROR: ${describeMediaError(audio.error)}`);
-        advance();
-      };
-      audio.oncanplay = () => { log('🍞 Can play'); };
-      audio.onplay = () => { log('▶ PLAY fired'); };
-
-      timeoutRef.current = window.setTimeout(() => { log('⏱ TIMEOUT 8s'); advance(); }, 8000);
-
-      audio.play()
-        .then(() => { log('✅ play() resolved'); })
-        .catch((err: unknown) => {
-          const msg = err instanceof Error ? `${err.name}: ${err.message}` : String(err);
-          log(`❌ play() rejected: ${msg}`);
+      try {
+        const ctx = getAudioContext();
+        const source = ctx.createBufferSource();
+        source.buffer = buffer;
+        source.connect(ctx.destination);
+        source.onended = () => { log('✔ ENDED'); advance(); };
+        activeSourceRef.current = source;
+        source.start(0);
+        log('▶ PLAY fired');
+        // safety net: duration + 2s
+        const ms = Math.max(1000, buffer.duration * 1000 + 2000);
+        safetyTimeoutRef.current = window.setTimeout(() => {
+          safetyTimeoutRef.current = null;
+          log('⏱ SAFETY TIMEOUT');
           advance();
-        });
+        }, ms);
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        log(`❌ source error: ${msg}`);
+        advance();
+      }
     };
 
     playNext();
-  }, [getSharedAudio, clearPendingTimeout, log]);
+  }, [clearTimers, killActiveSource, log]);
 
   const speak = useCallback((text: string, _mood?: string, onDone?: () => void) => {
     void text;
