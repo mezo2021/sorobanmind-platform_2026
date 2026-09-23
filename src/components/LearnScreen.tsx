@@ -25,6 +25,15 @@ function toArabicNumber(value: number | string): string {
 // 📖 موجزات القصة (TTS-friendly — الأرقام مكتوبة كلمات)
 const STORY_SUMMARIES: Record<number, string> = {
   0: 'يدك اليمنى للآحاد، ويدك اليسرى للعشرات. الإبهام قيمته خمسة، وكل إصبع آخر قيمته واحد. اجتمعوا معًا لصنع الأعداد من صفر إلى تسعة وتسعين.',
+  1: 'وصل ثلاثة أبطال إلى قلعة السوروبان. حارس القلعة الإطار رحّب بهم وقال: في هذه القلعة أربعة أطفال نشيطون تحت الجسر، كل واحد قيمته واحد. وفوق الجسر تسكن الجدة الحنونة، قيمتها خمسة.',
+  2: 'قال حارس القلعة: القاعدة الذهبية هي أن الخرزة التي تلمس الجسر فقط هي التي تحسب، والباقي نائم لا قيمة له. كل عمود يمثل منزلة: آحاد، وعشرات، ومئات، وآلاف.',
+  3: 'قال حارس القلعة: عندما تتعاملون مع الأعداد الكبيرة، ابدؤوا من البيوت الكبيرة قبل الصغيرة. هذا سر السرعة في السوروبان: من اليسار إلى اليمين.',
+  4: 'وصل الأبطال إلى غرفة الجدة خمسة. أرادوا إضافة طفل واحد، لكن الساحة كانت ممتلئة. قالت الجدة: إذا دخلت أنا، يجب أن يخرج صديق الرقم الذي تريدونه.',
+  5: 'قالت الجدة خمسة: أنا أستطيع الطرح أيضاً. عندما تريدون طرح رقم، أصعد أنا لتستريح، لكنني أترك أصدقائي الأطفال يلعبون في الساحة.',
+  6: 'عندما كبرت الأعداد، لم تعد الجدة خمسة تكفي. ظهر عملاق العشرات عشرة وقال: أنا أتدخل عندما يكتظ عمود الآحاد. نادوا عليّ، وسأطرح متمم الرقم من الآحاد.',
+  7: 'قال العملاق عشرة: أنا أستطيع الطرح أيضاً. عندما لا تكفي الآحاد، أغادر أنا، ويدخل متمم الرقم في الآحاد.',
+  8: 'وصل الأبطال إلى العرش المزدوج حيث تلتقي الجدة خمسة مع العملاق عشرة. في المسائل الصعبة، يحتاج البطل للاتصال بالعملاق عشرة والجدة خمسة في نفس اللحظة.',
+  9: 'وصل الأبطال إلى ساحة التحديات الكبرى. على لوح خشبي، صُفّت الأعداد في سلاسل طويلة. قال كبير الفرسان: من يحل السلسلة كاملة يصبح فارساً.',
 };
 
 const ICONS: Record<string, LucideIcon> = {
@@ -357,7 +366,6 @@ export function LearnScreen({ onBack, playSound, onXP, onNavigate }: LearnScreen
     if (solvedExamples.length < selected.examples.length) return;
     playSound('success');
 
-    // ⏸️ أوقف الموجز إن كان يعمل قبل تشغيل صوت النهاية
     if (isReadingSummary) {
       stopTTS();
       setIsReadingSummary(false);
@@ -381,7 +389,6 @@ export function LearnScreen({ onBack, playSound, onXP, onNavigate }: LearnScreen
     setLessonCompleted(false);
   };
 
-  // ✅ تعديل: لا نوقف الموجز عند تبديل الوضع
   const switchMode = (m: LessonMode) => {
     playSound('click');
     setMode(m);
@@ -405,7 +412,6 @@ export function LearnScreen({ onBack, playSound, onXP, onNavigate }: LearnScreen
       setLessonProgress({ ...lessonProgress, [selected.id]: newSolved });
       playSound('success');
       setFeedbackMsg('✅ أحسنت! إجابة صحيحة.');
-      // ⏸️ سوروبانا صامتة أثناء قراءة الموجز
       if (!isReadingSummary) sorobana.speakCorrect();
     }
   };
@@ -424,12 +430,10 @@ export function LearnScreen({ onBack, playSound, onXP, onNavigate }: LearnScreen
           ? '❌ لم تصل بعد. يمكنك رؤية الإجابة الآن.'
           : `❌ حاول مرة أخرى. المحاولة ${toArabicNumber(currentAttempts)} من ${toArabicNumber(MAX_ATTEMPTS)}`
       );
-      // ⏸️ سوروبانا صامتة أثناء قراءة الموجز
       if (!isReadingSummary) sorobana.speakWrong();
     }
   };
 
-  // ✅ تعديل: لا نوقف الموجز عند الانتقال
   const nextExample = () => {
     if (!selected) return;
     if (currentExample + 1 < selected.examples.length) {
@@ -443,7 +447,6 @@ export function LearnScreen({ onBack, playSound, onXP, onNavigate }: LearnScreen
     }
   };
 
-  // ✅ تعديل: لا نوقف الموجز عند الانتقال
   const prevExample = () => {
     if (currentExample > 0) {
       setCurrentExample(currentExample - 1);
