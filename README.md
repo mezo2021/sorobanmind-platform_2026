@@ -1,4 +1,4 @@
-📄 PROJECT-STATUS.md — نسخة جمالية لـ GitHub
+📄 PROJECT-STATUS.md —  GitHub
 
 ```markdown
 <div align="center">
