@@ -33,18 +33,28 @@ const EXAM_REQUIRED_SCREENS: Screen[] = [
 ];
 
 const WELCOME_KEY = 'soroban_seen_welcome';
+const WELCOME_INTERVAL_DAYS = 7;
+
+/** ✅ عرض الشاشة إذا مضى 7 أيام (أو لم تُعرض قط) */
+function shouldShowWelcome(): boolean {
+  try {
+    const lastSeen = localStorage.getItem(WELCOME_KEY);
+    if (!lastSeen) return true;
+    const lastSeenTime = parseInt(lastSeen, 10);
+    if (isNaN(lastSeenTime)) return true;
+    const now = Date.now();
+    const intervalMs = WELCOME_INTERVAL_DAYS * 24 * 60 * 60 * 1000;
+    return now - lastSeenTime >= intervalMs;
+  } catch {
+    return true;
+  }
+}
 
 function App() {
   const [role, setRole] = useState<Role>(null);
   const [screen, setScreen] = useState<Screen>('role');
   const [examPassed, setExamPassed] = useState(false);
-  const [showWelcome, setShowWelcome] = useState<boolean>(() => {
-    try {
-      return localStorage.getItem(WELCOME_KEY) !== 'true';
-    } catch {
-      return true;
-    }
-  });
+  const [showWelcome, setShowWelcome] = useState<boolean>(() => shouldShowWelcome());
 
   const { stats, addXP, toggleSound, incrementStreak, newBadge, clearNewBadge } = useGameStats();
   const playSound = useSound(stats.soundEnabled);
@@ -55,9 +65,7 @@ function App() {
       const raw = localStorage.getItem('soroban_exam_result');
       if (raw) {
         const data = JSON.parse(raw);
-        if (data?.passed === true) {
-          setExamPassed(true);
-        }
+        if (data?.passed === true) setExamPassed(true);
       }
     } catch { /* ignore */ }
   }, []);
@@ -104,9 +112,14 @@ function App() {
 
   const handleWelcomeStart = useCallback(() => {
     try {
-      localStorage.setItem(WELCOME_KEY, 'true');
+      localStorage.setItem(WELCOME_KEY, Date.now().toString());
     } catch { /* ignore */ }
     setShowWelcome(false);
+  }, []);
+
+  /** ✅ عرض شاشة الترحيب يدوياً (من لوحة ولي الأمر) */
+  const handleShowWelcome = useCallback(() => {
+    setShowWelcome(true);
   }, []);
 
   const showHeader = !showWelcome && role !== null && screen !== 'role';
@@ -131,7 +144,7 @@ function App() {
         />
       </div>
 
-      {/* ✅ Welcome Screen — يظهر مرة واحدة فقط */}
+      {/* ✅ Welcome Screen — تظهر كل 7 أيام */}
       <AnimatePresence>
         {showWelcome && (
           <motion.div
@@ -283,6 +296,7 @@ function App() {
               childXP={stats.xp}
               childStreak={stats.streak}
               childLevel={stats.level}
+              onShowWelcome={handleShowWelcome}
             />
           )}
         </motion.main>
