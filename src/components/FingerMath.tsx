@@ -3,7 +3,7 @@ import React, { useId } from 'react';
 import { motion } from 'framer-motion';
 
 // ────────────────────────────────────────────────────────────
-// الأنواع (كما هي في الكود القديم)
+// الأنواع
 // ────────────────────────────────────────────────────────────
 
 interface FingerMathProps {
@@ -17,7 +17,7 @@ interface HandProps {
 }
 
 // ────────────────────────────────────────────────────────────
-// مواصفات الأصابع (نفسها في الكود الجديد الذي أرسلته سابقاً)
+// مواصفات الأصابع
 // ────────────────────────────────────────────────────────────
 
 const FINGER_SPECS = [
@@ -28,16 +28,16 @@ const FINGER_SPECS = [
 ] as const;
 
 // ────────────────────────────────────────────────────────────
-// مكوّن اليد (نفس الاسم Hand كما في القديم)
+// مكوّن اليد
 // ────────────────────────────────────────────────────────────
 
 function Hand({ digit, label, mirrored = false }: HandProps) {
-  // ✅ إصلاح: معرّفات فريدة لتجنّب تكرار id في DOM
+  // معرّفات فريدة لتجنّب تكرار id في DOM
   const uid = useId().replace(/:/g, '');
-  const skinId   = `skinGradient-${uid}`;
-  const goldId   = `goldGradient-${uid}`;
+  const skinId = `skinGradient-${uid}`;
+  const goldId = `goldGradient-${uid}`;
 
-  // ✅ إصلاح: التحقق من صحة digit داخل المكوّن
+  // التحقق من صحة digit داخل المكوّن
   const safeDigit = Math.max(0, Math.min(9, Math.floor(digit)));
 
   const thumbUp = safeDigit >= 5;
@@ -133,13 +133,14 @@ function Hand({ digit, label, mirrored = false }: HandProps) {
           );
         })}
 
-        {/* 2. الإبهام */}
+        {/* 2. الإبهام — ✅ محسّن: يُطوى بشكل طبيعي خلف الكف عند الإغلاق */}
         <motion.g
           initial={false}
           animate={{
-            rotate: thumbUp ? 0 : 35,
-            x: thumbUp ? 0 : 18,
-            y: thumbUp ? 0 : 12,
+            rotate: thumbUp ? 0 : 45,       // زيادة زاوية الطي لأسفل
+            x: thumbUp ? 0 : 12,            // سحب الإبهام لداخل الكف
+            y: thumbUp ? 0 : 22,            // خفض مستواه عند الإغلاق
+            opacity: thumbUp ? 1 : 0.85,    // تقليل اللمعان عند الإغلاق
           }}
           transition={{ type: 'spring', stiffness: 260, damping: 22 }}
           style={{
@@ -178,7 +179,7 @@ function Hand({ digit, label, mirrored = false }: HandProps) {
           )}
         </motion.g>
 
-        {/* 3. كف اليد */}
+        {/* 3. كف اليد — يُرسم فوق الإبهام المطوي ليخفيه جزئياً */}
         <path
           d="M 45 145 C 45 130, 168 130, 172 145 C 176 185, 160 225, 140 230 C 90 235, 45 210, 45 145 Z"
           fill={`url(#${skinId})`}
@@ -203,7 +204,6 @@ function Hand({ digit, label, mirrored = false }: HandProps) {
         />
       </svg>
 
-      {/* ✅ نصوص بنفس كلاسات الكود القديم */}
       <p className="text-xs text-white/60 font-body text-center font-bold">
         {label}
       </p>
@@ -215,11 +215,10 @@ function Hand({ digit, label, mirrored = false }: HandProps) {
 }
 
 // ────────────────────────────────────────────────────────────
-// المكوّن الرئيسي (نفس بنية القديم تماماً)
+// المكوّن الرئيسي
 // ────────────────────────────────────────────────────────────
 
 export function FingerMath({ value }: FingerMathProps) {
-  // ✅ إصلاح: Math.floor لضمان قيمة صحيحة
   const safeValue = Math.max(0, Math.min(99, Math.floor(value)));
   const units = safeValue % 10;
   const tens = Math.floor(safeValue / 10);
