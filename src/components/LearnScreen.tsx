@@ -294,14 +294,12 @@ export function LearnScreen({ onBack, playSound, onXP, onNavigate }: LearnScreen
     if (!summary) return;
 
     if (isReadingSummary) {
-      // إيقاف الموجز يدويًا
       stopTTS();
       setIsReadingSummary(false);
       playSound('click');
       return;
     }
 
-    // تشغيل الموجز: أوقف سوروبانا أولًا
     sorobana.stop();
     playSound('click');
     setIsReadingSummary(true);
@@ -316,7 +314,6 @@ export function LearnScreen({ onBack, playSound, onXP, onNavigate }: LearnScreen
 
   const handleToggleSound = () => {
     if (!selected) return;
-    // إذا كانت قراءة الموجز جارية → أوقفها قبل تشغيل صوت الدرس
     if (isReadingSummary) {
       stopTTS();
       setIsReadingSummary(false);
@@ -360,6 +357,12 @@ export function LearnScreen({ onBack, playSound, onXP, onNavigate }: LearnScreen
     if (solvedExamples.length < selected.examples.length) return;
     playSound('success');
 
+    // ⏸️ أوقف الموجز إن كان يعمل قبل تشغيل صوت النهاية
+    if (isReadingSummary) {
+      stopTTS();
+      setIsReadingSummary(false);
+    }
+
     sorobana.speakEndLesson(() => {
       setLessonCompleted(true);
     });
@@ -378,8 +381,8 @@ export function LearnScreen({ onBack, playSound, onXP, onNavigate }: LearnScreen
     setLessonCompleted(false);
   };
 
+  // ✅ تعديل: لا نوقف الموجز عند تبديل الوضع
   const switchMode = (m: LessonMode) => {
-    if (isReadingSummary) { stopTTS(); setIsReadingSummary(false); }
     playSound('click');
     setMode(m);
     setCurrentExample(0);
@@ -402,7 +405,7 @@ export function LearnScreen({ onBack, playSound, onXP, onNavigate }: LearnScreen
       setLessonProgress({ ...lessonProgress, [selected.id]: newSolved });
       playSound('success');
       setFeedbackMsg('✅ أحسنت! إجابة صحيحة.');
-      // سوروبانا لا تتكلم أثناء قراءة الموجز
+      // ⏸️ سوروبانا صامتة أثناء قراءة الموجز
       if (!isReadingSummary) sorobana.speakCorrect();
     }
   };
@@ -421,15 +424,15 @@ export function LearnScreen({ onBack, playSound, onXP, onNavigate }: LearnScreen
           ? '❌ لم تصل بعد. يمكنك رؤية الإجابة الآن.'
           : `❌ حاول مرة أخرى. المحاولة ${toArabicNumber(currentAttempts)} من ${toArabicNumber(MAX_ATTEMPTS)}`
       );
-      // سوروبانا لا تتكلم أثناء قراءة الموجز
+      // ⏸️ سوروبانا صامتة أثناء قراءة الموجز
       if (!isReadingSummary) sorobana.speakWrong();
     }
   };
 
+  // ✅ تعديل: لا نوقف الموجز عند الانتقال
   const nextExample = () => {
     if (!selected) return;
     if (currentExample + 1 < selected.examples.length) {
-      if (isReadingSummary) { stopTTS(); setIsReadingSummary(false); }
       setCurrentExample(currentExample + 1);
       setCurrentStep(0);
       setAbacusValue(0);
@@ -440,9 +443,9 @@ export function LearnScreen({ onBack, playSound, onXP, onNavigate }: LearnScreen
     }
   };
 
+  // ✅ تعديل: لا نوقف الموجز عند الانتقال
   const prevExample = () => {
     if (currentExample > 0) {
-      if (isReadingSummary) { stopTTS(); setIsReadingSummary(false); }
       setCurrentExample(currentExample - 1);
       setCurrentStep(0);
       setAbacusValue(0);
