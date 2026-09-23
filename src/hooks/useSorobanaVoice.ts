@@ -18,13 +18,26 @@ function pickRandom(arr: string[]): string {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
+const MAX_DEBUG_LOGS = 40;
+
 export function useSorobanaVoice() {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [isSupported] = useState(true);
+  const [debugLogs, setDebugLogs] = useState<string[]>([]);
+
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const generationRef = useRef(0);
   const mountedRef = useRef(true);
   const timeoutRef = useRef<number | null>(null);
+
+  const log = useCallback((msg: string) => {
+    setDebugLogs((prev) => {
+      const next = [...prev, msg];
+      return next.length > MAX_DEBUG_LOGS ? next.slice(-MAX_DEBUG_LOGS) : next;
+    });
+  }, []);
+
+  const clearDebugLogs = useCallback(() => setDebugLogs([]), []);
 
   const clearPendingTimeout = useCallback(() => {
     if (timeoutRef.current !== null) {
@@ -91,6 +104,8 @@ export function useSorobanaVoice() {
     const myGeneration = ++generationRef.current;
     const localQueue = [...files];
 
+    log(`▶ CALL playFiles (${files.length})`);
+
     clearPendingTimeout();
     try {
       audio.onended = null;
@@ -104,12 +119,15 @@ export function useSorobanaVoice() {
       if (myGeneration !== generationRef.current || !mountedRef.current) return;
       const nextFile = localQueue.shift();
       if (!nextFile) {
+        log('🏁 QUEUE empty → onDone');
         setIsSpeaking(false);
         onDone?.();
         return;
       }
 
+      const filename = nextFile.split('/').pop() || nextFile;
       audio.src = nextFile;
+      log(`📁 Loading: ${filename}`);
 
       let advanced = false;
       const advance = () => {
@@ -124,19 +142,25 @@ export function useSorobanaVoice() {
         }, 250);
       };
 
-      audio.onended = advance;
-      audio.onerror = advance;
+      audio.onended = () => { log('✔ ENDED'); advance(); };
+      audio.onerror = () => { log('❌ ERROR event'); advance(); };
 
-      // Safety net: يُمسح فقط عندما يُنفَّذ advance
-      timeoutRef.current = window.setTimeout(advance, 8000);
+      audio.oncanplay = () => { log('🍞 Can play'); };
+      audio.onplay = () => { log('▶ PLAY fired'); };
 
-      audio.play().catch(() => {
-        advance();
-      });
+      timeoutRef.current = window.setTimeout(() => { log('⏱ TIMEOUT 8s'); advance(); }, 8000);
+
+      audio.play()
+        .then(() => { log('✅ play() resolved'); })
+        .catch((err: unknown) => {
+          const msg = err instanceof Error ? err.message : String(err);
+          log(`❌ play() rejected: ${msg}`);
+          advance();
+        });
     };
 
     playNext();
-  }, [getSharedAudio, clearPendingTimeout]);
+  }, [getSharedAudio, clearPendingTimeout, log]);
 
   const speak = useCallback((text: string, _mood?: string, onDone?: () => void) => {
     void text;
@@ -170,6 +194,7 @@ export function useSorobanaVoice() {
   return {
     speak, stop, isSpeaking, isSupported,
     speakLesson, speakTeaching, speakCorrect, speakWrong, speakEndLesson, speakFiles,
+    debugLogs, clearDebugLogs,
   };
 }
 
