@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { Soroban2D5 } from './soroban2d5/Soroban2D5';
 import { SorobanaCompanion } from './SorobanaCompanion';
+import { DebugOverlay } from './DebugOverlay';
 import { useSorobanaVoice } from '@/hooks/useSorobanaVoice';
 import { useSpeech } from '@/hooks/useSpeech';
 import AudioAnzanScreen from './AudioAnzanScreen';
@@ -447,6 +448,8 @@ export function AnzanScreen({ onBack, playSound, onXP, burst }: Props) {
 
   return (
     <div className="px-3 sm:px-6 py-6 max-w-2xl mx-auto" dir="rtl">
+      <DebugOverlay logs={sorobana.debugLogs} onClear={sorobana.clearDebugLogs} />
+
       <div className="flex items-center gap-3 mb-4">
         <button onClick={() => { stop(); sorobana.stop(); playSound('click'); onBack(); }} className="btn-ghost !px-3 !py-2">
           <ArrowRight className="w-5 h-5" />
