@@ -20,6 +20,18 @@ function pickRandom(arr: string[]): string {
 
 const MAX_DEBUG_LOGS = 40;
 
+function describeMediaError(err: MediaError | null): string {
+  if (!err) return 'unknown';
+  const codeMap: Record<number, string> = {
+    1: 'ABORTED',
+    2: 'NETWORK',
+    3: 'DECODE',
+    4: 'SRC_NOT_SUPPORTED',
+  };
+  const codeName = codeMap[err.code] || `code=${err.code}`;
+  return `${codeName}${err.message ? ` :: ${err.message}` : ''}`;
+}
+
 export function useSorobanaVoice() {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [isSupported] = useState(true);
@@ -69,7 +81,7 @@ export function useSorobanaVoice() {
     if (!audioRef.current) {
       const a = new Audio();
       a.preload = 'auto';
-      a.crossOrigin = 'anonymous';
+      // لا نضع crossOrigin — نفس الدومين، لا حاجة له، وقد يُسبب فشل CORS
       audioRef.current = a;
     }
     return audioRef.current;
@@ -129,6 +141,9 @@ export function useSorobanaVoice() {
       audio.src = nextFile;
       log(`📁 Loading: ${filename}`);
 
+      // إعادة التحميل الصريحة
+      try { audio.load(); } catch { /* ignore */ }
+
       let advanced = false;
       const advance = () => {
         if (advanced) return;
@@ -143,8 +158,10 @@ export function useSorobanaVoice() {
       };
 
       audio.onended = () => { log('✔ ENDED'); advance(); };
-      audio.onerror = () => { log('❌ ERROR event'); advance(); };
-
+      audio.onerror = () => {
+        log(`❌ ERROR: ${describeMediaError(audio.error)}`);
+        advance();
+      };
       audio.oncanplay = () => { log('🍞 Can play'); };
       audio.onplay = () => { log('▶ PLAY fired'); };
 
@@ -153,7 +170,7 @@ export function useSorobanaVoice() {
       audio.play()
         .then(() => { log('✅ play() resolved'); })
         .catch((err: unknown) => {
-          const msg = err instanceof Error ? err.message : String(err);
+          const msg = err instanceof Error ? `${err.name}: ${err.message}` : String(err);
           log(`❌ play() rejected: ${msg}`);
           advance();
         });
