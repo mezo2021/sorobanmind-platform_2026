@@ -50,6 +50,17 @@ const LEVEL_CONFIG = {
     textColor: '#FFFFFF',
     number: '★',
   },
+  fail: {
+    outer1: '#E5E7EB',
+    outer2: '#9CA3AF',
+    outer3: '#6B7280',
+    inner1: '#F3F4F6',
+    inner2: '#9CA3AF',
+    inner3: '#6B7280',
+    edge: '#4B5563',
+    textColor: '#374151',
+    number: '—',
+  },
 } as const;
 
 export default function CertificateMedal({ level, size = 64 }: CertificateMedalProps) {
@@ -66,39 +77,33 @@ export default function CertificateMedal({ level, size = 64 }: CertificateMedalP
       aria-label={`ميدالية ${level}`}
     >
       <defs>
-        {/* تدرج الحلقة الخارجية */}
         <radialGradient id={`${uid}-outer`} cx="50%" cy="35%" r="70%">
           <stop offset="0%" stopColor={c.outer1} />
           <stop offset="40%" stopColor={c.outer2} />
           <stop offset="100%" stopColor={c.outer3} />
         </radialGradient>
 
-        {/* تدرج القرص الداخلي */}
         <radialGradient id={`${uid}-inner`} cx="50%" cy="30%" r="75%">
           <stop offset="0%" stopColor={c.inner1} />
           <stop offset="55%" stopColor={c.inner2} />
           <stop offset="100%" stopColor={c.inner3} />
         </radialGradient>
 
-        {/* تدرج الشريط البنفسجي */}
         <linearGradient id={`${uid}-ribbon1`} x1="0%" y1="0%" x2="0%" y2="100%">
           <stop offset="0%" stopColor="#7C3AED" />
           <stop offset="100%" stopColor="#4C1D95" />
         </linearGradient>
 
-        {/* تدرج الشريط الذهبي */}
         <linearGradient id={`${uid}-ribbon2`} x1="0%" y1="0%" x2="0%" y2="100%">
           <stop offset="0%" stopColor="#FFD700" />
           <stop offset="100%" stopColor="#B8860B" />
         </linearGradient>
 
-        {/* لمعة */}
         <linearGradient id={`${uid}-shine`} x1="0%" y1="0%" x2="0%" y2="100%">
           <stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.65" />
           <stop offset="100%" stopColor="#FFFFFF" stopOpacity="0" />
         </linearGradient>
 
-        {/* ظل ناعم */}
         <filter id={`${uid}-shadow`} x="-20%" y="-20%" width="140%" height="140%">
           <feGaussianBlur in="SourceAlpha" stdDeviation="1.2" />
           <feOffset dx="0" dy="1.5" result="offsetblur" />
@@ -112,23 +117,19 @@ export default function CertificateMedal({ level, size = 64 }: CertificateMedalP
         </filter>
       </defs>
 
-      {/* ═══ الشرائط (Ribbon) ═══ */}
       <g>
-        {/* الشريط البنفسجي (يسار) */}
         <path
           d="M 30,18 L 22,72 L 38,72 L 44,20 Z"
           fill={`url(#${uid}-ribbon1)`}
           stroke="#3D1470"
           strokeWidth="0.6"
         />
-        {/* الشريط الذهبي (يمين) */}
         <path
           d="M 70,18 L 78,72 L 62,72 L 56,20 Z"
           fill={`url(#${uid}-ribbon2)`}
           stroke="#7B5D0A"
           strokeWidth="0.6"
         />
-        {/* نجمة صغيرة أعلى الشرائط */}
         <polygon
           points="50,4 52,10 58,10 53,14 55,20 50,16 45,20 47,14 42,10 48,10"
           fill="#FFD700"
@@ -137,9 +138,7 @@ export default function CertificateMedal({ level, size = 64 }: CertificateMedalP
         />
       </g>
 
-      {/* ═══ القرص الرئيسي ═══ */}
       <g filter={`url(#${uid}-shadow)`}>
-        {/* الحلقة الخارجية */}
         <circle cx="50" cy="68" r="32" fill={`url(#${uid}-outer)`} />
         <circle
           cx="50"
@@ -150,7 +149,6 @@ export default function CertificateMedal({ level, size = 64 }: CertificateMedalP
           strokeWidth="0.8"
         />
 
-        {/* نقاط زخرفية حول الحلقة الخارجية */}
         {Array.from({ length: 24 }).map((_, i) => {
           const angle = (i * (360 / 24) * Math.PI) / 180;
           const x = 50 + 29 * Math.cos(angle);
@@ -167,7 +165,6 @@ export default function CertificateMedal({ level, size = 64 }: CertificateMedalP
           );
         })}
 
-        {/* القرص الداخلي */}
         <circle cx="50" cy="68" r="23" fill={`url(#${uid}-inner)`} />
         <circle
           cx="50"
@@ -178,7 +175,6 @@ export default function CertificateMedal({ level, size = 64 }: CertificateMedalP
           strokeWidth="1.2"
         />
 
-        {/* اللمعة العلوية */}
         <ellipse
           cx="50"
           cy="56"
@@ -187,7 +183,6 @@ export default function CertificateMedal({ level, size = 64 }: CertificateMedalP
           fill={`url(#${uid}-shine)`}
         />
 
-        {/* الرقم / الرمز في المركز */}
         <text
           x="50"
           y="77"
@@ -203,7 +198,6 @@ export default function CertificateMedal({ level, size = 64 }: CertificateMedalP
           {c.number}
         </text>
 
-        {/* نجمتان صغيرتان على جانبي الرقم */}
         <polygon
           points="24,68 25.5,71 28.5,71 26,73 27,76 24,74 21,76 22,73 19.5,71 22.5,71"
           fill={c.edge}
